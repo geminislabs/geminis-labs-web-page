@@ -119,17 +119,35 @@ describe('error capture', () => {
 		expect(classifyError('x')).toBe('programming');
 	});
 
-	it('handlers de process no throw', () => {
+	it('uncaughtException reporta y devuelve el proceso a morir', () => {
 		installNodeErrorCapture();
 		const uncaught = process
 			.listeners('uncaughtException')
 			.find((fn) => String(fn).includes('reportUnhandled'));
+		expect(uncaught).toBeTruthy();
+
+		const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined);
+		vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+		uncaught(new TypeError('node boom'));
+
+		expect(emit).toHaveBeenCalled();
+		// Lo que fija esta prueba: registrar el listener anula el default de Node
+		// (imprimir y morir), asi que el default se devuelve a mano. Sin esto el
+		// servidor sigue atendiendo con estado indefinido en vez de reiniciarse.
+		expect(exit).toHaveBeenCalledWith(1);
+	});
+
+	it('unhandledRejection vuelve a lanzar para que Node haga lo suyo', () => {
+		installNodeErrorCapture();
 		const rejection = process
 			.listeners('unhandledRejection')
 			.find((fn) => String(fn).includes('reportUnhandled'));
-		if (uncaught) expect(() => uncaught(new TypeError('node boom'))).not.toThrow();
-		if (rejection) expect(() => rejection(new Error('node rej'))).not.toThrow();
-		expect(uncaught || rejection).toBeTruthy();
+		expect(rejection).toBeTruthy();
+
+		expect(() => rejection(new Error('node rej'))).toThrow('node rej');
+		expect(() => rejection('texto suelto')).toThrow('texto suelto');
+		expect(emit).toHaveBeenCalledTimes(2);
 	});
 
 	it('logWarn y logError emiten severidad correcta', () => {

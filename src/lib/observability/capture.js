@@ -99,13 +99,34 @@ export function installBrowserErrorCapture() {
 	};
 }
 
+/**
+ * Captura de errores del proceso Node.
+ *
+ * Registrar un listener de `uncaughtException` **anula** el comportamiento por
+ * defecto de Node, que es imprimir el stack y morir. Lo mismo hace un listener
+ * de `unhandledRejection` con el modo `throw` que Node trae desde la v15.
+ *
+ * Sin volver a matar el proceso a mano, el servidor sobrevive a una excepcion
+ * no capturada y sigue atendiendo peticiones con estado indefinido. Es peor que
+ * el fallo original: un proceso muerto lo reinicia el contenedor; uno a medias
+ * no se reinicia y nadie se entera hasta que alguien mira.
+ *
+ * Por eso reportamos y devolvemos el comportamiento original.
+ */
 export function installNodeErrorCapture() {
 	if (nodeInstalled || typeof process === 'undefined' || typeof process.on !== 'function') return;
 	nodeInstalled = true;
 	process.on('uncaughtException', (error) => {
 		reportUnhandled(error, 'node');
+		// Replica lo que hacia el default antes de que este listener existiera:
+		// el stack a stderr, y morir con codigo 1 para que el contenedor reinicie.
+		console.error(error);
+		process.exit(1);
 	});
 	process.on('unhandledRejection', (reason) => {
 		reportUnhandled(reason, 'node');
+		// Volver a lanzar la convierte en uncaughtException, que es exactamente
+		// lo que Node hace por su cuenta cuando nadie escucha este evento.
+		throw reason instanceof Error ? reason : new Error(String(reason));
 	});
 }
