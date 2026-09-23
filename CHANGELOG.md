@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Paquete local `@geminislabs/observability` (sinks, OTLP JSON propio e `instrumentedFetch`)
 - `Dockerfile.simple` y `Dockerfile.fallback`: no los construía nadie — `docker-compose.yml` y el workflow de deploy usan `Dockerfile` — y seguían pidiendo actualizaciones de base (`ubuntu:22.04`, `node:20`) que había que triar
 
+### Changed
+
+- Node 24 LTS en los cuatro sitios que fijaban versión: `Dockerfile` (las dos etapas), `.nvmrc`, `engines` y los dos jobs de CI. La imagen de producción corría `node:20-alpine`, sin soporte desde abril, y con una CI que probaba en 22 — producción usaba una versión que ninguna prueba tocaba
+
 ### Security
 
 - `devalue` 5.9.2 vía override (`GHSA-9rgm-9g3h-6x36` / CVE-2026-81176). OSV-Scanner lo marca como Medium y el job `security` de CI falla si queda 5.8.1
