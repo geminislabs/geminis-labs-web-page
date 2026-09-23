@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Observabilidad con OpenTelemetry oficial en `src/lib/observability/` (`init`, `scrubber`, `journey`, `capture`): traces, métricas y logs OTLP/HTTP. Sin `OTLP_ENDPOINT` no se registran providers (API no-op). Journeys de login, contacto y billing; `FetchInstrumentation` en el browser y `HttpInstrumentation` en Node; `GET /health`; proxy same-origin `/internal/otlp` para que el browser no tenga que POST al collector. Stack LGTM local y dashboards Grafana en `observability/` — Grafana anónimo Admin es solo local
+
+### Changed
+
+- `apiClient`, autenticación, billing y el formulario de contacto emiten señales de observabilidad. El comportamiento de dominio no cambia: si el SDK falla, la petición sigue
+- El cliente propio y el paquete `@geminislabs/observability` se sustituyen por el SDK oficial de OpenTelemetry (`@opentelemetry/*`)
+- Los dashboards Grafana consultan el contrato OTel/Prometheus (`http_server_duration_milliseconds_*`, `http_client_duration_milliseconds_*`, `http_client_errors_total`, `journey_outcome_total`, `js_errors_total`) con temporality cumulative, buckets explícitos y labels `service_name`/`deployment_environment`
+
+### Removed
+
+- Paquete local `@geminislabs/observability` (sinks, OTLP JSON propio e `instrumentedFetch`)
+
+### Security
+
+- `devalue` 5.9.2 vía override (`GHSA-9rgm-9g3h-6x36` / CVE-2026-81176). OSV-Scanner lo marca como Medium y el job `security` de CI falla si queda 5.8.1
+
 ## [1.14.0] — 2026-09-11
 
 ### Changed

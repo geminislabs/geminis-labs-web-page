@@ -20,7 +20,16 @@ export default [
 	...svelte.configs.prettier,
 	{
 		languageOptions: {
-			globals: { ...globals.browser, ...globals.node }
+			globals: {
+				...globals.browser,
+				...globals.node,
+				__SERVICE_NAME__: 'readonly',
+				__SERVICE_VERSION__: 'readonly',
+				__DEPLOY_ENV__: 'readonly',
+				__RUNTIME_VERSION__: 'readonly',
+				__GIT_COMMIT__: 'readonly',
+				__OTLP_ENDPOINT__: 'readonly'
+			}
 		},
 		rules: {
 			'no-unused-vars': [

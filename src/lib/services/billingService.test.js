@@ -30,6 +30,13 @@ vi.mock('$lib/stores/authStore.js', () => ({
 	}
 }));
 
+function headerOf(init, name) {
+	const headers = init?.headers;
+	if (!headers) return null;
+	if (typeof headers.get === 'function') return headers.get(name);
+	return headers[name] ?? headers[name.toLowerCase()] ?? null;
+}
+
 describe('billingService', () => {
 	let billingService;
 
@@ -303,8 +310,8 @@ describe('billingService', () => {
 			json: async () => ({ client_token: 'cs_test' })
 		});
 		await billingService.createPaymentIntent({ planId: 'plan-9', billingCycle: 'MONTHLY' });
-		const firstHeaders = fetch.mock.calls[0][1].headers;
-		expect(firstHeaders['Idempotency-Key']).toContain('plan-9-MONTHLY-');
+		const firstKey = headerOf(fetch.mock.calls[0][1], 'Idempotency-Key');
+		expect(firstKey).toContain('plan-9-MONTHLY-');
 
 		fetch.mockResolvedValueOnce({
 			ok: true,
@@ -312,8 +319,7 @@ describe('billingService', () => {
 			json: async () => ({ client_token: 'cs_test' })
 		});
 		await billingService.createPaymentIntent({ planId: 'plan-9', billingCycle: 'MONTHLY' });
-		const secondHeaders = fetch.mock.calls[1][1].headers;
-		expect(secondHeaders['Idempotency-Key']).toBe(firstHeaders['Idempotency-Key']);
+		expect(headerOf(fetch.mock.calls[1][1], 'Idempotency-Key')).toBe(firstKey);
 	});
 
 	it('createPaymentIntent surfaces generic API errors', async () => {
@@ -339,7 +345,7 @@ describe('billingService', () => {
 			billingCycle: 'YEARLY',
 			idempotencyKey: explicitIdem
 		});
-		expect(fetch.mock.calls[0][1].headers['Idempotency-Key']).toBe(explicitIdem);
+		expect(headerOf(fetch.mock.calls[0][1], 'Idempotency-Key')).toBe(explicitIdem);
 	});
 
 	it('createPaymentIntent refuses to call the API without a key', async () => {
@@ -670,5 +676,141 @@ describe('billingService', () => {
 			'Factura no encontrada'
 		);
 		expect(fetch).not.toHaveBeenCalled();
+	});
+});
+
+describe('billing observability', () => {
+	let billingService;
+	/** @type {ReturnType<typeof vi.fn>} */
+	let add;
+
+	beforeEach(async () => {
+		vi.resetModules();
+		vi.clearAllMocks();
+		sessionStorage.clear();
+		sessionStorage.setItem('geminis_access_token', 'access-token');
+		add = vi.fn();
+		const { metrics } = await import('@opentelemetry/api');
+		vi.spyOn(metrics, 'getMeter').mockReturnValue({
+			createCounter: () => ({ add })
+		});
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				ok: true,
+				status: 200,
+				json: async () => ({ client_token: 'cs_live' })
+			})
+		);
+		({ billingService } = await import('./billingService.js'));
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+	});
+
+	it('llamada al API de billing usa path sin query', async () => {
+		await billingService.getSummary();
+		expect(String(fetch.mock.calls[0][0])).toContain('/api/v1/billing/summary');
+		expect(String(fetch.mock.calls[0][0])).not.toContain('?');
+	});
+
+	it('client_secret ausente en todas las señales', async () => {
+		fetch.mockResolvedValueOnce({
+			ok: true,
+			status: 201,
+			json: async () => ({
+				client_secret: 'cs_test_SECRET_VALUE',
+				client_token: 'cs_test_SECRET_VALUE'
+			})
+		});
+		await billingService.createPaymentIntent({ planId: 'p1', billingCycle: 'MONTHLY' });
+		expect(JSON.stringify(add.mock.calls)).not.toContain('cs_test_SECRET_VALUE');
+		expect(JSON.stringify(add.mock.calls)).not.toContain('client_secret');
+	});
+
+	it('Authorization header ausente en señales', async () => {
+		await billingService.getSummary();
+		const serialized = JSON.stringify(add.mock.calls);
+		expect(serialized).not.toContain('access-token');
+		expect(serialized).not.toMatch(/Bearer /);
+	});
+
+	it('inicio exitoso emite journey event con outcome=success', async () => {
+		fetch.mockResolvedValueOnce({
+			ok: true,
+			status: 201,
+			json: async () => ({ client_token: 'cs_ok' })
+		});
+		await billingService.createPaymentIntent({ planId: 'p1', billingCycle: 'MONTHLY' });
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({ journey: 'checkout.start', outcome: 'success' })
+		);
+	});
+
+	it('401 emite journey con outcome=failure, error_category=authentication', async () => {
+		fetch.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+		await expect(
+			billingService.createPaymentIntent({ planId: 'p1', billingCycle: 'MONTHLY' })
+		).rejects.toThrow(/sesión expiró/i);
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({
+				journey: 'checkout.start',
+				outcome: 'failure',
+				error_category: 'authentication'
+			})
+		);
+	});
+
+	it('5xx emite journey con outcome=failure, error_category=operational', async () => {
+		fetch.mockResolvedValueOnce({
+			ok: false,
+			status: 500,
+			json: async () => ({ detail: 'Stripe down' })
+		});
+		await expect(
+			billingService.createPaymentIntent({ planId: 'p1', billingCycle: 'MONTHLY' })
+		).rejects.toThrow('Stripe down');
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({
+				journey: 'checkout.start',
+				outcome: 'failure',
+				error_category: 'operational'
+			})
+		);
+	});
+
+	it('retorno exitoso de Stripe emite journey con outcome=success', () => {
+		expect(billingService.completeCheckout('succeeded')).toBe('success');
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({ journey: 'checkout.complete', outcome: 'success' })
+		);
+	});
+
+	it('retorno cancelado emite journey con outcome=cancelled', () => {
+		expect(billingService.completeCheckout('canceled')).toBe('cancelled');
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({ journey: 'checkout.complete', outcome: 'cancelled' })
+		);
+	});
+
+	it('query string de Stripe ausente en todas las señales', () => {
+		billingService.completeCheckout(
+			'?payment_intent=pi_secret&payment_intent_client_secret=cs_secret&redirect_status=succeeded'
+		);
+		const serialized = JSON.stringify(add.mock.calls);
+		expect(serialized).not.toContain('pi_secret');
+		expect(serialized).not.toContain('cs_secret');
+		expect(serialized).not.toContain('payment_intent_client_secret');
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({ journey: 'checkout.complete', outcome: 'success' })
+		);
 	});
 });

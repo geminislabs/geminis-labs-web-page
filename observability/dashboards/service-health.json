@@ -1,0 +1,335 @@
+{
+	"annotations": { "list": [] },
+	"editable": true,
+	"fiscalYearStartMonth": 0,
+	"graphTooltip": 1,
+	"id": null,
+	"links": [],
+	"liveNow": false,
+	"refresh": "30s",
+	"schemaVersion": 39,
+	"tags": ["geminis-labs", "health"],
+	"time": { "from": "now-1h", "to": "now" },
+	"timezone": "browser",
+	"title": "Salud del Servicio — geminis-labs-web-page",
+	"uid": "geminis-service-health",
+	"version": 11,
+	"templating": {
+		"list": [
+			{
+				"name": "environment",
+				"label": "Entorno",
+				"type": "custom",
+				"query": "local,test,production",
+				"current": { "text": "local", "value": "local" },
+				"includeAll": true,
+				"allValue": ".*",
+				"multi": false,
+				"options": []
+			},
+			{
+				"name": "service",
+				"label": "Servicio",
+				"type": "custom",
+				"query": "geminis-labs-web-page",
+				"current": { "text": "geminis-labs-web-page", "value": "geminis-labs-web-page" },
+				"includeAll": true,
+				"allValue": ".*",
+				"multi": false,
+				"options": []
+			}
+		]
+	},
+	"panels": [
+		{
+			"id": 100,
+			"title": "🟢 Estado General",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+		},
+		{
+			"id": 1,
+			"title": "Servidor activo",
+			"description": "Verde = hay tráfico en los últimos 5 min. Rojo = sin actividad.",
+			"type": "stat",
+			"gridPos": { "h": 6, "w": 4, "x": 0, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"mappings": [
+						{
+							"type": "value",
+							"options": {
+								"0": { "text": "Sin tráfico", "color": "red", "index": 0 },
+								"1": { "text": "Activo", "color": "green", "index": 1 }
+							}
+						}
+					],
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "red", "value": null },
+							{ "color": "green", "value": 1 }
+						]
+					},
+					"color": { "mode": "thresholds" }
+				},
+				"overrides": []
+			},
+			"options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "count(last_over_time(http_server_duration_milliseconds_count{service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) > bool 0",
+					"legendFormat": "estado"
+				}
+			]
+		},
+		{
+			"id": 2,
+			"title": "Requests por segundo al servidor (RPS)",
+			"description": "Tasa de requests HTTP entrantes. Un spike puede indicar tráfico inusual.",
+			"type": "timeseries",
+			"gridPos": { "h": 6, "w": 12, "x": 4, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "reqps",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 10 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(http_server_duration_milliseconds_count{service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m]))",
+					"legendFormat": "req/s"
+				}
+			]
+		},
+		{
+			"id": 7,
+			"title": "Total requests en el período",
+			"description": "Número absoluto de requests procesados en el rango seleccionado.",
+			"type": "stat",
+			"gridPos": { "h": 6, "w": 4, "x": 16, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+					"color": { "mode": "thresholds" }
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["sum"] },
+				"textMode": "value",
+				"colorMode": "value"
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(increase(http_server_duration_milliseconds_count{service_name=~\"$service\", deployment_environment=~\"$environment\"}[$__range]))",
+					"legendFormat": "total"
+				}
+			]
+		},
+		{
+			"id": 8,
+			"title": "Errores 4xx/5xx en el período",
+			"description": "Requests con http_status_code >= 400. Rojo si hay más de 10.",
+			"type": "stat",
+			"gridPos": { "h": 6, "w": 4, "x": 20, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "yellow", "value": 1 },
+							{ "color": "red", "value": 10 }
+						]
+					},
+					"color": { "mode": "thresholds" }
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["sum"] },
+				"textMode": "value",
+				"colorMode": "background"
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(increase(http_server_duration_milliseconds_count{service_name=~\"$service\", deployment_environment=~\"$environment\", http_status_code=~\"4..|5..\"}[$__range])) or vector(0)",
+					"legendFormat": "errores"
+				}
+			]
+		},
+		{
+			"id": 101,
+			"title": "⚡ Latencia y Tasa de Error",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 }
+		},
+		{
+			"id": 3,
+			"title": "Tasa de error HTTP del servidor (%)",
+			"description": "Porcentaje de requests 4xx/5xx. Verde < 1%, Amarillo 1-5%, Rojo > 5%.",
+			"type": "gauge",
+			"gridPos": { "h": 8, "w": 6, "x": 0, "y": 8 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percentunit",
+					"min": 0,
+					"max": 1,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "yellow", "value": 0.01 },
+							{ "color": "red", "value": 0.05 }
+						]
+					},
+					"color": { "mode": "thresholds" }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "(sum(rate(http_server_duration_milliseconds_count{ service_name=~\"$service\", deployment_environment=~\"$environment\", http_status_code=~\"4..|5..\"}[$__range])) or vector(0)) / clamp_min(sum(rate(http_server_duration_milliseconds_count{ service_name=~\"$service\", deployment_environment=~\"$environment\"}[$__range])) or vector(1e-9), 1e-9)",
+					"instant": true
+				}
+			]
+		},
+		{
+			"id": 4,
+			"title": "Latencia del servidor — p95 y p50 (ms)",
+			"description": "p95 = el 95% de requests responden en menos de este tiempo. p95 > 500ms empieza a afectar la UX. p95 > 2000ms es crítico.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 18, "x": 6, "y": 8 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ms",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 10 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "histogram_quantile(0.95, sum(rate(http_server_duration_milliseconds_bucket{service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (le))",
+					"legendFormat": "p95 latencia"
+				},
+				{
+					"refId": "B",
+					"expr": "histogram_quantile(0.50, sum(rate(http_server_duration_milliseconds_bucket{service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (le))",
+					"legendFormat": "p50 latencia (mediana)"
+				}
+			]
+		},
+		{
+			"id": 102,
+			"title": "🌐 Requests por Ruta",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 }
+		},
+		{
+			"id": 9,
+			"title": "RPS por ruta del servidor",
+			"description": "Qué rutas reciben más tráfico. Útil para detectar endpoints lentos o con muchos errores.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 14, "x": 0, "y": 17 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "reqps",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(http_server_duration_milliseconds_count{service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (http_route)",
+					"legendFormat": "{{http_route}}"
+				}
+			]
+		},
+		{
+			"id": 10,
+			"title": "Errores por ruta (4xx/5xx)",
+			"description": "Qué rutas generan más errores. Una ruta con muchos 404 puede indicar un link roto o un bot explorando.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 10, "x": 14, "y": 17 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 15 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(http_server_duration_milliseconds_count{service_name=~\"$service\", deployment_environment=~\"$environment\", http_status_code=~\"4..|5..\"}[5m])) by (http_route, http_status_code)",
+					"legendFormat": "{{http_route}} [{{http_status_code}}]"
+				}
+			]
+		},
+		{
+			"id": 103,
+			"title": "🛡️ Errores de JavaScript en el Browser",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 }
+		},
+		{
+			"id": 6,
+			"title": "Errores JS por categoría",
+			"description": "'programming' = bug en código. 'operational' = fallo de red. 'user' = acción inválida. Capturados via window.onerror y unhandledrejection.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 15 }
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "programming" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "operational" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
+					}
+				]
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(js_errors_total{service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (error_category)",
+					"legendFormat": "{{error_category}}"
+				}
+			]
+		}
+	]
+}

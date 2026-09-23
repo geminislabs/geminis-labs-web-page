@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
 import { authStore, isAuthenticated, currentUser, authLoading, authError } from './authStore.js';
+import { logs } from '@opentelemetry/api-logs';
 
 // Mock de los servicios
 vi.mock('../services/authService.js', () => ({
@@ -274,6 +275,8 @@ describe('AuthStore', () => {
 
 	describe('error catch paths', () => {
 		it('login handles thrown errors', async () => {
+			const emit = vi.fn();
+			vi.spyOn(logs, 'getLogger').mockReturnValue({ emit });
 			const { authService } = await import('../services/authService.js');
 			authService.login.mockRejectedValueOnce(new Error('network'));
 
@@ -281,6 +284,8 @@ describe('AuthStore', () => {
 
 			expect(result.success).toBe(false);
 			expect(get(authStore).error).toBe('Error al iniciar sesión');
+			expect(emit).toHaveBeenCalledWith(expect.objectContaining({ severityText: 'WARN' }));
+			vi.restoreAllMocks();
 		});
 
 		it('forgotPassword handles thrown errors', async () => {

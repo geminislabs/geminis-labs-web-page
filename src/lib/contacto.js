@@ -1,4 +1,7 @@
 import { buildApiUrl, API_CONFIG } from '$lib/config/api.js';
+import { logError, logWarn } from '$lib/observability/capture.js';
+import { instrumentedFetch } from '$lib/observability/http.js';
+import { startJourney } from '$lib/observability/journey.js';
 
 /**
  * Envío de contacto: validación, saneado, reCAPTCHA y llamada al API.
@@ -99,14 +102,14 @@ export function cargarRecaptcha(clave = claveRecaptcha()) {
 
 export async function tokenRecaptcha(accion = 'submit', clave = claveRecaptcha()) {
 	if (!clave || !window.grecaptcha) {
-		console.warn('reCAPTCHA no está configurado o no se ha cargado');
+		logWarn('dependency.recaptcha.unavailable', { error_category: 'dependency' });
 		return null;
 	}
 	try {
 		await window.grecaptcha.ready(() => {});
 		return await window.grecaptcha.execute(clave, { action: accion });
-	} catch (error) {
-		console.error('Error al generar token de reCAPTCHA:', error);
+	} catch {
+		logError('dependency.recaptcha.failure', { error_category: 'dependency' });
 		return null;
 	}
 }
@@ -121,6 +124,7 @@ export async function tokenRecaptcha(accion = 'submit', clave = claveRecaptcha()
  * dónde viene sin que nada más cambie.
  */
 export async function enviarContacto(datos, { accion = 'contact_form', contexto = '' } = {}) {
+	const journey = startJourney('contact.submit');
 	const cuerpo = {
 		nombre: sanearTexto(datos.nombre.trim()),
 		mensaje: sanearTexto((contexto ? `[${contexto}] ` : '') + datos.mensaje.trim())
@@ -139,25 +143,43 @@ export async function enviarContacto(datos, { accion = 'contact_form', contexto 
 	} else if (clave) {
 		// Configurado pero fallido: enviar sin token dejaría pasar spam que el
 		// servidor cree verificado.
+		journey.end('failure', { error_category: 'dependency' });
 		return { ok: false, mensaje: 'Error al verificar reCAPTCHA. Por favor, intenta nuevamente.' };
 	}
 
 	try {
-		const respuesta = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.SEND_CONTACT_MESSAGE), {
-			method: 'POST',
-			headers: API_CONFIG.DEFAULT_HEADERS,
-			body: JSON.stringify(cuerpo)
-		});
+		const respuesta = await instrumentedFetch(
+			buildApiUrl(API_CONFIG.ENDPOINTS.SEND_CONTACT_MESSAGE),
+			{
+				method: 'POST',
+				headers: API_CONFIG.DEFAULT_HEADERS,
+				body: JSON.stringify(cuerpo),
+				route: '/api/v1/contact/send-message',
+				targetService: 'siscom-admin-api',
+				signal:
+					typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+						? AbortSignal.timeout(10000)
+						: undefined
+			}
+		);
 		const resultado = await respuesta.json();
 
-		return respuesta.ok
-			? { ok: true, mensaje: resultado.message || 'Mensaje enviado exitosamente' }
-			: {
-					ok: false,
-					mensaje: resultado.message || 'Error al enviar el mensaje. Por favor, intenta nuevamente.'
-				};
+		if (respuesta.ok) {
+			journey.end('success');
+			return { ok: true, mensaje: resultado.message || 'Mensaje enviado exitosamente' };
+		}
+
+		const category = Number(respuesta.status) >= 500 ? 'operational' : 'expected';
+		journey.end('failure', { error_category: category });
+		return {
+			ok: false,
+			mensaje: resultado.message || 'Error al enviar el mensaje. Por favor, intenta nuevamente.'
+		};
 	} catch (error) {
-		console.error('Error al enviar mensaje:', error);
+		const isAbort = Boolean(
+			error && typeof error === 'object' && 'name' in error && error.name === 'AbortError'
+		);
+		journey.end('failure', { error_category: isAbort ? 'timeout' : 'operational' });
 		return {
 			ok: false,
 			mensaje: 'Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.'

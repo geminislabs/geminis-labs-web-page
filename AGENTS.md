@@ -25,8 +25,10 @@ src/lib/services/     # API clients y lógica de negocio — testear aquí prime
 src/lib/stores/       # authStore, userStore, toastStore, etc.
 src/lib/components/   # UI reutilizable
 src/lib/utils/        # Helpers puros
+src/lib/observability/ # Telemetría operacional (OpenTelemetry: traces, métricas, logs) — no PII
 src/routes/           # File-based routing de SvelteKit
 docs/architecture/    # Mapa de módulos y APIs consumidas
+observability/        # Stack LGTM local y dashboards Grafana
 ```
 
 Antes de modificar integraciones con backend, lee `docs/architecture/modules/README.md` y el módulo correspondiente.

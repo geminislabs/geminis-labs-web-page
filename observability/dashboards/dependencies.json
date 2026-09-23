@@ -1,0 +1,310 @@
+{
+	"annotations": { "list": [] },
+	"editable": true,
+	"fiscalYearStartMonth": 0,
+	"graphTooltip": 1,
+	"id": null,
+	"links": [],
+	"liveNow": false,
+	"refresh": "30s",
+	"schemaVersion": 39,
+	"tags": ["geminis-labs", "dependencies"],
+	"time": { "from": "now-1h", "to": "now" },
+	"timezone": "browser",
+	"title": "Dependencias Externas — SISCOM, Stripe, reCAPTCHA",
+	"uid": "geminis-dependencies",
+	"version": 7,
+	"description": "Salud de las dependencias externas que usa geminis-labs-web-page: la API de SISCOM, Stripe para pagos y Google reCAPTCHA.",
+	"templating": {
+		"list": [
+			{
+				"name": "environment",
+				"label": "Entorno",
+				"type": "custom",
+				"query": "local,test,production",
+				"current": { "text": "local", "value": "local" },
+				"includeAll": true,
+				"allValue": ".*",
+				"multi": false,
+				"options": []
+			},
+			{
+				"name": "service",
+				"label": "Servicio",
+				"type": "custom",
+				"query": "geminis-labs-web-page",
+				"current": { "text": "geminis-labs-web-page", "value": "geminis-labs-web-page" },
+				"includeAll": true,
+				"allValue": ".*",
+				"multi": false,
+				"options": []
+			}
+		]
+	},
+	"panels": [
+		{
+			"id": 100,
+			"title": "🖥️ SISCOM Admin API — Backend Principal",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+		},
+		{
+			"id": 4,
+			"title": "SISCOM — Tasa de error",
+			"description": "Porcentaje de llamadas a siscom-admin-api que fallan (4xx/5xx o error de red). Verde < 2%, Rojo > 10%. Incluye auth, billing, y todos los endpoints de la API.",
+			"type": "gauge",
+			"gridPos": { "h": 8, "w": 5, "x": 0, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percentunit",
+					"min": 0,
+					"max": 1,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "yellow", "value": 0.02 },
+							{ "color": "red", "value": 0.1 }
+						]
+					},
+					"color": { "mode": "thresholds" }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(http_client_errors_total{http_target_service=\"siscom-admin-api\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) / clamp_min(sum(rate(http_client_duration_milliseconds_count{http_target_service=\"siscom-admin-api\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])), 1e-9)"
+				}
+			]
+		},
+		{
+			"id": 11,
+			"title": "SISCOM — Latencia p95 por ruta (ms)",
+			"description": "El 95% de las llamadas a SISCOM responden en menos de este tiempo, desglosado por endpoint. > 500ms empieza a afectar la experiencia del usuario.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 10, "x": 5, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ms",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 10 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "histogram_quantile(0.95, sum(rate(http_client_duration_milliseconds_bucket{http_target_service=\"siscom-admin-api\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (le, http_route))",
+					"legendFormat": "p95 {{http_route}}"
+				}
+			]
+		},
+		{
+			"id": 12,
+			"title": "SISCOM — Requests por segundo por ruta",
+			"description": "Qué endpoints de SISCOM usa más la app en este momento. Un retry loop inesperado o tráfico anormal a un endpoint específico se ve aquí.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 9, "x": 15, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "reqps",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(http_client_duration_milliseconds_count{http_target_service=\"siscom-admin-api\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (http_route)",
+					"legendFormat": "{{http_route}}"
+				}
+			]
+		},
+		{
+			"id": 101,
+			"title": "💳 Stripe — Pagos",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+		},
+		{
+			"id": 6,
+			"title": "Stripe — Tasa de error",
+			"description": "Errores al llamar a Stripe. Un fallo aquí impide que el usuario complete el pago. 'authentication' = credenciales inválidas de Stripe. 'operational' = Stripe caído o con incidente.",
+			"type": "gauge",
+			"gridPos": { "h": 8, "w": 5, "x": 0, "y": 10 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percentunit",
+					"min": 0,
+					"max": 1,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "yellow", "value": 0.02 },
+							{ "color": "red", "value": 0.1 }
+						]
+					},
+					"color": { "mode": "thresholds" }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(http_client_errors_total{http_target_service=\"stripe\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) / clamp_min(sum(rate(http_client_duration_milliseconds_count{http_target_service=\"stripe\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])), 1e-9)"
+				}
+			]
+		},
+		{
+			"id": 13,
+			"title": "Stripe — Latencia p50 y p95 (ms)",
+			"description": "Latencia de las llamadas a Stripe. p50 = experiencia típica. p95 = peor caso frecuente. Stripe normalmente responde en < 300ms. > 1000ms hace que el usuario piense que el pago falló.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 19, "x": 5, "y": 10 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ms",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 10 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "histogram_quantile(0.95, sum(rate(http_client_duration_milliseconds_bucket{http_target_service=\"stripe\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (le))",
+					"legendFormat": "p95 Stripe"
+				},
+				{
+					"refId": "B",
+					"expr": "histogram_quantile(0.50, sum(rate(http_client_duration_milliseconds_bucket{http_target_service=\"stripe\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (le))",
+					"legendFormat": "p50 Stripe"
+				}
+			]
+		},
+		{
+			"id": 102,
+			"title": "🤖 Google reCAPTCHA — Protección Anti-Spam",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
+		},
+		{
+			"id": 5,
+			"title": "reCAPTCHA — Tasa de error",
+			"description": "Fallos al validar reCAPTCHA. Si esto falla, el formulario de contacto rechaza el envío aunque el usuario sea legítimo. Puede ser por límite de cuota o problemas de conectividad con Google.",
+			"type": "gauge",
+			"gridPos": { "h": 8, "w": 5, "x": 0, "y": 19 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percentunit",
+					"min": 0,
+					"max": 1,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "yellow", "value": 0.02 },
+							{ "color": "red", "value": 0.1 }
+						]
+					},
+					"color": { "mode": "thresholds" }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(http_client_errors_total{http_target_service=\"recaptcha\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) / clamp_min(sum(rate(http_client_duration_milliseconds_count{http_target_service=\"recaptcha\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])), 1e-9)"
+				}
+			]
+		},
+		{
+			"id": 14,
+			"title": "reCAPTCHA — Latencia p95 (ms)",
+			"description": "Tiempo de respuesta de Google reCAPTCHA. Normalmente < 200ms. Si supera 1000ms afecta la velocidad percibida al enviar el formulario de contacto.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 19, "x": 5, "y": 19 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ms",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 10 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "histogram_quantile(0.95, sum(rate(http_client_duration_milliseconds_bucket{http_target_service=\"recaptcha\", service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (le))",
+					"legendFormat": "p95 reCAPTCHA"
+				}
+			]
+		},
+		{
+			"id": 103,
+			"title": "📊 Resumen Comparativo de Dependencias",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 }
+		},
+		{
+			"id": 1,
+			"title": "Requests por segundo — todas las dependencias",
+			"description": "Vista consolidada del tráfico saliente hacia cada dependencia. Útil para ver proporciones y detectar si alguna dependencia recibe tráfico inesperado.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "reqps",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 10 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(http_client_duration_milliseconds_count{service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (http_target_service)",
+					"legendFormat": "{{http_target_service}}"
+				}
+			]
+		},
+		{
+			"id": 2,
+			"title": "Latencia p95 — todas las dependencias",
+			"description": "Comparativa de latencia p95 entre SISCOM, Stripe y reCAPTCHA. Identifica cuál dependencia está siendo el cuello de botella en un momento dado.",
+			"type": "timeseries",
+			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ms",
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "histogram_quantile(0.95, sum(rate(http_client_duration_milliseconds_bucket{service_name=~\"$service\", deployment_environment=~\"$environment\"}[5m])) by (le, http_target_service))",
+					"legendFormat": "p95 {{http_target_service}}"
+				}
+			]
+		}
+	]
+}

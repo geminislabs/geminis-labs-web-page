@@ -1,0 +1,384 @@
+{
+	"annotations": { "list": [] },
+	"editable": true,
+	"fiscalYearStartMonth": 0,
+	"graphTooltip": 1,
+	"id": null,
+	"links": [],
+	"liveNow": false,
+	"refresh": "30s",
+	"schemaVersion": 39,
+	"tags": ["geminis-labs", "journeys"],
+	"time": { "from": "now-1h", "to": "now" },
+	"timezone": "browser",
+	"title": "Journeys Críticos de Negocio — Geminis Labs",
+	"uid": "geminis-critical-journeys",
+	"version": 5,
+	"description": "Monitorea los flujos clave del negocio: autenticación, contacto comercial y conversión a pago. Cada panel muestra éxitos vs fallos con la causa del fallo.",
+	"templating": {
+		"list": [
+			{
+				"name": "environment",
+				"label": "Entorno",
+				"type": "custom",
+				"query": "local,test,production",
+				"current": { "text": "local", "value": "local" },
+				"includeAll": true,
+				"allValue": ".*",
+				"multi": false,
+				"options": []
+			},
+			{
+				"name": "journey",
+				"label": "Journey",
+				"type": "custom",
+				"query": "auth.login,auth.refresh,contact.submit,checkout.start,checkout.complete",
+				"current": { "text": "All", "value": "$__all" },
+				"includeAll": true,
+				"allValue": ".*",
+				"multi": true,
+				"options": []
+			}
+		]
+	},
+	"panels": [
+		{
+			"id": 100,
+			"title": "🔐 Autenticación de Usuarios",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+		},
+		{
+			"id": 1,
+			"title": "auth.login — Intentos de inicio de sesión",
+			"description": "Cada intento de login de un usuario. 'success' = autenticado y en el sistema. 'failure' = no pudo entrar. Un pico de failures con error_category=user puede indicar un ataque de credenciales o un problema de UX.",
+			"type": "stat",
+			"gridPos": { "h": 7, "w": 8, "x": 0, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "thresholds" },
+					"thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "success" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "failure" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+					}
+				]
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"orientation": "auto",
+				"textMode": "auto",
+				"colorMode": "background"
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "max by (outcome) (journey_outcome_total{journey=\"auth.login\", deployment_environment=~\"$environment\"})",
+					"legendFormat": "{{outcome}}"
+				}
+			]
+		},
+		{
+			"id": 2,
+			"title": "auth.login — ¿Por qué fallan los logins?",
+			"description": "Desglose de la causa de los logins fallidos. 'user' = credenciales incorrectas o email sin verificar. 'operational' = error del servidor o red. 'timeout' = el servidor tardó demasiado.",
+			"type": "piechart",
+			"gridPos": { "h": 7, "w": 8, "x": 8, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"options": {
+				"legend": { "displayMode": "list", "placement": "right" },
+				"pieType": "donut",
+				"tooltip": { "mode": "single" }
+			},
+			"fieldConfig": {
+				"defaults": { "unit": "short" },
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "user" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "operational" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "timeout" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+					}
+				]
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "max by (error_category) (journey_outcome_total{journey=\"auth.login\", outcome=\"failure\", deployment_environment=~\"$environment\"})",
+					"legendFormat": "{{error_category}}"
+				}
+			]
+		},
+		{
+			"id": 9,
+			"title": "auth.refresh — Renovación automática de sesión",
+			"description": "El token de acceso se renueva silenciosamente cada ~15 minutos. Un fallo aquí cierra la sesión del usuario. Alto failure_rate aquí = usuarios siendo deslogueados inesperadamente.",
+			"type": "stat",
+			"gridPos": { "h": 7, "w": 8, "x": 16, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "thresholds" },
+					"thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "success" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "failure" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+					}
+				]
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"orientation": "auto",
+				"textMode": "auto",
+				"colorMode": "background"
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "max by (outcome) (journey_outcome_total{journey=\"auth.refresh\", deployment_environment=~\"$environment\"})",
+					"legendFormat": "{{outcome}}"
+				}
+			]
+		},
+		{
+			"id": 101,
+			"title": "📩 Formulario de Contacto Comercial",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 }
+		},
+		{
+			"id": 3,
+			"title": "contact.submit — Envíos del formulario de contacto",
+			"description": "Cada vez que alguien completa el formulario de contacto en el sitio. Un 'failure' aquí es un lead perdido. Causas comunes: reCAPTCHA bloqueó el envío (dependency) o error del servidor (operational).",
+			"type": "stat",
+			"gridPos": { "h": 7, "w": 8, "x": 0, "y": 9 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "thresholds" },
+					"thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "success" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "failure" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+					}
+				]
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"orientation": "auto",
+				"textMode": "auto",
+				"colorMode": "background"
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "max by (outcome) (journey_outcome_total{journey=\"contact.submit\", deployment_environment=~\"$environment\"})",
+					"legendFormat": "{{outcome}}"
+				}
+			]
+		},
+		{
+			"id": 10,
+			"title": "contact.submit — Causa de los fallos",
+			"description": "'dependency' = reCAPTCHA rechazó el envío. 'validation' = el formulario tenía datos inválidos. 'operational' = error de red o servidor al enviar.",
+			"type": "piechart",
+			"gridPos": { "h": 7, "w": 8, "x": 8, "y": 9 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"options": { "legend": { "displayMode": "list", "placement": "right" }, "pieType": "donut" },
+			"fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "max by (error_category) (journey_outcome_total{journey=\"contact.submit\", outcome=\"failure\", deployment_environment=~\"$environment\"})",
+					"legendFormat": "{{error_category}}"
+				}
+			]
+		},
+		{
+			"id": 102,
+			"title": "💳 Conversión a Pago (Stripe)",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 }
+		},
+		{
+			"id": 4,
+			"title": "checkout.start — Inicio del proceso de pago",
+			"description": "El usuario hace clic en 'Pagar' y se inicia la sesión de Stripe. Un failure aquí detiene el proceso antes de que el usuario vea el formulario de pago.",
+			"type": "stat",
+			"gridPos": { "h": 7, "w": 8, "x": 0, "y": 17 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "thresholds" },
+					"thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "success" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "failure" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+					}
+				]
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"orientation": "auto",
+				"textMode": "auto",
+				"colorMode": "background"
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "max by (outcome) (journey_outcome_total{journey=\"checkout.start\", deployment_environment=~\"$environment\"})",
+					"legendFormat": "{{outcome}}"
+				}
+			]
+		},
+		{
+			"id": 5,
+			"title": "checkout.complete — Resultado del pago",
+			"description": "'success' = pago confirmado, usuario convirtió. 'cancelled' = el usuario abandonó en la página de Stripe. 'failure' = error técnico al procesar el resultado.",
+			"type": "stat",
+			"gridPos": { "h": 7, "w": 8, "x": 8, "y": 17 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "thresholds" },
+					"thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "success" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "cancelled" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "failure" },
+						"properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+					}
+				]
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"orientation": "auto",
+				"textMode": "auto",
+				"colorMode": "background"
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "max by (outcome) (journey_outcome_total{journey=\"checkout.complete\", deployment_environment=~\"$environment\"})",
+					"legendFormat": "{{outcome}}"
+				}
+			]
+		},
+		{
+			"id": 11,
+			"title": "Tasa de conversión — checkout.start → checkout.complete exitoso",
+			"description": "De todos los usuarios que inician el pago, ¿cuántos completan con éxito? Bajo puede indicar problemas con Stripe, confusión en el flujo de pago, o una tasa de cancelación alta.",
+			"type": "stat",
+			"gridPos": { "h": 7, "w": 8, "x": 16, "y": 17 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percentunit",
+					"min": 0,
+					"max": 1,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "red", "value": null },
+							{ "color": "yellow", "value": 0.5 },
+							{ "color": "green", "value": 0.8 }
+						]
+					},
+					"color": { "mode": "thresholds" }
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"textMode": "value_and_name",
+				"colorMode": "background"
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "(max(journey_outcome_total{journey=\"checkout.complete\", outcome=\"success\", deployment_environment=~\"$environment\"}) or vector(0)) / clamp_min((max(journey_outcome_total{journey=\"checkout.start\", deployment_environment=~\"$environment\"}) or vector(0)), 1)",
+					"legendFormat": "conversión"
+				}
+			]
+		},
+		{
+			"id": 103,
+			"title": "📈 Tendencia General de Fallos",
+			"type": "row",
+			"collapsed": false,
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 }
+		},
+		{
+			"id": 6,
+			"title": "Tasa de fallo por journey — evolución en el tiempo",
+			"description": "Un spike en esta gráfica indica que algo se rompió en ese momento. Puedes filtrar por journey arriba. Úsalo junto con los logs de Loki para correlacionar el momento exacto.",
+			"type": "timeseries",
+			"gridPos": { "h": 9, "w": 24, "x": 0, "y": 25 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percentunit",
+					"min": 0,
+					"max": 1,
+					"color": { "mode": "palette-classic" },
+					"custom": { "lineWidth": 2, "fillOpacity": 10 }
+				},
+				"overrides": []
+			},
+			"targets": [
+				{
+					"refId": "A",
+					"expr": "sum(rate(journey_outcome_total{journey=~\"$journey\", outcome=\"failure\", deployment_environment=~\"$environment\"}[5m])) by (journey) / clamp_min(sum(rate(journey_outcome_total{journey=~\"$journey\", outcome=~\"success|failure\", deployment_environment=~\"$environment\"}[5m])) by (journey), 1e-9)",
+					"legendFormat": "{{journey}}"
+				}
+			]
+		}
+	]
+}

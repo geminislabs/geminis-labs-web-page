@@ -1,6 +1,7 @@
 import { writable, derived } from 'svelte/store';
 import { authService } from '$lib/services/authService.js';
 import { browser } from '$app/environment';
+import { logWarn } from '$lib/observability/capture.js';
 
 /**
  * Store para manejar el estado de autenticación
@@ -39,6 +40,7 @@ function createAuthStore() {
 					error: null
 				}));
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				update((state) => ({
 					...state,
 					isAuthenticated: false,
@@ -74,6 +76,7 @@ function createAuthStore() {
 
 				return result;
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				const errorMessage = 'Error al registrar usuario';
 				update((state) => ({
 					...state,
@@ -101,6 +104,7 @@ function createAuthStore() {
 
 				return result;
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				const errorMessage = 'Error al verificar email';
 				update((state) => ({
 					...state,
@@ -128,6 +132,7 @@ function createAuthStore() {
 
 				return result;
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				const errorMessage = 'Error al aceptar la invitación';
 				update((state) => ({
 					...state,
@@ -168,6 +173,7 @@ function createAuthStore() {
 
 				return result;
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				const errorMessage = 'Error al iniciar sesión';
 				update((state) => ({
 					...state,
@@ -198,6 +204,7 @@ function createAuthStore() {
 
 				return { success: true };
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				// Aunque falle, limpiar el estado local
 				set({
 					isAuthenticated: false,
@@ -242,6 +249,7 @@ function createAuthStore() {
 
 				return result;
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				const errorMessage = 'Error al obtener información del cliente';
 				update((state) => ({
 					...state,
@@ -269,6 +277,7 @@ function createAuthStore() {
 
 				return result;
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				const errorMessage = 'Error al reenviar verificación';
 				update((state) => ({
 					...state,
@@ -296,6 +305,7 @@ function createAuthStore() {
 
 				return result;
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				const errorMessage = 'Error al solicitar recuperación de contraseña';
 				update((state) => ({
 					...state,
@@ -323,6 +333,7 @@ function createAuthStore() {
 
 				return result;
 			} catch {
+				logWarn('auth.store.error', { error_category: 'programming' });
 				const errorMessage = 'Error al restablecer la contraseña';
 				update((state) => ({
 					...state,
