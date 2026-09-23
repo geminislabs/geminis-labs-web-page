@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Cadena de linting a ESLint 10 (`eslint`, `@eslint/js` 10, `@eslint/compat` 2), más `globals` 17, `lint-staged` 17 y `commitlint` 21. Las majors van juntas porque `@eslint/js` 10 exige `eslint` ^10: sueltas no se sostienen
+
 ### Added
 
 - Observabilidad con OpenTelemetry oficial en `src/lib/observability/` (`init`, `scrubber`, `journey`, `capture`): traces, métricas y logs OTLP/HTTP. Sin `OTLP_ENDPOINT` no se registran providers (API no-op). Journeys de login, contacto y billing; `FetchInstrumentation` en el browser y `HttpInstrumentation` en Node; `GET /health`; proxy same-origin `/internal/otlp` para que el browser no tenga que POST al collector. Stack LGTM local y dashboards Grafana en `observability/` — Grafana anónimo Admin es solo local
@@ -25,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Node 24 LTS en los cuatro sitios que fijaban versión: `Dockerfile` (las dos etapas), `.nvmrc`, `engines` y los dos jobs de CI. La imagen de producción corría `node:20-alpine`, sin soporte desde abril, y con una CI que probaba en 22 — producción usaba una versión que ninguna prueba tocaba
+
+### Fixed
+
+- `ProfileStarfield`: el `requestAnimationFrame` del parallax no guardaba su handle, así que el `cancelAnimationFrame` del cleanup nunca cancelaba nada y el bucle seguía vivo tras desmontar el componente
+- `billingService`: el error de red original se perdía al sustituirlo por el mensaje amable; ahora viaja en `cause`
 
 ### Security
 

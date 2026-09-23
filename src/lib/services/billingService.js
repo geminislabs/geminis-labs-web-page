@@ -54,7 +54,8 @@ async function authFetch(path, options = {}) {
 		const msg = typeof e?.message === 'string' ? e.message : '';
 		if (e?.name === 'TypeError' || /failed to fetch|networkerror|load failed/i.test(msg)) {
 			throw new Error(
-				'No se pudo conectar con el servidor. Revisa que la API esté en marcha e intenta de nuevo.'
+				'No se pudo conectar con el servidor. Revisa que la API esté en marcha e intenta de nuevo.',
+				{ cause: e }
 			);
 		}
 		throw e;
