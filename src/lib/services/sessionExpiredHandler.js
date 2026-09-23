@@ -1,5 +1,20 @@
 import { browser } from '$app/environment';
 import { toastStore } from '$lib/stores/toastStore.js';
+import { logWarn } from '$lib/observability/capture.js';
+import { recordJourneyOutcome } from '$lib/observability/journey.js';
+
+function emitSessionExpired() {
+	try {
+		logWarn('auth.session_expired', { error_category: 'authentication' });
+		recordJourneyOutcome({
+			journey: 'auth.session_expired',
+			outcome: 'failure',
+			errorCategory: 'authentication'
+		});
+	} catch {
+		/* fail-open */
+	}
+}
 
 /**
  * Handles 401 session expiry without a static apiClient → authStore import cycle.
@@ -17,7 +32,8 @@ export async function handleSessionExpired() {
 			transitionType: 'fade',
 			replaceState: true
 		});
+		emitSessionExpired();
 	} catch {
-		// Silent failure while handling expired session
+		logWarn('auth.session_expired.handler_failed', { error_category: 'programming' });
 	}
 }

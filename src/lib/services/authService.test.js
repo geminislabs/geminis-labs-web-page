@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { metrics } from '@opentelemetry/api';
 import { authService } from './authService.js';
 
 // Mock del apiClient
@@ -29,12 +30,23 @@ vi.mock('./apiClient.js', () => ({
 }));
 
 describe('AuthService', () => {
+	/** @type {ReturnType<typeof vi.fn>} */
+	let add;
+
 	beforeEach(() => {
 		vi.clearAllMocks();
+		add = vi.fn();
+		vi.spyOn(metrics, 'getMeter').mockReturnValue({
+			createCounter: () => ({ add })
+		});
 		// Limpiar sessionStorage
 		Object.keys(sessionStorage).forEach((key) => {
 			sessionStorage.removeItem(key);
 		});
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
 	});
 
 	describe('login', () => {
@@ -75,6 +87,75 @@ describe('AuthService', () => {
 
 			expect(result.success).toBe(false);
 			expect(result.message).toBe('Credenciales inválidas');
+		});
+
+		it('login exitoso emite journey event con outcome=success', async () => {
+			const { apiClient } = await import('./apiClient.js');
+			apiClient.post.mockResolvedValueOnce({
+				access_token: 'tok',
+				id_token: 'id'
+			});
+			await authService.login({ email: 'test@example.com', password: 'password' });
+			expect(add).toHaveBeenCalledWith(
+				1,
+				expect.objectContaining({ journey: 'auth.login', outcome: 'success' })
+			);
+		});
+
+		it('login 401 emite journey event con outcome=failure, error_category=user', async () => {
+			const { apiClient, ApiError } = await import('./apiClient.js');
+			apiClient.post.mockRejectedValueOnce(new ApiError('bad', 401, {}));
+			await authService.login({ email: 'test@example.com', password: 'wrong' });
+			expect(add).toHaveBeenCalledWith(
+				1,
+				expect.objectContaining({
+					journey: 'auth.login',
+					outcome: 'failure',
+					error_category: 'user'
+				})
+			);
+		});
+
+		it('login 5xx emite journey event con outcome=failure, error_category=operational', async () => {
+			const { apiClient, ApiError } = await import('./apiClient.js');
+			apiClient.post.mockRejectedValueOnce(new ApiError('boom', 500, {}));
+			await authService.login({ email: 'test@example.com', password: 'password' });
+			expect(add).toHaveBeenCalledWith(
+				1,
+				expect.objectContaining({
+					journey: 'auth.login',
+					outcome: 'failure',
+					error_category: 'operational'
+				})
+			);
+		});
+
+		it('login timeout emite journey event con outcome=failure, error_category=timeout', async () => {
+			const abort = new Error('aborted');
+			abort.name = 'AbortError';
+			const { apiClient } = await import('./apiClient.js');
+			apiClient.post.mockRejectedValueOnce(abort);
+			await authService.login({ email: 'test@example.com', password: 'password' });
+			expect(add).toHaveBeenCalledWith(
+				1,
+				expect.objectContaining({
+					journey: 'auth.login',
+					outcome: 'failure',
+					error_category: 'timeout'
+				})
+			);
+		});
+
+		it('credenciales no aparecen en ninguna señal emitida', async () => {
+			const { apiClient } = await import('./apiClient.js');
+			apiClient.post.mockResolvedValueOnce({ access_token: 'tok', id_token: 'id' });
+			await authService.login({
+				email: 'ada@secreto.mx',
+				password: 'super-secret-pass-xyz'
+			});
+			const serialized = JSON.stringify(add.mock.calls);
+			expect(serialized).not.toContain('super-secret-pass-xyz');
+			expect(serialized).not.toContain('ada@secreto.mx');
 		});
 	});
 
@@ -286,6 +367,45 @@ describe('AuthService', () => {
 		it('fails when refresh token is missing', async () => {
 			const result = await authService.refreshToken();
 			expect(result.success).toBe(false);
+		});
+
+		it('refresh exitoso emite journey event con outcome=success', async () => {
+			sessionStorage.setItem('geminis_refresh_token', 'refresh-1');
+			const { apiClient } = await import('./apiClient.js');
+			apiClient.post.mockResolvedValueOnce({
+				access_token: 'new-access',
+				id_token: 'new-id'
+			});
+			await authService.refreshToken();
+			expect(add).toHaveBeenCalledWith(
+				1,
+				expect.objectContaining({ journey: 'auth.refresh', outcome: 'success' })
+			);
+		});
+
+		it('refresh fallido emite journey event con outcome=failure', async () => {
+			sessionStorage.setItem('geminis_refresh_token', 'bad');
+			const { apiClient } = await import('./apiClient.js');
+			apiClient.post.mockRejectedValueOnce(new Error('expired'));
+			await authService.refreshToken();
+			expect(add).toHaveBeenCalledWith(
+				1,
+				expect.objectContaining({ journey: 'auth.refresh', outcome: 'failure' })
+			);
+		});
+
+		it('tokens no aparecen en ninguna señal', async () => {
+			sessionStorage.setItem('geminis_refresh_token', 'refresh-secret-xyz');
+			const { apiClient } = await import('./apiClient.js');
+			apiClient.post.mockResolvedValueOnce({
+				access_token: 'new-access-secret-token',
+				id_token: 'new-id-secret-token'
+			});
+			await authService.refreshToken();
+			const serialized = JSON.stringify(add.mock.calls);
+			expect(serialized).not.toContain('refresh-secret-xyz');
+			expect(serialized).not.toContain('new-access-secret-token');
+			expect(serialized).not.toContain('new-id-secret-token');
 		});
 	});
 

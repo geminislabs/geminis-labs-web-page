@@ -41,6 +41,7 @@ test.describe('descubribilidad de productos', () => {
 		};
 		for (const [id, href] of Object.entries(destinos)) {
 			await page.click(`#tab-${id}`);
+			await expect(page.locator(`#tab-${id}`)).toHaveAttribute('aria-selected', 'true');
 			const panel = page.locator(`#panel-${id}`);
 			await expect(panel).toBeVisible();
 			await expect(panel.locator('a.nx-cta')).toHaveAttribute('href', href);
@@ -51,7 +52,10 @@ test.describe('descubribilidad de productos', () => {
 	// producto, así que Signum era inaccesible por teclado.
 	test('se llega a los tres productos con el teclado', async ({ page }) => {
 		await page.goto('/');
-		await page.click('#tab-nexus');
+		const nexus = page.locator('#tab-nexus');
+		await nexus.click();
+		await expect(nexus).toHaveAttribute('aria-selected', 'true');
+		await nexus.focus();
 		await page.keyboard.press('ArrowRight');
 		await expect(page.locator('#tab-orion')).toHaveAttribute('aria-selected', 'true');
 		await page.keyboard.press('ArrowRight');

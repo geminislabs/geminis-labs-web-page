@@ -58,6 +58,10 @@ VITE_API_BASE_URL=http://localhost:3000/api
 
 # reCAPTCHA v3 Site Key
 VITE_RECAPTCHA_SITE_KEY=tu_site_key_de_recaptcha
+
+# Observabilidad (opcional). En local, si no se define, se usa http://localhost:4318.
+# Collector local: cd observability/local && docker compose up -d
+# OTLP_ENDPOINT=http://localhost:4318
 ```
 
 ### 2. Obtener Google Maps API Key

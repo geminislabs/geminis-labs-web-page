@@ -28,6 +28,8 @@
 		const params = $page.url.searchParams;
 		const clientSecret = params.get('payment_intent_client_secret');
 		const checkoutFlag = params.get('checkout');
+		const redirectStatus = params.get('redirect_status');
+		if (redirectStatus) billingService.completeCheckout(redirectStatus);
 
 		if (clientSecret || checkoutFlag) {
 			const next = new URL($page.url.href);

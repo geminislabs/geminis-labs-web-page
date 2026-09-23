@@ -2,6 +2,8 @@ import { get } from 'svelte/store';
 import { authStore } from '$lib/stores/authStore.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { getOrCreatePaymentIdempotencyKey } from '$lib/utils/idempotency.js';
+import { instrumentedFetch } from '$lib/observability/http.js';
+import { startJourney } from '$lib/observability/journey.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8100';
 const _sdkInstances = {};
@@ -17,18 +19,36 @@ function _getToken() {
 	);
 }
 
+/**
+ * Route de telemetría: path sin query y con IDs sustituidos.
+ * @param {string} path
+ */
+function routeTemplate(path) {
+	let route = String(path || '')
+		.split('#')[0]
+		.split('?')[0];
+	route = route.replace(/\/invoices\/[^/]+/g, '/invoices/:id');
+	route = route.replace(
+		/\/payment-methods\/(?!confirm(?:\/|$)|default(?:\/|$))[^/]+/g,
+		'/payment-methods/:id'
+	);
+	return route || 'unspecified';
+}
+
 async function authFetch(path, options = {}) {
 	const token = _getToken();
 	if (!token) throw new Error('Sesión no iniciada');
 	let res;
 	try {
-		res = await fetch(`${API_BASE}${path}`, {
+		res = await instrumentedFetch(`${API_BASE}${path}`, {
 			...options,
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
 				...(options.headers ?? {})
-			}
+			},
+			route: routeTemplate(path),
+			targetService: 'siscom-admin-api'
 		});
 	} catch (e) {
 		const msg = typeof e?.message === 'string' ? e.message : '';
@@ -182,7 +202,10 @@ async function getInvoices({ limit = 20, offset = 0 } = {}) {
 }
 
 async function getPlans() {
-	const res = await fetch(`${API_BASE}/api/v1/plans`);
+	const res = await instrumentedFetch(`${API_BASE}/api/v1/plans`, {
+		route: '/api/v1/plans',
+		targetService: 'siscom-admin-api'
+	});
 	if (!res.ok) throw new Error(`Error ${res.status} al obtener planes`);
 	const body = await res.json();
 	return body.plans ?? [];
@@ -366,23 +389,74 @@ async function _saveBlob(res, filename) {
 	}
 }
 
+function classifyCheckoutError(error, status) {
+	if (typeof status === 'number') {
+		if (status === 401) return 'authentication';
+		if (status === 403) return 'authorization';
+		if (status >= 500 || status === 0) return 'operational';
+	}
+	const name = error && typeof error === 'object' && 'name' in error ? String(error.name) : '';
+	if (name === 'AbortError') return 'timeout';
+	const msg = error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+	if (/sesión expiró/i.test(msg)) return 'authentication';
+	if (name === 'TypeError') return 'programming';
+	return 'operational';
+}
+
 async function createPaymentIntent({ planId, billingCycle, gateway = 'stripe', idempotencyKey }) {
-	const key = idempotencyKey ?? getOrCreatePaymentIdempotencyKey(planId, billingCycle);
-	if (!key) {
-		throw new Error('No se pudo generar la clave de idempotencia del pago');
+	const journey = startJourney('checkout.start');
+	try {
+		const key = idempotencyKey ?? getOrCreatePaymentIdempotencyKey(planId, billingCycle);
+		if (!key) {
+			journey.end('failure', { error_category: 'programming' });
+			throw new Error('No se pudo generar la clave de idempotencia del pago');
+		}
+		const res = await authFetch('/api/v1/stripe/payment-intent', {
+			method: 'POST',
+			headers: { 'Idempotency-Key': key },
+			body: JSON.stringify({ plan_id: planId, billing_cycle: billingCycle, gateway })
+		});
+		if (!res.ok) {
+			const b = await res.json().catch(() => ({}));
+			journey.end('failure', { error_category: classifyCheckoutError(null, res.status) });
+			if (res.status === 409) throw paymentApiError(409, b, 'Este período ya fue pagado');
+			if (res.status === 403) throw new Error(apiDetail(b) ?? 'Sin permiso para gestionar pagos');
+			throw new Error(apiDetail(b) ?? 'Error al inicializar el pago');
+		}
+		journey.end('success');
+		return res.json();
+	} catch (error) {
+		journey.end('failure', { error_category: classifyCheckoutError(error) });
+		throw error;
 	}
-	const res = await authFetch('/api/v1/stripe/payment-intent', {
-		method: 'POST',
-		headers: { 'Idempotency-Key': key },
-		body: JSON.stringify({ plan_id: planId, billing_cycle: billingCycle, gateway })
-	});
-	if (!res.ok) {
-		const b = await res.json().catch(() => ({}));
-		if (res.status === 409) throw paymentApiError(409, b, 'Este período ya fue pagado');
-		if (res.status === 403) throw new Error(apiDetail(b) ?? 'Sin permiso para gestionar pagos');
-		throw new Error(apiDetail(b) ?? 'Error al inicializar el pago');
+}
+
+/**
+ * Cierra el journey de retorno de Stripe usando solo el status, nunca el query string.
+ * @param {unknown} redirectStatus
+ * @returns {'success' | 'failure' | 'cancelled'}
+ */
+function completeCheckout(redirectStatus) {
+	const journey = startJourney('checkout.complete');
+	let status = typeof redirectStatus === 'string' ? redirectStatus : '';
+	if (status.includes('?') || status.includes('=')) {
+		try {
+			status = new URLSearchParams(status.split('?').pop()).get('redirect_status') || '';
+		} catch {
+			status = '';
+		}
 	}
-	return res.json();
+	const normalized = status.toLowerCase();
+	if (normalized === 'succeeded' || normalized === 'success') {
+		journey.end('success');
+		return 'success';
+	}
+	if (normalized === 'canceled' || normalized === 'cancelled') {
+		journey.end('cancelled');
+		return 'cancelled';
+	}
+	journey.end('failure', { error_category: 'expected' });
+	return 'failure';
 }
 
 async function mountCardForm({ mountId, amountCents, gateway = 'stripe' }) {
@@ -494,6 +568,7 @@ export const billingService = {
 	stampInvoiceCfdi,
 	downloadInvoiceCfdi,
 	createPaymentIntent,
+	completeCheckout,
 	mountCardForm,
 	confirmWithSavedPM,
 	retrievePaymentIntent,

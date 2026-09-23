@@ -1,5 +1,18 @@
 import { API_CONFIG, buildApiUrl, getAuthHeaders } from '$lib/config/api.js';
+import { instrumentedFetch } from '$lib/observability/http.js';
 import { handleSessionExpired } from './sessionExpiredHandler.js';
+
+/**
+ * Route de telemetría: path antes de `?`.
+ * @param {string} endpoint
+ */
+function routeTemplate(endpoint) {
+	return (
+		String(endpoint || '')
+			.split('#')[0]
+			.split('?')[0] || 'unspecified'
+	);
+}
 
 /**
  * Cliente API para manejar todas las peticiones al backend
@@ -28,7 +41,11 @@ class ApiClient {
 		try {
 			config.signal = controller.signal;
 
-			const response = await fetch(url, config);
+			const response = await instrumentedFetch(url, {
+				...config,
+				route: routeTemplate(endpoint),
+				targetService: 'siscom-admin-api'
+			});
 			clearTimeout(timeoutId);
 
 			// Manejar respuestas no exitosas

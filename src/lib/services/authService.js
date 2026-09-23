@@ -1,5 +1,6 @@
 import { apiClient, ApiError } from './apiClient.js';
 import { API_CONFIG } from '$lib/config/api.js';
+import { startJourney } from '$lib/observability/journey.js';
 
 /**
  * Servicio de autenticación que maneja login, registro y tokens
@@ -123,6 +124,7 @@ class AuthService {
 	 * Inicia sesión del usuario
 	 */
 	async login(credentials) {
+		const journey = startJourney('auth.login');
 		try {
 			// El backend espera JSON con email y password (según el curl que funciona)
 			const loginData = {
@@ -135,6 +137,7 @@ class AuthService {
 
 			// Guardar tokens en almacenamiento seguro
 			this.storeTokens(data);
+			journey.end('success');
 
 			return {
 				success: true,
@@ -142,6 +145,8 @@ class AuthService {
 				data: data
 			};
 		} catch (error) {
+			const classified = classifyAuthJourneyError(error);
+			journey.end(classified.outcome, { error_category: classified.errorCategory });
 			return this.handleAuthError(error, 'Error al iniciar sesión');
 		}
 	}
@@ -368,6 +373,7 @@ class AuthService {
 	 * Refresca el token de acceso usando el refresh token
 	 */
 	async refreshToken() {
+		const journey = startJourney('auth.refresh');
 		try {
 			const refreshToken = sessionStorage.getItem(this.storageKeys.REFRESH_TOKEN);
 			if (!refreshToken) {
@@ -379,13 +385,38 @@ class AuthService {
 			});
 
 			this.storeTokens(response);
+			journey.end('success');
 			return { success: true, data: response };
 		} catch (error) {
+			const classified = classifyAuthJourneyError(error);
+			journey.end(classified.outcome, { error_category: classified.errorCategory });
 			// Si falla el refresh, limpiar tokens
 			this.clearTokens();
 			return this.handleAuthError(error, 'Sesión expirada');
 		}
 	}
+}
+
+/**
+ * Clasifica el error de un journey de auth sin inspeccionar cuerpos ni tokens.
+ * @param {unknown} error
+ */
+function classifyAuthJourneyError(error) {
+	const err = /** @type {{ name?: string, status?: number }} */ (error || {});
+	if (err.name === 'AbortError' || err.status === 408) {
+		return { outcome: 'failure', errorCategory: 'timeout' };
+	}
+	if (typeof err.status === 'number') {
+		if (err.status === 401) return { outcome: 'failure', errorCategory: 'user' };
+		if (err.status === 403) return { outcome: 'failure', errorCategory: 'expected' };
+		if (err.status >= 500 || err.status === 0) {
+			return { outcome: 'failure', errorCategory: 'operational' };
+		}
+	}
+	if (err.name === 'TypeError' || err.name === 'ReferenceError' || err.name === 'SyntaxError') {
+		return { outcome: 'failure', errorCategory: 'programming' };
+	}
+	return { outcome: 'failure', errorCategory: 'operational' };
 }
 
 // Instancia singleton del servicio de autenticación

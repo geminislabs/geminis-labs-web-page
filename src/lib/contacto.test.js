@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { metrics } from '@opentelemetry/api';
 import {
 	sanearTexto,
 	correoValido,
@@ -161,7 +162,14 @@ describe('enviarContacto', () => {
 		mensaje: 'Quiero un diagnóstico'
 	};
 
+	/** @type {ReturnType<typeof vi.fn>} */
+	let add;
+
 	beforeEach(() => {
+		add = vi.fn();
+		vi.spyOn(metrics, 'getMeter').mockReturnValue({
+			createCounter: () => ({ add })
+		});
 		// El entorno se fija a mano: `.env` trae una clave real, y con ella el envío
 		// corta antes del `fetch` cuando no hay `grecaptcha`. Ese corte es correcto
 		// —y se prueba aparte—, pero aquí estorba.
@@ -169,13 +177,14 @@ describe('enviarContacto', () => {
 		delete window.grecaptcha;
 		vi.stubGlobal(
 			'fetch',
-			vi.fn().mockResolvedValue({ ok: true, json: async () => ({ message: 'Listo' }) })
+			vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ message: 'Listo' }) })
 		);
 	});
 
 	afterEach(() => {
 		vi.unstubAllGlobals();
 		vi.unstubAllEnvs();
+		vi.restoreAllMocks();
 	});
 
 	const cuerpoEnviado = () => JSON.parse(fetch.mock.calls[0][1].body);
@@ -244,5 +253,77 @@ describe('enviarContacto', () => {
 		const r = await enviarContacto(lleno);
 		expect(r.ok).toBe(false);
 		expect(r.mensaje).toMatch(/conexión/i);
+	});
+
+	it('submit exitoso emite journey event con outcome=success', async () => {
+		await enviarContacto(lleno);
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({ journey: 'contact.submit', outcome: 'success' })
+		);
+	});
+
+	it('reCAPTCHA fail emite journey con outcome=failure, error_category=dependency', async () => {
+		vi.stubEnv('VITE_RECAPTCHA_SITE_KEY', 'clave');
+		const r = await enviarContacto(lleno);
+		expect(r.ok).toBe(false);
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({
+				journey: 'contact.submit',
+				outcome: 'failure',
+				error_category: 'dependency'
+			})
+		);
+	});
+
+	it('fetch 5xx emite journey con outcome=failure, error_category=operational', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				ok: false,
+				status: 500,
+				json: async () => ({ message: 'down' })
+			})
+		);
+		await enviarContacto(lleno);
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({
+				journey: 'contact.submit',
+				outcome: 'failure',
+				error_category: 'operational'
+			})
+		);
+	});
+
+	it('timeout emite journey con outcome=failure, error_category=timeout', async () => {
+		const abort = new Error('aborted');
+		abort.name = 'AbortError';
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(abort));
+		await enviarContacto(lleno);
+		expect(add).toHaveBeenCalledWith(
+			1,
+			expect.objectContaining({
+				journey: 'contact.submit',
+				outcome: 'failure',
+				error_category: 'timeout'
+			})
+		);
+	});
+
+	it('payload del formulario ausente en todas las señales', async () => {
+		await enviarContacto(lleno);
+		expect(JSON.stringify(add.mock.calls)).not.toContain('ada@ejemplo.mx');
+		expect(JSON.stringify(add.mock.calls)).not.toContain('5512345678');
+		expect(JSON.stringify(add.mock.calls)).not.toContain('Quiero un diagnóstico');
+	});
+
+	it('recaptcha_token ausente en todas las señales', async () => {
+		vi.stubEnv('VITE_RECAPTCHA_SITE_KEY', 'clave');
+		window.grecaptcha = { ready: (cb) => cb(), execute: vi.fn().mockResolvedValue('tok-abc') };
+		await enviarContacto(lleno, { accion: 'diagnostico' });
+		expect(JSON.stringify(add.mock.calls)).not.toContain('tok-abc');
+		expect(JSON.stringify(add.mock.calls)).not.toContain('recaptcha_token');
 	});
 });
