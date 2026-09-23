@@ -156,3 +156,23 @@ describe('journey', () => {
 		expect(() => handle.end('success')).not.toThrow();
 	});
 });
+
+describe('journey en SSR', () => {
+	it('no guarda el journey activo cuando no hay window', async () => {
+		vi.resetModules();
+		const original = globalThis.window;
+		// @ts-expect-error simulamos SSR
+		delete globalThis.window;
+		try {
+			const { startJourney, getCurrentJourneyContext } = await import('../journey.js');
+			startJourney('auth.login');
+
+			// En SSR este módulo lo comparten todas las peticiones a la vez: guardar
+			// aquí el journey haría que una viera el de otra.
+			expect(getCurrentJourneyContext()).toBeNull();
+		} finally {
+			globalThis.window = original;
+			vi.resetModules();
+		}
+	});
+});

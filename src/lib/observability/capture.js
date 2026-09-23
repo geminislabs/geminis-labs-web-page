@@ -1,6 +1,6 @@
 import { logs, SeverityNumber } from '@opentelemetry/api-logs';
 import { recordJsError } from './journey.js';
-import { scrubAttrs, scrubMessage } from './scrubber.js';
+import { scrubAttrs, scrubMessage, scrubStack } from './scrubber.js';
 
 const SERVICE = 'geminis-labs-web-page';
 const seen = typeof WeakSet === 'function' ? new WeakSet() : null;
@@ -71,7 +71,7 @@ export function reportUnhandled(error, _source) {
 		const rawStack = error instanceof Error && error.stack ? error.stack : '';
 		/** @type {Record<string, unknown>} */
 		const attrs = { error_category: category };
-		if (rawStack) attrs.stack = scrubMessage(rawStack);
+		if (rawStack) attrs.stack = scrubStack(rawStack);
 		logError(rawMessage, attrs);
 		recordJsError({ errorCategory: category });
 	} catch {

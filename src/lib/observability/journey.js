@@ -4,8 +4,17 @@ import { resourceMetricAttrs } from './http.js';
 const SERVICE = 'geminis-labs-web-page';
 const OUTCOMES = new Set(['success', 'failure', 'cancelled', 'timeout']);
 
-/** @type {{ name: string, traceId: string, spanId: string } | null} */
+/**
+ * Journey en curso. **Solo se registra en el browser**: en SSR este módulo lo
+ * comparten todas las peticiones a la vez, así que guardarlo aquí haría que una
+ * viera el journey de otra.
+ * @type {{ name: string, traceId: string, spanId: string } | null}
+ */
 let activeJourney = null;
+
+function enElBrowser() {
+	return typeof window !== 'undefined';
+}
 
 function noopHandle() {
 	return {
@@ -79,7 +88,7 @@ export function startJourney(name, parentContext) {
 		const spanContext = span.spanContext();
 		const traceId = spanContext?.traceId || '';
 		const spanId = spanContext?.spanId || '';
-		activeJourney = { name: journeyName, traceId, spanId };
+		if (enElBrowser()) activeJourney = { name: journeyName, traceId, spanId };
 		let ended = false;
 
 		return {
@@ -124,5 +133,6 @@ export function startJourney(name, parentContext) {
 }
 
 export function getCurrentJourneyContext() {
+	if (!enElBrowser()) return null;
 	return activeJourney ? { ...activeJourney } : null;
 }
