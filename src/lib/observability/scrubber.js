@@ -54,6 +54,11 @@ const FORBIDDEN_HEADERS = [
 
 const FORBIDDEN_HEADER_SET = new Set(FORBIDDEN_HEADERS);
 const MAX_MESSAGE = 300;
+/**
+ * Un stack recortado a 300 caracteres no sirve para depurar: cabe el mensaje y
+ * dos marcos. Se le deja su propio techo, generoso pero acotado.
+ */
+const MAX_STACK = 8_000;
 const MAX_DEPTH = 8;
 
 function isForbiddenKey(key) {
@@ -136,9 +141,29 @@ export function scrubMessage(msg) {
 	}
 }
 
+/**
+ * Como `scrubMessage` pero para stacks.
+ *
+ * `scrubMessage` corta el texto entero en el primer `?`, lo que en un stack
+ * deja fuera todos los marcos que vengan detrás del primero que lleve una URL
+ * con query. Aquí se quita **cada** query por separado y se conserva el resto,
+ * porque el recorte no era una decision de privacidad: era un efecto colateral
+ * que ademas se llevaba por delante la informacion util.
+ * @param {unknown} stack
+ */
+export function scrubStack(stack) {
+	try {
+		const sinQuery = String(stack ?? '').replace(/\?[^\s)'"]*/g, '');
+		return sinQuery.length > MAX_STACK ? sinQuery.slice(0, MAX_STACK) : sinQuery;
+	} catch {
+		return '';
+	}
+}
+
 export const scrubber = {
 	scrubAttrs,
 	scrubUrl,
 	scrubHeaders,
-	scrubMessage
+	scrubMessage,
+	scrubStack
 };

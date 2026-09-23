@@ -5,6 +5,11 @@ FROM node:24-alpine AS builder
 
 # Argumentos para variables de entorno de build
 ARG VITE_API_BASE_URL
+# El bundle del browser necesita estos dos horneados: el exportador se decide en
+# build, no en runtime. Vacio = telemetria de browser apagada, que es el valor
+# por defecto a proposito — se enciende poniendo la variable en el repositorio.
+ARG OTLP_ENDPOINT=""
+ARG DEPLOY_ENV="production"
 
 # Establecer directorio de trabajo
 WORKDIR /app
@@ -22,6 +27,8 @@ COPY . .
 RUN --mount=type=secret,id=VITE_RECAPTCHA_SITE_KEY \
 	export VITE_API_BASE_URL="$VITE_API_BASE_URL" && \
 	export VITE_RECAPTCHA_SITE_KEY="$(cat /run/secrets/VITE_RECAPTCHA_SITE_KEY)" && \
+	export OTLP_ENDPOINT="$OTLP_ENDPOINT" && \
+	export DEPLOY_ENV="$DEPLOY_ENV" && \
 	npm run build
 
 # Instalar solo dependencias de producción para la etapa final

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- `/internal/otlp/*` deja de ser un relé abierto: techo de 512 KB por cuerpo (comprobado antes y después de leerlo, porque `content-length` puede mentir), límite de 240 peticiones por minuto y cliente, y rechazo de origen ajeno comparando contra el `Host` de la petición — no contra `url.origin`, que detrás de un proxy no es el que el cliente pidió
+- El fallback a `http://localhost:4318` pasa a ser fail-closed: solo con `DEPLOY_ENV=local` o `NODE_ENV=development`. Antes bastaba con que `NODE_ENV` no fuera `production`, así que un contenedor mal configurado hacía POSTs con timeout de 3 s en cada beacon
+
+### Added
+
+- `OTLP_ENDPOINT` y `DEPLOY_ENV` viajan del workflow de deploy al build (`ARG`, para el bundle del browser) y al contenedor (`-e`, para el servidor). **Vacíos por defecto**: la telemetría se enciende poniendo la variable en el repositorio, no tocando código
+
+### Fixed
+
+- `scrubStack` sustituye a `scrubMessage` para los stacks: quita cada query por separado en vez de cortar el texto entero en el primer `?`, que se llevaba por delante todos los marcos siguientes, y les da un techo propio de 8 KB en vez de 300 caracteres
+- El journey activo deja de guardarse en estado de módulo durante SSR, donde todas las peticiones concurrentes lo compartían
+
 ### Changed
 
 - Cadena de linting a ESLint 10 (`eslint`, `@eslint/js` 10, `@eslint/compat` 2), más `globals` 17, `lint-staged` 17 y `commitlint` 21. Las majors van juntas porque `@eslint/js` 10 exige `eslint` ^10: sueltas no se sostienen

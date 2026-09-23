@@ -221,3 +221,28 @@ describe('scrubMessage', () => {
 		expect(scrubMessage(boom)).toBe('');
 	});
 });
+
+describe('scrubStack', () => {
+	it('quita cada query pero conserva los marcos siguientes', async () => {
+		const { scrubStack, scrubMessage } = await import('../scrubber.js');
+		const stack =
+			'Error: x\n    at f (https://sitio.test/app.js?token=SECRETO:1:1)\n    at g (/app/src/b.js:2:2)';
+
+		const limpio = scrubStack(stack);
+
+		expect(limpio).not.toContain('SECRETO');
+		expect(limpio).toContain('https://sitio.test/app.js');
+		// Lo que `scrubMessage` se llevaba por delante: el resto del stack.
+		expect(limpio).toContain('/app/src/b.js:2:2');
+		expect(scrubMessage(stack)).not.toContain('/app/src/b.js:2:2');
+	});
+
+	it('deja sitio para el stack, que con 300 caracteres no servía', async () => {
+		const { scrubStack, scrubMessage } = await import('../scrubber.js');
+		const largo = 'at f (/app/src/muy/larga/ruta/modulo.js:120:8)\n'.repeat(60);
+
+		expect(scrubMessage(largo).length).toBe(300);
+		expect(scrubStack(largo).length).toBeGreaterThan(2000);
+		expect(scrubStack('x'.repeat(20_000)).length).toBe(8_000);
+	});
+});
