@@ -284,7 +284,7 @@ class AuthService {
 	 * Maneja errores de autenticación de forma consistente
 	 */
 	handleAuthError(error, defaultMessage) {
-		let message = defaultMessage;
+		let message;
 		let details = {};
 
 		if (error instanceof ApiError) {

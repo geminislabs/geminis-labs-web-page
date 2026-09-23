@@ -82,7 +82,7 @@
 		}
 
 		// Aplicar parallax
-		requestAnimationFrame(updateParallax);
+		animationFrame = requestAnimationFrame(updateParallax);
 	}
 
 	function handleMouseLeave() {
@@ -92,7 +92,7 @@
 		returnToOriginTimeout = setTimeout(() => {
 			mouseX = 0;
 			mouseY = 0;
-			requestAnimationFrame(updateParallax);
+			animationFrame = requestAnimationFrame(updateParallax);
 		}, 300);
 	}
 

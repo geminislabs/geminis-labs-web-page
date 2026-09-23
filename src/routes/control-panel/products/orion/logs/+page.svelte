@@ -19,8 +19,8 @@
 	let statsError = null;
 	let didMount = false;
 	let searchDebounceId;
-	let logsQueryTrigger = '';
-	let filteredLogs = [];
+	let logsQueryTrigger;
+	let filteredLogs;
 
 	onMount(async () => {
 		didMount = true;

@@ -91,7 +91,7 @@ class UserService {
 	 * Maneja errores de usuario de forma consistente
 	 */
 	handleUserError(error, defaultMessage) {
-		let message = defaultMessage;
+		let message;
 		let details = {};
 
 		if (error instanceof ApiError) {
