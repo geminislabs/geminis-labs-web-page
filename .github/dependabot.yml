@@ -100,7 +100,8 @@ updates:
         patterns:
           - '*'
 
-  # Docker base images — Dockerfile, Dockerfile.simple, Dockerfile.fallback
+  # Docker base images — solo `Dockerfile`, que es el que construyen
+  # `docker-compose.yml` y el workflow de deploy.
   - package-ecosystem: docker
     directory: /
     schedule:

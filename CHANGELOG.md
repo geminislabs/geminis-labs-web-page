@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Paquete local `@geminislabs/observability` (sinks, OTLP JSON propio e `instrumentedFetch`)
+- `Dockerfile.simple` y `Dockerfile.fallback`: no los construía nadie — `docker-compose.yml` y el workflow de deploy usan `Dockerfile` — y seguían pidiendo actualizaciones de base (`ubuntu:22.04`, `node:20`) que había que triar
 
 ### Security
 
