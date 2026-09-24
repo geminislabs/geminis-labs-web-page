@@ -59,7 +59,7 @@
 		"vitest": "^4.1.11"
 	},
 	"dependencies": {
-		"@googlemaps/js-api-loader": "^1.16.10",
+		"@googlemaps/js-api-loader": "^2.1.1",
 		"@opentelemetry/api": "^1.9.1",
 		"@opentelemetry/context-async-hooks": "^2.11.0",
 		"@opentelemetry/exporter-logs-otlp-http": "^0.222.0",
