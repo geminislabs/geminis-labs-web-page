@@ -7,51 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0] — 2026-09-24
+
+Trece días sin liberar. Lo más urgente de aquí no es lo nuevo: es que la imagen
+de producción corría **Node 20, sin soporte desde abril**.
+
 ### Security
 
 - `/internal/otlp/*` deja de ser un relé abierto: techo de 512 KB por cuerpo (comprobado antes y después de leerlo, porque `content-length` puede mentir), límite de 240 peticiones por minuto y cliente, y rechazo de origen ajeno comparando contra el `Host` de la petición — no contra `url.origin`, que detrás de un proxy no es el que el cliente pidió
 - El fallback a `http://localhost:4318` pasa a ser fail-closed: solo con `DEPLOY_ENV=local` o `NODE_ENV=development`. Antes bastaba con que `NODE_ENV` no fuera `production`, así que un contenedor mal configurado hacía POSTs con timeout de 3 s en cada beacon
+- `devalue` 5.9.2 vía override (`GHSA-9rgm-9g3h-6x36` / CVE-2026-81176)
 
 ### Added
 
-- `OTLP_ENDPOINT` y `DEPLOY_ENV` viajan del workflow de deploy al build (`ARG`, para el bundle del browser) y al contenedor (`-e`, para el servidor). **Vacíos por defecto**: la telemetría se enciende poniendo la variable en el repositorio, no tocando código
+- **Observabilidad con OpenTelemetry** en `src/lib/observability/` (`init`, `scrubber`, `journey`, `capture`): traces, métricas y logs OTLP/HTTP. **Sin `OTLP_ENDPOINT` no se registran providers**, así que llega en silencio. Journeys de login, contacto y billing; `FetchInstrumentation` en el browser y `HttpInstrumentation` en Node; `GET /health`; proxy same-origin `/internal/otlp`; dashboards Grafana en `observability/`
+- `OTLP_ENDPOINT` y `DEPLOY_ENV` viajan del workflow de deploy al build (`ARG`, para el bundle del browser) y al contenedor (`-e`, para el servidor). **Vacíos por defecto**: encender la telemetría es definir la variable del repositorio, no tocar código
+
+### Changed
+
+- **Node 24 LTS** en los cuatro sitios que fijaban versión: `Dockerfile` (las dos etapas), `.nvmrc`, `engines` y los dos jobs de CI. La imagen de producción corría `node:20-alpine` y la CI probaba en 22 — producción usaba una versión que ninguna prueba tocaba
+- Cadena de linting a **ESLint 10** (`eslint`, `@eslint/js` 10, `@eslint/compat` 2), más `globals` 17, `lint-staged` 17 y `commitlint` 21. Las majors van juntas porque `@eslint/js` 10 exige `eslint` ^10: sueltas no se sostienen
+- `@stripe/stripe-js` a 9.16.0, las acciones de GitHub a `@v7` y 14 herramientas de desarrollo en minor/patch
+- `apiClient`, autenticación, billing y el formulario de contacto emiten señales de observabilidad. El comportamiento de dominio no cambia: si el SDK falla, la petición sigue
 
 ### Fixed
 
-- `scrubStack` sustituye a `scrubMessage` para los stacks: quita cada query por separado en vez de cortar el texto entero en el primer `?`, que se llevaba por delante todos los marcos siguientes, y les da un techo propio de 8 KB en vez de 300 caracteres
+- `ProfileStarfield`: el `requestAnimationFrame` del parallax no guardaba su handle, así que el `cancelAnimationFrame` del cleanup **nunca cancelaba nada** y el bucle seguía vivo tras desmontar el componente. Lo destapó una regla nueva de ESLint 10
+- `billingService`: el error de red original se perdía al sustituirlo por el mensaje amable; ahora viaja en `cause`
+- `scrubStack` sustituye a `scrubMessage` para los stacks: quita cada query por separado en vez de cortar el texto entero en el primer `?`, y les da un techo propio de 8 KB en vez de 300 caracteres
 - El journey activo deja de guardarse en estado de módulo durante SSR, donde todas las peticiones concurrentes lo compartían
-
-### Changed
-
-- Cadena de linting a ESLint 10 (`eslint`, `@eslint/js` 10, `@eslint/compat` 2), más `globals` 17, `lint-staged` 17 y `commitlint` 21. Las majors van juntas porque `@eslint/js` 10 exige `eslint` ^10: sueltas no se sostienen
-
-### Added
-
-- Observabilidad con OpenTelemetry oficial en `src/lib/observability/` (`init`, `scrubber`, `journey`, `capture`): traces, métricas y logs OTLP/HTTP. Sin `OTLP_ENDPOINT` no se registran providers (API no-op). Journeys de login, contacto y billing; `FetchInstrumentation` en el browser y `HttpInstrumentation` en Node; `GET /health`; proxy same-origin `/internal/otlp` para que el browser no tenga que POST al collector. Stack LGTM local y dashboards Grafana en `observability/` — Grafana anónimo Admin es solo local
-
-### Changed
-
-- `apiClient`, autenticación, billing y el formulario de contacto emiten señales de observabilidad. El comportamiento de dominio no cambia: si el SDK falla, la petición sigue
-- El cliente propio y el paquete `@geminislabs/observability` se sustituyen por el SDK oficial de OpenTelemetry (`@opentelemetry/*`)
-- Los dashboards Grafana consultan el contrato OTel/Prometheus (`http_server_duration_milliseconds_*`, `http_client_duration_milliseconds_*`, `http_client_errors_total`, `journey_outcome_total`, `js_errors_total`) con temporality cumulative, buckets explícitos y labels `service_name`/`deployment_environment`
 
 ### Removed
 
-- Paquete local `@geminislabs/observability` (sinks, OTLP JSON propio e `instrumentedFetch`)
-- `Dockerfile.simple` y `Dockerfile.fallback`: no los construía nadie — `docker-compose.yml` y el workflow de deploy usan `Dockerfile` — y seguían pidiendo actualizaciones de base (`ubuntu:22.04`, `node:20`) que había que triar
-
-### Changed
-
-- Node 24 LTS en los cuatro sitios que fijaban versión: `Dockerfile` (las dos etapas), `.nvmrc`, `engines` y los dos jobs de CI. La imagen de producción corría `node:20-alpine`, sin soporte desde abril, y con una CI que probaba en 22 — producción usaba una versión que ninguna prueba tocaba
-
-### Fixed
-
-- `ProfileStarfield`: el `requestAnimationFrame` del parallax no guardaba su handle, así que el `cancelAnimationFrame` del cleanup nunca cancelaba nada y el bucle seguía vivo tras desmontar el componente
-- `billingService`: el error de red original se perdía al sustituirlo por el mensaje amable; ahora viaja en `cause`
-
-### Security
-
-- `devalue` 5.9.2 vía override (`GHSA-9rgm-9g3h-6x36` / CVE-2026-81176). OSV-Scanner lo marca como Medium y el job `security` de CI falla si queda 5.8.1
+- `Dockerfile.simple` y `Dockerfile.fallback`: no los construía nadie — `docker-compose.yml` y el workflow de deploy usan `Dockerfile` — y seguían pidiendo actualizaciones de base que había que triar
+- Paquete local `@geminislabs/observability`, sustituido por el SDK oficial
 
 ## [1.14.0] — 2026-09-11
 
