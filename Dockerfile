@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Usar imagen base de Node.js
-FROM node:24-alpine AS builder
+FROM node:25-alpine AS builder
 
 # Argumentos para variables de entorno de build
 ARG VITE_API_BASE_URL
@@ -35,7 +35,7 @@ RUN --mount=type=secret,id=VITE_RECAPTCHA_SITE_KEY \
 RUN npm ci --only=production --ignore-scripts
 
 # Etapa de producción
-FROM node:24-alpine AS runner
+FROM node:25-alpine AS runner
 
 # Instalar dumb-init para manejo de señales
 RUN apk add --no-cache dumb-init
