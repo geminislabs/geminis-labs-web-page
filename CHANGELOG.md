@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] — 2026-11-10
+
 ### Added
 
 - **Aviso de organización suspendida.** Si la organización del usuario está suspendida o borrada (siscom-admin-api v1.68.0, `access_blocked` de `/auth/me`), todo el panel muestra un aviso fijo bajo la barra superior en vez de errores genéricos. Owner y billing ven «Ir a facturación» (fuera de facturación), porque el backend les deja pagar; el resto ve «Contacta al administrador de tu cuenta». Facturación funciona igual. Pagar reactiva la organización (admin-api #196), y cada recarga del resumen de facturación, también las que siguen al checkout, quita el aviso en cuanto se registra el pago
