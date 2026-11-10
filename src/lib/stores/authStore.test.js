@@ -43,6 +43,24 @@ describe('AuthStore', () => {
 		});
 	});
 
+	describe('al cargar el módulo', () => {
+		it('ya trae la sesión guardada, antes de que nadie llame a init', async () => {
+			// Una carga completa de /control-panel/*: el onMount de la página corre
+			// antes que el del layout, y no debe ver `isAuthenticated: false`.
+			vi.resetModules();
+			const { authService: servicio } = await import('../services/authService.js');
+			servicio.isAuthenticated.mockReturnValue(true);
+			servicio.getUserData.mockReturnValue({ email: 'ana@example.com' });
+
+			const fresco = await import('./authStore.js');
+
+			expect(get(fresco.isAuthenticated)).toBe(true);
+			expect(get(fresco.currentUser)).toEqual({ email: 'ana@example.com' });
+			servicio.isAuthenticated.mockReset();
+			servicio.getUserData.mockReset();
+		});
+	});
+
 	describe('init', () => {
 		it('debería inicializar con usuario autenticado', async () => {
 			const mockUser = { id: 1, email: 'test@example.com' };

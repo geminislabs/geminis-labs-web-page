@@ -4,15 +4,34 @@ import { browser } from '$app/environment';
 import { logWarn } from '$lib/observability/capture.js';
 
 /**
+ * La sesión guardada, igual que la lee `init()`. Vacío fuera del navegador o
+ * si falla: `init()` es quien reporta el error.
+ * @returns {{ isAuthenticated?: boolean, user?: object | null }}
+ */
+function readStoredSession() {
+	if (!browser) return {};
+	try {
+		const isAuth = Boolean(authService.isAuthenticated());
+		return { isAuthenticated: isAuth, user: authService.getUserData() ?? null };
+	} catch {
+		return {};
+	}
+}
+
+/**
  * Store para manejar el estado de autenticación
  */
 function createAuthStore() {
-	// Estado inicial
+	// Estado inicial. En el navegador ya trae la sesión guardada: los `onMount`
+	// de las páginas corren antes que el del layout que llama a `init()`, y con
+	// `isAuthenticated: false` una carga completa de /control-panel/* mandaba a
+	// /auth (por ejemplo, el regreso de Stripe).
 	const initialState = {
 		isAuthenticated: false,
 		user: null,
 		loading: false,
-		error: null
+		error: null,
+		...readStoredSession()
 	};
 
 	const { subscribe, set, update } = writable(initialState);
