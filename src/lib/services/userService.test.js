@@ -37,6 +37,35 @@ describe('UserService', () => {
 		});
 	});
 
+	describe('getAccessBlock', () => {
+		it('devuelve el access_blocked de /auth/me', async () => {
+			const { apiClient } = await import('./apiClient.js');
+			sessionStorage.setItem('geminis_access_token', 'tok');
+			const bloqueo = {
+				error_code: 'organization_suspended',
+				suspended_by: 'account',
+				can_manage_billing: true
+			};
+			apiClient.get.mockResolvedValueOnce({ id: 'u1', access_blocked: bloqueo });
+
+			expect(await userService.getAccessBlock()).toEqual(bloqueo);
+			expect(apiClient.get).toHaveBeenCalledWith('/api/v1/auth/me', {}, 'tok');
+		});
+
+		it('null si da acceso, si falla o si no hay sesión', async () => {
+			const { apiClient } = await import('./apiClient.js');
+			expect(await userService.getAccessBlock()).toBeNull();
+			expect(apiClient.get).not.toHaveBeenCalled();
+
+			sessionStorage.setItem('geminis_access_token', 'tok');
+			apiClient.get.mockResolvedValueOnce({ id: 'u1', access_blocked: null });
+			expect(await userService.getAccessBlock()).toBeNull();
+
+			apiClient.get.mockRejectedValueOnce(new Error('red'));
+			expect(await userService.getAccessBlock()).toBeNull();
+		});
+	});
+
 	describe('getCurrentUser', () => {
 		it('debería obtener el usuario actual', async () => {
 			const mockUser = {

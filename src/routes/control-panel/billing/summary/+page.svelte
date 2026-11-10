@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { billingService } from '$lib/services/billingService.js';
+	import { refreshOrganizationAccess } from '$lib/stores/organizationAccessStore.js';
 	import CheckoutModal from '$lib/components/CheckoutModal.svelte';
 	import { goto } from '$app/navigation';
 	import { formatMxn, toCents } from '$lib/utils/currency.js';
@@ -114,6 +115,10 @@
 			payments = p.data ?? [];
 			paymentsTotal = p.total ?? 0;
 			paymentsHasMore = p.has_more ?? false;
+			// Pagar reactiva la organización suspendida (admin-api): cada recarga
+			// del resumen —también las que siguen al checkout— quita el aviso en
+			// cuanto el pago se registra.
+			refreshOrganizationAccess();
 		} catch (e) {
 			error = e.message ?? 'No se pudo cargar el resumen de facturación.';
 		} finally {

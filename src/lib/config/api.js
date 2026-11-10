@@ -11,6 +11,7 @@ export const API_CONFIG = {
 		FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
 		RESET_PASSWORD: '/api/v1/auth/reset-password',
 		CHANGE_PASSWORD: '/api/v1/auth/password',
+		AUTH_ME: '/api/v1/auth/me',
 
 		// Clientes
 		REGISTER: '/api/v1/auth/register',
