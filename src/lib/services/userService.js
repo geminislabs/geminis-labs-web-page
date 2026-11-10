@@ -28,6 +28,27 @@ class UserService {
 	}
 
 	/**
+	 * Si la organización del usuario está suspendida o borrada: el
+	 * `access_blocked` de `GET /auth/me` (siscom-admin-api
+	 * `docs/api/suspension.md`), o `null` si da acceso.
+	 *
+	 * El portal no manda `X-Organization-Id`, así que trabaja siempre sobre la
+	 * organización por defecto, que es justo la que describe `/auth/me`.
+	 *
+	 * Best effort: si falla, `null`. Un aviso que no sale es mejor que uno falso.
+	 */
+	async getAccessBlock() {
+		const accessToken = this.getAccessToken();
+		if (!accessToken) return null;
+		try {
+			const me = await apiClient.get(API_CONFIG.ENDPOINTS.AUTH_ME, {}, accessToken);
+			return me?.access_blocked ?? null;
+		} catch {
+			return null;
+		}
+	}
+
+	/**
 	 * Obtiene todos los usuarios asociados (solo para usuarios maestro)
 	 */
 	async getUsers() {

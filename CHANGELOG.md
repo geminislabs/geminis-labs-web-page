@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Aviso de organización suspendida.** Si la organización del usuario está suspendida o borrada (siscom-admin-api v1.68.0, `access_blocked` de `/auth/me`), todo el panel muestra un aviso fijo bajo la barra superior en vez de errores genéricos. Owner y billing ven «Ir a facturación» (fuera de facturación), porque el backend les deja pagar; el resto ve «Contacta al administrador de tu cuenta». Facturación funciona igual. Pagar reactiva la organización (admin-api #196), y cada recarga del resumen de facturación, también las que siguen al checkout, quita el aviso en cuanto se registra el pago
+
+### Security
+
+- **Dependencias con avisos nuevos.** `npm audit` y OSV empezaron a fallar el 10/11 por avisos publicados después del último verde de `develop`. `devalue` 5.9.2 → 5.9.4 (el override lo fijaba en la vulnerable), `happy-dom` 20 → 21.0.4, `vitest` 4.1.12 y `postcss-selector-parser` 6.1.6 bajo `@tailwindcss/typography`. `osv-scanner.toml` nuevo con las tres excepciones sin arreglo que ya tiene nexus-web-page (dos de SvelteKit < 3 que no aplican aquí y `deepmerge`, solo de build), con fecha de revisión
+
+### Fixed
+
+- **Recargar una página del panel mandaba a la portada.** En una carga completa de `/control-panel/*` (recargar, abrir un enlace, el regreso del checkout de Stripe) el `onMount` de la página corre antes que el del layout que lee la sesión, veía `isAuthenticated: false` y redirigía a `/auth`, que a su vez manda a `/`. El store de sesión ya arranca con la sesión guardada. Sin sesión se sigue yendo a `/auth`
+
 ## [1.15.0] — 2026-09-24
 
 Trece días sin liberar. Lo más urgente de aquí no es lo nuevo: es que la imagen
