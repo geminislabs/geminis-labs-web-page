@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - El mapa de `/tracking` carga con `setOptions` e `importLibrary`, porque js-api-loader 2 quitó `Loader`
   - `jsconfig.json` extiende `$app/tsconfig`, como pide SvelteKit 3
   - prettier-plugin-svelte 4 junta el cierre de dos `<textarea>` con su última línea
+- **pixi.js 8** (Dependabot #64). La animación de partículas de la portada (`HeroParticles`) se reescribe con la API nueva: `Application.init()` async, trazos con `moveTo().lineTo().stroke()`, y `Particle` en lugar de `Sprite` dentro de los `ParticleContainer`. Se ve igual (comparado con capturas de escritorio contra develop); en móvil no se monta, como antes
+
+### Fixed
+
+- **La portada seguía animándose después de salir de ella.** `HeroParticles` y `HeroTitle` devolvían su limpieza desde un `onMount` async, y Svelte la ignora: al navegar a otra página seguían el ticker de pixi, el bucle de `requestAnimationFrame` (unos 24 cuadros por segundo) y los listeners de ratón y de `resize`. Ahora se apagan en `onDestroy`, también si se sale antes de que la escena termine de armarse
 
 ## [1.16.0] — 2026-11-10
 

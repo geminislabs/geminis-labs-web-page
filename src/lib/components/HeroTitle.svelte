@@ -1,13 +1,24 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	let canvas;
+
+	// `onMount` async no puede devolver la limpieza (Svelte la ignora): sin
+	// esto, el bucle de `requestAnimationFrame` seguía al salir de la portada.
+	let destroyed = false;
+	let teardown = null;
+
+	onDestroy(() => {
+		destroyed = true;
+		teardown?.();
+	});
 
 	onMount(async () => {
 		if (typeof window === 'undefined' || !canvas) return;
 
 		// Wait for custom fonts (Dune Rise, etc.)
 		await document.fonts.ready;
+		if (destroyed) return;
 
 		const ctx = canvas.getContext('2d');
 		const buf1 = document.createElement('canvas'); // text 1
@@ -152,7 +163,7 @@
 
 		draw();
 
-		return () => {
+		teardown = () => {
 			cancelAnimationFrame(animId);
 			if (leaveTimer) clearTimeout(leaveTimer);
 			canvas.removeEventListener('mousemove', onMove);

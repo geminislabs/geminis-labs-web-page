@@ -1,13 +1,25 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	let wrap;
 	let pixiCanvas;
+
+	// `onMount` async no puede devolver la limpieza (Svelte la ignora): la
+	// escena se apaga en `onDestroy`, y si el componente se desmonta mientras
+	// la escena todavía se arma, se apaga en cuanto termina.
+	let destroyed = false;
+	let teardown = null;
+
+	onDestroy(() => {
+		destroyed = true;
+		teardown?.();
+	});
 
 	onMount(async () => {
 		if (typeof window === 'undefined' || !wrap) return;
 
 		const PIXI = await import('pixi.js');
+		if (destroyed) return;
 
 		const W = wrap.clientWidth || window.innerWidth;
 		const H = wrap.clientHeight || window.innerHeight;
@@ -15,16 +27,25 @@
 
 		const isMobile = W < 768;
 
-		const app = new PIXI.Application({
+		// pixi 8: el renderer se crea con `init()`, que es async.
+		const app = new PIXI.Application();
+		await app.init({
 			width: W,
 			height: H,
-			view: pixiCanvas,
+			canvas: pixiCanvas,
 			backgroundAlpha: 0,
 			resolution: Math.min(window.devicePixelRatio || 1, 2),
 			autoDensity: true,
 			antialias: false,
 			powerPreference: 'high-performance'
 		});
+		// Sin `textureSource`: pixi 8 avisa si se destruye una fuente aún ligada al
+		// shader. Las dos texturas son canvas de 4 y 16 px.
+		const destroyApp = () => app.destroy(false, { children: true, texture: true });
+		if (destroyed) {
+			destroyApp();
+			return;
+		}
 
 		const bgContainer = new PIXI.Container();
 		const fxContainer = new PIXI.Container();
@@ -50,6 +71,14 @@
 		};
 		wrap.addEventListener('mousemove', onMove);
 		wrap.addEventListener('touchmove', onTouch, { passive: true });
+		let onResize = null;
+		teardown = () => {
+			teardown = null;
+			wrap?.removeEventListener('mousemove', onMove);
+			wrap?.removeEventListener('touchmove', onTouch);
+			if (onResize) window.removeEventListener('resize', onResize);
+			destroyApp();
+		};
 
 		// ── HELPERS ────────────────────────────────────────────────────
 		const rng = (a, b) => a + Math.random() * (b - a);
@@ -113,29 +142,34 @@
 					d2 = dx * dx + dy * dy;
 				if (d2 < CONN_D2) {
 					const p = 1 - Math.sqrt(d2) / CONN_D;
-					lineG.lineStyle(0.5, 0x00d4aa, p * 0.06);
-					lineG.moveTo(bgNodes[i].x, bgNodes[i].y);
-					lineG.lineTo(bgNodes[j].x, bgNodes[j].y);
+					// pixi 8: el trazo se declara después del camino.
+					lineG
+						.moveTo(bgNodes[i].x, bgNodes[i].y)
+						.lineTo(bgNodes[j].x, bgNodes[j].y)
+						.stroke({ width: 0.5, color: 0x00d4aa, alpha: p * 0.06 });
 				}
 			}
 		bgContainer.addChild(lineG);
-		const bgNodePC = new PIXI.ParticleContainer(nodeCount, {
-			position: true,
-			tint: true,
-			alpha: true,
-			scale: true,
-			rotation: false
+		// pixi 8: un ParticleContainer lleva `Particle`, no `Sprite`. `color`
+		// dinámico porque el alpha cambia en cada cuadro.
+		const bgNodePC = new PIXI.ParticleContainer({
+			texture: nodeTex,
+			dynamicProperties: { position: false, color: true }
 		});
 		bgContainer.addChild(bgNodePC);
 		const bgNodeSprites = bgNodes.map((n) => {
-			const s = new PIXI.Sprite(nodeTex);
-			s.anchor.set(0.5);
-			s.x = n.x;
-			s.y = n.y;
-			s.scale.set(n.size / 16);
-			s.alpha = n.baseAlpha;
-			s.tint = 0x00d4aa;
-			bgNodePC.addChild(s);
+			const s = new PIXI.Particle({
+				texture: nodeTex,
+				x: n.x,
+				y: n.y,
+				anchorX: 0.5,
+				anchorY: 0.5,
+				scaleX: n.size / 16,
+				scaleY: n.size / 16,
+				alpha: n.baseAlpha,
+				tint: 0x00d4aa
+			});
+			bgNodePC.addParticle(s);
 			return { ...n, sprite: s };
 		});
 
@@ -178,15 +212,13 @@
 			img.onerror = resolve;
 			img.src = '/img/geminislabs-nobg.webp';
 		});
+		if (destroyed) return;
 		if (logoSrcList.length === 0) return;
 
 		// ── LOGO PARTICLES ─────────────────────────────────────────────
-		const logoPC = new PIXI.ParticleContainer(logoSrcList.length, {
-			position: true,
-			tint: true,
-			alpha: true,
-			scale: false,
-			rotation: false
+		const logoPC = new PIXI.ParticleContainer({
+			texture: partTex,
+			dynamicProperties: { position: true, color: true }
 		});
 		logoContainer.addChild(logoPC);
 
@@ -203,13 +235,16 @@
 					: 1.0;
 			const baseAlpha = Math.max(0.1, (0.88 - colorT * 0.22 + rng(-0.05, 0.08)) * edgeFade);
 
-			const sprite = new PIXI.Sprite(partTex);
-			sprite.anchor.set(0.5);
-			sprite.x = s.x;
-			sprite.y = s.y;
-			sprite.alpha = baseAlpha;
-			sprite.tint = lerpColor(0x00ff7a, 0x00c8ff, colorT);
-			logoPC.addChild(sprite);
+			const sprite = new PIXI.Particle({
+				texture: partTex,
+				x: s.x,
+				y: s.y,
+				anchorX: 0.5,
+				anchorY: 0.5,
+				alpha: baseAlpha,
+				tint: lerpColor(0x00ff7a, 0x00c8ff, colorT)
+			});
+			logoPC.addParticle(sprite);
 
 			// Each particle breathes independently
 			const driftAmp = rng(1.8, 5.0);
@@ -236,23 +271,26 @@
 		// ── FLOATING DATA PARTICLES ────────────────────────────────────
 		// Sparse bright motes drifting upward across the scene
 		const DATA_COUNT = isMobile ? 28 : 55;
-		const dataPC = new PIXI.ParticleContainer(DATA_COUNT, {
-			position: true,
-			tint: true,
-			alpha: true,
-			scale: true
+		const dataPC = new PIXI.ParticleContainer({
+			texture: partTex,
+			dynamicProperties: { position: true, color: true }
 		});
 		fxContainer.addChild(dataPC);
 
 		const dataBits = Array.from({ length: DATA_COUNT }, () => {
-			const s = new PIXI.Sprite(partTex);
-			s.anchor.set(0.5);
-			s.x = rng(0, W);
-			s.y = rng(0, H);
-			s.scale.set(rng(0.25, 0.8));
-			s.tint = Math.random() < 0.6 ? 0x00ffaa : 0x0099ff;
-			s.alpha = rng(0.05, 0.2);
-			dataPC.addChild(s);
+			const scale = rng(0.25, 0.8);
+			const s = new PIXI.Particle({
+				texture: partTex,
+				x: rng(0, W),
+				y: rng(0, H),
+				anchorX: 0.5,
+				anchorY: 0.5,
+				scaleX: scale,
+				scaleY: scale,
+				tint: Math.random() < 0.6 ? 0x00ffaa : 0x0099ff,
+				alpha: rng(0.05, 0.2)
+			});
+			dataPC.addParticle(s);
 			return {
 				sprite: s,
 				x: s.x,
@@ -342,7 +380,7 @@
 			}
 		});
 
-		const onResize = () => {
+		onResize = () => {
 			if (!app?.renderer || !wrap) return;
 			const nw = wrap.clientWidth,
 				nh = wrap.clientHeight;
@@ -352,12 +390,6 @@
 			logoCY = nh * logoCYFactor;
 		};
 		window.addEventListener('resize', onResize);
-		return () => {
-			wrap?.removeEventListener('mousemove', onMove);
-			wrap?.removeEventListener('touchmove', onTouch);
-			window.removeEventListener('resize', onResize);
-			app.destroy(true, { children: true, texture: true, baseTexture: true });
-		};
 	});
 </script>
 
