@@ -1,5 +1,4 @@
-import { metrics, trace } from '@opentelemetry/api';
-import { logs } from '@opentelemetry/api-logs';
+import { context, logs, metrics, propagation, trace } from '@opentelemetry/api';
 import { scrubAttrs, scrubUrl } from './scrubber.js';
 
 const SERVICE = 'geminis-labs-web-page';
@@ -189,20 +188,33 @@ async function registerMeterAndLogger(resource, base) {
 	]);
 	const loggerProvider = new LoggerProvider({
 		resource,
-		processors: [new BatchLogRecordProcessor(new OTLPLogExporter({ url: `${base}/v1/logs` }))]
+		processors: [
+			new BatchLogRecordProcessor({ exporter: new OTLPLogExporter({ url: `${base}/v1/logs` }) })
+		]
 	});
 	logs.setGlobalLoggerProvider(loggerProvider);
 }
 
+/**
+ * OTel 3 quitó `register()` de los providers: el context manager, el
+ * propagador y el provider se registran a mano, en el mismo orden que hacía
+ * `register()`.
+ */
+function registerTracerProvider(provider, contextManager, propagator) {
+	context.setGlobalContextManager(contextManager.enable());
+	propagation.setGlobalPropagator(propagator);
+	trace.setGlobalTracerProvider(provider);
+}
+
 async function initBrowserTracer(resource, base) {
 	const [
-		{ WebTracerProvider, StackContextManager, BatchSpanProcessor },
+		{ TracerProvider, StackContextManager, BatchSpanProcessor },
 		{ W3CTraceContextPropagator },
 		{ OTLPTraceExporter },
 		{ registerInstrumentations },
 		{ FetchInstrumentation }
 	] = await Promise.all([
-		import('@opentelemetry/sdk-trace-web'),
+		import('@opentelemetry/sdk-trace'),
 		import('@opentelemetry/core'),
 		import('@opentelemetry/exporter-trace-otlp-http'),
 		import('@opentelemetry/instrumentation'),
@@ -210,16 +222,13 @@ async function initBrowserTracer(resource, base) {
 	]);
 
 	const processor = new ScrubSpanProcessor(
-		new BatchSpanProcessor(new OTLPTraceExporter({ url: `${base}/v1/traces` }))
+		new BatchSpanProcessor({ exporter: new OTLPTraceExporter({ url: `${base}/v1/traces` }) })
 	);
-	const provider = new WebTracerProvider({
+	const provider = new TracerProvider({
 		resource,
 		spanProcessors: [processor]
 	});
-	provider.register({
-		contextManager: new StackContextManager(),
-		propagator: new W3CTraceContextPropagator()
-	});
+	registerTracerProvider(provider, new StackContextManager(), new W3CTraceContextPropagator());
 	registerInstrumentations({
 		tracerProvider: provider,
 		instrumentations: [
@@ -235,14 +244,14 @@ async function initBrowserTracer(resource, base) {
 
 async function initNodeTracer(resource, base) {
 	const [
-		{ NodeTracerProvider, BatchSpanProcessor },
+		{ TracerProvider, BatchSpanProcessor },
 		{ AsyncLocalStorageContextManager },
 		{ W3CTraceContextPropagator },
 		{ OTLPTraceExporter },
 		{ registerInstrumentations },
 		{ HttpInstrumentation }
 	] = await Promise.all([
-		import('@opentelemetry/sdk-trace-node'),
+		import('@opentelemetry/sdk-trace'),
 		import('@opentelemetry/context-async-hooks'),
 		import('@opentelemetry/core'),
 		import('@opentelemetry/exporter-trace-otlp-http'),
@@ -251,16 +260,17 @@ async function initNodeTracer(resource, base) {
 	]);
 
 	const processor = new ScrubSpanProcessor(
-		new BatchSpanProcessor(new OTLPTraceExporter({ url: `${base}/v1/traces` }))
+		new BatchSpanProcessor({ exporter: new OTLPTraceExporter({ url: `${base}/v1/traces` }) })
 	);
-	const provider = new NodeTracerProvider({
+	const provider = new TracerProvider({
 		resource,
 		spanProcessors: [processor]
 	});
-	provider.register({
-		contextManager: new AsyncLocalStorageContextManager(),
-		propagator: new W3CTraceContextPropagator()
-	});
+	registerTracerProvider(
+		provider,
+		new AsyncLocalStorageContextManager(),
+		new W3CTraceContextPropagator()
+	);
 	registerInstrumentations({
 		tracerProvider: provider,
 		instrumentations: [

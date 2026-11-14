@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => ({
 		})
 	],
 	ssr: {
-		noExternal: [/^@opentelemetry\/(?!sdk-trace-node|context-async-hooks|instrumentation-http)/]
+		noExternal: [/^@opentelemetry\/(?!context-async-hooks|instrumentation-http)/]
 	},
 	define: {
 		__SERVICE_NAME__: JSON.stringify(pkg.name),
