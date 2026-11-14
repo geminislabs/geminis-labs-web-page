@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { isAuthenticated } from '$lib/stores/authStore.js';
 	import Navbar from '$lib/components/Navbar.svelte';
@@ -47,8 +47,6 @@
 		if (!$isAuthenticated) goto('/auth');
 	});
 
-	$: currentPath = $page.url.pathname;
-
 	$: resolvedAccent =
 		accent || (sectionTitle === 'Nexus' ? 'nexus' : sectionTitle === 'Orion' ? 'orion' : 'orion');
 
@@ -88,7 +86,7 @@
 		<!-- ── Nav tabs ── -->
 		<nav class="products-nav" aria-label={sectionTitle}>
 			{#each tabs as item (item.href)}
-				{@const active = currentPath === item.href}
+				{@const active = page.url.pathname === item.href}
 				<a
 					href={item.href}
 					class="products-tab"

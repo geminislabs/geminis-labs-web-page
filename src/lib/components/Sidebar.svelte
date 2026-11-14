@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 
 	// Estado de expansión de secciones
 	let expandedSections = {
@@ -22,7 +22,7 @@
 	}
 
 	function isActive(path) {
-		return $page.url.pathname === path;
+		return page.url.pathname === path;
 	}
 
 	function checkMobile() {

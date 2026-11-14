@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { authStore, isAuthenticated } from '$lib/stores/authStore.js';
 	import { toastStore } from '$lib/stores/toastStore.js';
 	import { pageTransitionStore } from '$lib/stores/pageTransitionStore.js';
@@ -70,7 +70,7 @@
 			return;
 		}
 
-		syncModeFromUrl($page.url);
+		syncModeFromUrl(page.url);
 
 		// Generar círculos de fondo
 		startCircleGeneration();

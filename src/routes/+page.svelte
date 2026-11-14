@@ -1358,8 +1358,7 @@
 						bind:value={formData.mensaje}
 						maxlength="5000"
 						class:error={formErrors.mensaje}
-						disabled={isSubmitting}
-					></textarea>
+						disabled={isSubmitting}></textarea>
 					{#if formErrors.mensaje}
 						<span class="error-text">{formErrors.mensaje}</span>
 					{/if}

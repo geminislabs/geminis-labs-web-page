@@ -965,8 +965,7 @@
 							bind:value={datos.mensaje}
 							disabled={enviando}
 							aria-invalid={!!errores.mensaje}
-							aria-describedby={errores.mensaje ? 'dg-mensaje-error' : undefined}
-						></textarea>
+							aria-describedby={errores.mensaje ? 'dg-mensaje-error' : undefined}></textarea>
 						{#if errores.mensaje}
 							<p class="sv-form-error" id="dg-mensaje-error">{errores.mensaje}</p>
 						{/if}

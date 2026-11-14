@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { isAuthenticated } from '$lib/stores/authStore.js';
 	import { organizationService } from '$lib/services/organizationService.js';
@@ -8,7 +8,7 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 
-	const { id } = $page.params;
+	const { id } = page.params;
 
 	let organization = {
 		name: '',

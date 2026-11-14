@@ -1,12 +1,11 @@
 <script>
 	import { onDestroy } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { organizationAccess, accessBlockCopy } from '$lib/stores/organizationAccessStore.js';
 
 	const BILLING_PATH = '/control-panel/billing';
 
 	$: copy = $organizationAccess ? accessBlockCopy($organizationAccess) : null;
-	$: onBilling = $page.url.pathname.startsWith(BILLING_PATH);
 
 	// El aviso va fijo bajo la barra superior; cada sección del panel arma su
 	// propio `main`, así que el hueco se abre en `body`.
@@ -38,7 +37,7 @@
 			/>
 		</svg>
 		<p class="suspension-message">{copy.message}</p>
-		{#if copy.showBilling && !onBilling}
+		{#if copy.showBilling && !page.url.pathname.startsWith(BILLING_PATH)}
 			<a class="suspension-action" href="{BILLING_PATH}/summary">Ir a facturación</a>
 		{/if}
 	</div>
