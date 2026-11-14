@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **OpenTelemetry 3.** El SDK pasa a 3.1 (exporters e instrumentaciones 0.301) y `@opentelemetry/api` a 1.10 (Dependabot #70). OTel 3 junta `sdk-trace-node` y `sdk-trace-web` en `@opentelemetry/sdk-trace`, quita `register()` (el context manager, el propagador y el provider se registran a mano), los processors reciben `{ exporter }` y la API de logs pasa de `@opentelemetry/api-logs` a `@opentelemetry/api`. `@opentelemetry/core` y `@opentelemetry/instrumentation` se importaban sin estar declarados; ahora lo están. Comprobado contra un collector OTLP falso: el servidor exporta trazas, con el contexto propagado, y logs, y el navegador manda sus trazas por `/internal/otlp`
 
-### Changed
-
 - **SvelteKit 3 y Vite 8.** Suben juntos SvelteKit 3.2, Vite 8.3, vite-plugin-svelte 7, adapter-node 6, Vitest 5, jsdom 30, prettier-plugin-svelte 4 y js-api-loader 2, más los menores de Dependabot (#56, #57, #58, #59, #47, #60, #61, #73). Lo que obligó a tocar el código:
   - La configuración de Kit pasa de `svelte.config.js`, que ya no se lee, al plugin `sveltekit(...)` de `vite.config.js`; `eslint.config.js` dejaba de cargar sin él y ya no lo importa
   - `$lib` se mantiene con un alias. SvelteKit 3 lo cambió por `#lib` y avisa de que el alias está deprecado; la migración va aparte
