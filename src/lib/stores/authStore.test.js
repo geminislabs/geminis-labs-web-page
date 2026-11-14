@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
 import { authStore, isAuthenticated, currentUser, authLoading, authError } from './authStore.js';
-import { logs } from '@opentelemetry/api-logs';
+import { logs } from '@opentelemetry/api';
 
 // Mock de los servicios
 vi.mock('../services/authService.js', () => ({
