@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **SvelteKit 3 y Vite 8.** Suben juntos SvelteKit 3.2, Vite 8.3, vite-plugin-svelte 7, adapter-node 6, Vitest 5, jsdom 30, prettier-plugin-svelte 4 y js-api-loader 2, más los menores de Dependabot (#56, #57, #58, #59, #47, #60, #61, #73). Lo que obligó a tocar el código:
+  - La configuración de Kit pasa de `svelte.config.js`, que ya no se lee, al plugin `sveltekit(...)` de `vite.config.js`; `eslint.config.js` dejaba de cargar sin él y ya no lo importa
+  - `$lib` se mantiene con un alias. SvelteKit 3 lo cambió por `#lib` y avisa de que el alias está deprecado; la migración va aparte
+  - `$app/stores` ya no existe: las 12 pantallas que leían `$page` usan `page` de `$app/state`. La ruta activa de las pestañas de facturación y de producto y el aviso de suspensión la leen en el template, donde sigue siendo reactiva al navegar
+  - El override `cookie: ^0.7.0`, que era un parche de seguridad para SvelteKit 2, pasa a `>=0.7.0`: SvelteKit 3 trae `cookie` 2
+  - El mapa de `/tracking` carga con `setOptions` e `importLibrary`, porque js-api-loader 2 quitó `Loader`
+  - `jsconfig.json` extiende `$app/tsconfig`, como pide SvelteKit 3
+  - prettier-plugin-svelte 4 junta el cierre de dos `<textarea>` con su última línea
+
 ## [1.16.0] — 2026-11-10
 
 ### Added

@@ -1,8 +1,8 @@
 <script>
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 
 	function getLinkHref(hash) {
-		if ($page.url.pathname === '/') {
+		if (page.url.pathname === '/') {
 			return hash;
 		}
 		return `/${hash}`;

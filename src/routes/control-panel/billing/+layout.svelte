@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { isAuthenticated } from '$lib/stores/authStore.js';
 	import Navbar from '$lib/components/Navbar.svelte';
@@ -17,8 +17,6 @@
 		{ href: '/control-panel/billing/tax-profile', label: 'Datos fiscales', icon: 'id' },
 		{ href: '/control-panel/billing/invoices', label: 'Facturas', icon: 'file' }
 	];
-
-	$: currentPath = $page.url.pathname;
 </script>
 
 <Navbar />
@@ -51,7 +49,7 @@
 
 		<nav class="billing-nav app-scrollbar" aria-label="Sección de facturación">
 			{#each nav as item (item.href)}
-				{@const active = currentPath === item.href}
+				{@const active = page.url.pathname === item.href}
 				<a
 					href={item.href}
 					class="billing-tab"

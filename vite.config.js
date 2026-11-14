@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import tailwindcss from '@tailwindcss/vite';
+import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
@@ -24,7 +25,15 @@ function otlpEndpointForBuild(mode) {
 }
 
 export default defineConfig(({ mode }) => ({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [
+		tailwindcss(),
+		// Desde SvelteKit 3 la configuración de Kit va aquí y no en `svelte.config.js`.
+		sveltekit({
+			adapter: adapter(),
+			// SvelteKit 3 cambió `$lib` por `#lib`; se mantiene `$lib` mientras no se migre.
+			alias: { $lib: 'src/lib' }
+		})
+	],
 	ssr: {
 		noExternal: [/^@opentelemetry\/(?!sdk-trace-node|context-async-hooks|instrumentation-http)/]
 	},

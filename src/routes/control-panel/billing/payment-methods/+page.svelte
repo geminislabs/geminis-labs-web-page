@@ -1,7 +1,7 @@
 <!-- src/routes/control-panel/billing/payment-methods/+page.svelte -->
 <script>
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { billingService } from '$lib/services/billingService.js';
 
 	let loading = true;
@@ -21,8 +21,8 @@
 	let opError = null;
 
 	onMount(async () => {
-		const si = $page.url.searchParams.get('setup_intent');
-		const status = $page.url.searchParams.get('redirect_status');
+		const si = page.url.searchParams.get('setup_intent');
+		const status = page.url.searchParams.get('redirect_status');
 		if (si && status === 'succeeded') {
 			try {
 				methods = await billingService.confirmSetupIntent(si, 'stripe');

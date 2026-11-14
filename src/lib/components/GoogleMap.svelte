@@ -21,16 +21,14 @@
 		}
 
 		// Importar dinámicamente para evitar problemas de SSR
-		const { Loader } = await import('@googlemaps/js-api-loader');
-
-		const loader = new Loader({
-			apiKey: apiKey,
-			version: 'weekly',
-			libraries: ['places']
-		});
+		// js-api-loader 2: `Loader` ya no existe. Las opciones sólo se toman la
+		// primera vez; al volver a montar el componente se ignoran.
+		const { setOptions, importLibrary } = await import('@googlemaps/js-api-loader');
+		setOptions({ key: apiKey, v: 'weekly' });
 
 		try {
-			googleInstance = await loader.load();
+			await Promise.all([importLibrary('maps'), importLibrary('places')]);
+			googleInstance = window.google;
 			initMap();
 		} catch (error) {
 			console.error('Error loading Google Maps:', error);

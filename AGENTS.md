@@ -10,8 +10,8 @@ Instrucciones para asistentes de IA (Cursor, Copilot, etc.) que trabajen en este
 
 | Capa        | Tecnología                           |
 | ----------- | ------------------------------------ |
-| Framework   | SvelteKit 2, Svelte 5                |
-| Build       | Vite 7                               |
+| Framework   | SvelteKit 3, Svelte 5                |
+| Build       | Vite 8                               |
 | Estilos     | Tailwind CSS 4                       |
 | Tests       | Vitest (unit), Playwright (e2e, WIP) |
 | Lint/format | ESLint 9 flat, Prettier (tabs)       |
@@ -79,7 +79,7 @@ Referencias en `README.md` y `.env.example` si existe.
 - Commitear secretos, `.env`, o credenciales
 - Agregar dependencias sin justificación clara
 - Desactivar reglas de ESLint o tests para "hacer pasar" el CI
-- Cambiar `svelte/no-navigation-without-resolve` sin entender el impacto en SvelteKit 2
+- Cambiar `svelte/no-navigation-without-resolve` sin entender el impacto en SvelteKit
 - Modificar workflows de deploy sin coordinación explícita
 
 ## Documentación humana

@@ -4,7 +4,6 @@ import js from '@eslint/js';
 import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
 import { fileURLToPath } from 'node:url';
-import svelteConfig from './svelte.config.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
@@ -42,9 +41,5 @@ export default [
 			// Check this further, it seems to be a false positive when using sveltekit with the new file-based routing system
 			'svelte/no-navigation-without-resolve': 'off'
 		}
-	},
-	{
-		files: ['**/*.svelte', '**/*.svelte.js'],
-		languageOptions: { parserOptions: { svelteConfig } }
 	}
 ];

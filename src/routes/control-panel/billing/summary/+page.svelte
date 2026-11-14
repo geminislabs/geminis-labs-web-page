@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { billingService } from '$lib/services/billingService.js';
 	import { refreshOrganizationAccess } from '$lib/stores/organizationAccessStore.js';
 	import CheckoutModal from '$lib/components/CheckoutModal.svelte';
@@ -26,14 +26,14 @@
 	let autoRenewError = null;
 
 	onMount(async () => {
-		const params = $page.url.searchParams;
+		const params = page.url.searchParams;
 		const clientSecret = params.get('payment_intent_client_secret');
 		const checkoutFlag = params.get('checkout');
 		const redirectStatus = params.get('redirect_status');
 		if (redirectStatus) billingService.completeCheckout(redirectStatus);
 
 		if (clientSecret || checkoutFlag) {
-			const next = new URL($page.url.href);
+			const next = new URL(page.url.href);
 			next.searchParams.delete('checkout');
 			next.searchParams.delete('payment_intent');
 			next.searchParams.delete('payment_intent_client_secret');

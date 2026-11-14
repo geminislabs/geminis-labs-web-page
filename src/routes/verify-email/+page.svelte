@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { authStore } from '$lib/stores/authStore.js';
 	import { toastStore } from '$lib/stores/toastStore.js';
 	import { pageTransitionStore } from '$lib/stores/pageTransitionStore.js';
@@ -11,7 +11,7 @@
 	let message = '';
 
 	onMount(async () => {
-		const token = $page.url.searchParams.get('token');
+		const token = page.url.searchParams.get('token');
 
 		if (!token) {
 			error = 'Token de verificación no encontrado';

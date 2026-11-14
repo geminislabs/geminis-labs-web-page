@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import AccountSwitch from '$lib/components/AccountSwitch.svelte';
 
 	let mobileMenuOpen = false;
@@ -33,7 +33,7 @@
 	});
 
 	function getLinkHref(hash) {
-		if ($page.url.pathname === '/') return hash;
+		if (page.url.pathname === '/') return hash;
 		return `/${hash}`;
 	}
 
