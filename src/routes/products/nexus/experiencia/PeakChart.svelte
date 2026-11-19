@@ -41,7 +41,7 @@
 			shown = value;
 			return;
 		}
-		const t0 = performance.now() + 500;
+		const t0 = performance.now() + 100;
 		let raf = 0;
 		const tick = (t) => {
 			const p = Math.max(0, Math.min(1, (t - t0) / 1200));
@@ -119,7 +119,7 @@
 	}
 	.pk-area {
 		opacity: 0;
-		animation: pk-fade 1s ease 1.2s forwards;
+		animation: pk-fade 0.8s ease 0.7s forwards;
 	}
 	.pk-line {
 		fill: none;
@@ -129,12 +129,12 @@
 		stroke-dasharray: 1;
 		stroke-dashoffset: 1;
 		filter: drop-shadow(0 0 6px var(--c));
-		animation: pk-draw 1.6s cubic-bezier(0.6, 0, 0.2, 1) 0.3s forwards;
+		animation: pk-draw 1.1s cubic-bezier(0.6, 0, 0.2, 1) 0.1s forwards;
 	}
 	.pk-dot {
 		fill: #fff;
 		opacity: 0;
-		animation: pk-fade 0.4s ease 1.7s forwards;
+		animation: pk-fade 0.4s ease 1.1s forwards;
 	}
 	.pk-ping {
 		fill: none;

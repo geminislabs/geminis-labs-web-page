@@ -58,12 +58,8 @@
 			<text {x} {y} class="dr-hour">{String(h).padStart(2, '0')}:00</text>
 		{/each}
 		{#each bars as b (b.h)}
-			<path d={b.d} class="dr-bar" class:dr-idle={b.v === 0} style="--d:{300 + b.h * 45}ms" />
+			<path d={b.d} class="dr-bar" class:dr-idle={b.v === 0} style="--d:{100 + b.h * 22}ms" />
 		{/each}
-		<g class="dr-hand">
-			<line x1="0" y1="0" x2="0" y2={-(R1 + 8)} />
-			<circle cy={-(R1 + 8)} r="5" />
-		</g>
 		<text y="-6" class="dr-center">{center}</text>
 		<text y="24" class="dr-center-sub">distancia en el día</text>
 	</svg>
@@ -128,19 +124,6 @@
 			transform: scale(1);
 		}
 	}
-	.dr-hand {
-		stroke: rgba(234, 243, 252, 0.55);
-		stroke-width: 1.5;
-		fill: #eaf3fc;
-		transform-box: view-box;
-		transform-origin: 50% 50%;
-		animation: hand 14s linear infinite;
-	}
-	@keyframes hand {
-		to {
-			transform: rotate(360deg);
-		}
-	}
 	.dr-center {
 		fill: #eaf3fc;
 		font:
@@ -170,9 +153,6 @@
 			animation: none;
 			opacity: 1;
 			transform: none;
-		}
-		.dr-hand {
-			animation: none;
 		}
 	}
 </style>

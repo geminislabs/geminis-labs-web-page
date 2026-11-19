@@ -42,11 +42,11 @@
 		let H = 0;
 		let dpr = 1;
 		let raf = 0;
-		const LOW = 0.25; // aurora y máscara a baja resolución (se desenfocan igual)
+		const LOW = 0.18; // aurora y máscara a baja resolución (se desenfocan igual)
 
 		function resize() {
 			const r = host.getBoundingClientRect();
-			dpr = Math.min(window.devicePixelRatio || 1, 2);
+			dpr = Math.min(window.devicePixelRatio || 1, 1.25);
 			W = r.width;
 			H = r.height;
 			for (const c of [canvas, content]) {

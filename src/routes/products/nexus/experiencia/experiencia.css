@@ -1947,7 +1947,7 @@ svg .rv {
 .xs-hero .xp-hero-copy {
 	position: absolute;
 	left: 50%;
-	bottom: clamp(14px, 3.5vh, 40px);
+	bottom: clamp(36px, 9vh, 110px);
 	width: min(var(--sw), calc(100% - 2 * var(--gutter)));
 	translate: -50% 0;
 	z-index: 3;
@@ -2353,7 +2353,7 @@ svg .rv {
 	z-index: 4;
 }
 .xs-hero .xp-audience {
-	top: calc(var(--top) + var(--sh) - 20vh);
+	top: calc(var(--top) + var(--sh) - 30vh);
 	height: 46vh;
 }
 
@@ -2500,4 +2500,21 @@ svg .rv {
 .xs-horizonte .xp-orbit3 {
 	width: min(1400px, 96vw);
 	height: min(74vh, 700px);
+}
+
+/* ── 03: texto pegado a la izquierda y cadena en una sola línea ────── */
+.xs-geminis {
+	padding-left: clamp(16px, 3vw, 48px);
+}
+.xp-gl2 .xp-flow {
+	flex-wrap: nowrap;
+	gap: clamp(0.4rem, 1.4vw, 1.4rem);
+}
+.xp-gl2 .xp-flow li {
+	padding: 0.5rem 0.8rem;
+	font-size: clamp(0.8rem, 1.05vw, 1.05rem);
+	white-space: nowrap;
+}
+.xp-gl2 .xp-flow li:not(:last-child)::after {
+	width: clamp(0.4rem, 1.4vw, 1.4rem);
 }
