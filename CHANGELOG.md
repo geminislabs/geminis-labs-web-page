@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1] — 2026-11-19
+
 ### Changed
 
 - **Experiencia de Nexus · Querétaro por capas:** primero se muestra solo la maqueta del Centro Histórico, de cerca; en el siguiente paso la cámara se aleja y aparecen las capas
