@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Experiencia de Nexus en producción y en celular.** En la escena de Geminis Labs el video del rostro aparecía media pantalla abajo en producción: el minificador de CSS descartaba `translate` porque la misma regla tenía `transform`. Ahora va en un solo `transform`. En pantallas verticales, la pantalla de cine del inicio ocupa todo el ancho (antes era una franja ultrawide diminuta), el diagrama de arquitectura corre de arriba hacia abajo, el horizonte apila sus tarjetas bajo el logo y la ruta del acercamiento a Querétaro queda debajo del texto
+
 ## [1.17.0] — 2026-11-19
 
 ### Added

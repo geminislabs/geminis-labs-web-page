@@ -52,18 +52,33 @@
 			canvas.height = Math.round(H * dpr);
 		}
 
-		const pos = (n) => [NODES[n].x * W, NODES[n].y * H];
+		// En pantallas angostas el flujo corre de arriba hacia abajo.
+		const vertical = () => W < 640;
+		const pos = (n) =>
+			vertical() ? [NODES[n].y * W, NODES[n].x * H] : [NODES[n].x * W, NODES[n].y * H];
 
 		function bez(a, b, u) {
-			const [cx0, y0] = pos(a);
-			const [cx3, y3] = pos(b);
+			const [cx0, cy0] = pos(a);
+			const [cx3, cy3] = pos(b);
+			const v = 1 - u;
+			if (vertical()) {
+				// De la base de un nodo a la parte superior del siguiente.
+				const y0 = cy0 + bh / 2;
+				const y3 = cy3 - bh / 2;
+				const my = (y0 + y3) / 2;
+				return [
+					v * v * v * cx0 + 3 * v * v * u * cx0 + 3 * v * u * u * cx3 + u * u * u * cx3,
+					v * v * v * y0 + 3 * v * v * u * my + 3 * v * u * u * my + u * u * u * y3
+				];
+			}
 			// Las conexiones salen del borde derecho y llegan al borde izquierdo.
+			const y0 = cy0;
+			const y3 = cy3;
 			const x0 = cx0 + bw / 2;
 			const x3 = cx3 - bw / 2;
 			const mx = (x0 + x3) / 2;
 			const x1 = mx;
 			const x2 = mx;
-			const v = 1 - u;
 			return [
 				v * v * v * x0 + 3 * v * v * u * x1 + 3 * v * u * u * x2 + u * u * u * x3,
 				v * v * v * y0 + 3 * v * v * u * y0 + 3 * v * u * u * y3 + u * u * u * y3
@@ -85,7 +100,7 @@
 			const dt = 0.016;
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 			ctx.clearRect(0, 0, W, H);
-			bw = Math.min(150, W * 0.115);
+			bw = vertical() ? Math.min(150, W * 0.4) : Math.min(150, W * 0.115);
 
 			if (!reduced && now - lastSpawn > 260) {
 				lastSpawn = now;
@@ -183,6 +198,11 @@
 	.flow {
 		width: 100%;
 		height: clamp(220px, 34vh, 340px);
+	}
+	@media (max-width: 639px) {
+		.flow {
+			height: 640px;
+		}
 	}
 	canvas {
 		display: block;

@@ -2378,11 +2378,11 @@ svg .rv {
 	height: 96vh;
 	width: calc(96vh * 16 / 9);
 	max-width: none;
-	translate: 0 -50%;
 	object-fit: cover;
 	z-index: 0;
 	mix-blend-mode: screen;
-	transform: scaleX(-1);
+	/* Un solo transform: el minificador descarta «translate» si conviven. */
+	transform: translateY(-50%) scaleX(-1);
 	-webkit-mask-image: linear-gradient(
 		270deg,
 		transparent 0%,
@@ -2771,4 +2771,100 @@ svg .rv {
 /* Horizonte: elipse más alta para que las tarjetas no pasen sobre el logo. */
 .xp-orbit3-node {
 	top: calc(50% + var(--y) * 36%);
+}
+
+/* ── Hero en pantallas verticales (celular): pantalla grande, no ultrawide ─ */
+@media (max-aspect-ratio: 1/1) {
+	.xs-hero {
+		--sw: 100vw;
+		--sh: min(92vw, 52vh);
+		--top: 9vh;
+	}
+	.xs-hero .xp-screen {
+		aspect-ratio: auto;
+		height: var(--sh);
+		border-width: 4px 0;
+		border-radius: 0;
+	}
+	.xs-hero .xp-audience {
+		width: 150vw;
+		top: calc(var(--top) + var(--sh) * 0.8);
+		height: calc(var(--sh) * 0.62);
+	}
+	.xs-hero .xp-hero-copy {
+		width: calc(100% - 2 * var(--gutter));
+		bottom: clamp(16px, 5vh, 48px);
+	}
+	.xs-hero .xp-hero-title {
+		font-size: clamp(1.5rem, 7.4vw, 2.6rem);
+	}
+	.xs-hero .xp-hero-lockup span {
+		font-size: clamp(1.1rem, 5vw, 1.8rem);
+	}
+	.xs-hero .xp-hero-lockup img {
+		width: clamp(36px, 10vw, 56px);
+	}
+	.xs-hero .xp-hero-lockup em {
+		display: none;
+	}
+	.xs-hero .xp-hero-sub {
+		font-size: clamp(0.85rem, 3.6vw, 1.05rem);
+	}
+}
+
+/* ── Celular: escenas que necesitan otro acomodo ───────────────────── */
+@media (max-width: 860px) {
+	.xp-gl3 .xp-dune {
+		white-space: normal;
+		font-size: clamp(1.6rem, 9vw, 2.6rem);
+	}
+	.xp-gl3-brand {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.6rem;
+	}
+	.xp-gl-human {
+		opacity: 0.28;
+	}
+	/* Horizonte: sin órbita; logo arriba y tarjetas apiladas. */
+	.xs-horizonte .xp-orbit3 {
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.9rem;
+	}
+	.xs-horizonte .xp-orbit3::before,
+	.xs-horizonte .xp-orbit3-ring {
+		display: none;
+	}
+	.xs-horizonte .xp-orbit3-core {
+		position: relative;
+		left: auto;
+		top: auto;
+		translate: none;
+		width: min(60vw, 260px);
+	}
+	.xs-horizonte .xp-orbit3-node {
+		position: relative;
+		left: auto !important;
+		top: auto !important;
+		translate: none;
+		scale: 1;
+		opacity: 1;
+		filter: none;
+		width: 100%;
+		max-width: 420px;
+	}
+	.xs-horizonte .xp-horizon2 {
+		justify-content: flex-start;
+		height: auto;
+	}
+}
+@media (max-width: 860px) {
+	.xs-horizonte .xp-orbit3-core {
+		-webkit-mask-image: radial-gradient(circle, #000 56%, transparent 72%);
+		mask-image: radial-gradient(circle, #000 56%, transparent 72%);
+	}
 }

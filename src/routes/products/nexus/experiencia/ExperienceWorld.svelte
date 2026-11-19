@@ -247,6 +247,10 @@
 		const bh = Math.max(40, y1 - y0) * base;
 		const zoom = Math.max(1.8, Math.min(4.5, Math.min((W * 0.26) / bw, (H * 0.45) / bh)));
 		// El texto vive a la izquierda: desplaza la ruta hacia la derecha.
+		// En celular el texto va arriba: la ruta se coloca en la mitad inferior.
+		if (W < 860) {
+			return { x: (x0 + x1) / 2, y: (y0 + y1) / 2 - (H * 0.25) / (base * zoom), zoom };
+		}
 		const offset = (W * 0.32) / (base * zoom);
 		return { x: (x0 + x1) / 2 - offset, y: (y0 + y1) / 2, zoom };
 	}
