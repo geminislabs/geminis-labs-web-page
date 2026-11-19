@@ -12,7 +12,7 @@
 
 	let { preset = null, reduced = false, lite = false } = $props();
 
-	const MODES = { silk: 0, aurora: 1, swirl: 2, fold: 3, smoke: 4 };
+	const MODES = { silk: 0, aurora: 1, swirl: 2, fold: 3, smoke: 4, stage: 5 };
 
 	const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 	const FRAG = `
@@ -56,6 +56,36 @@ if(uMode==0){
   float rim=exp(-abs(d)*160.)*1.3+exp(-abs(d)*22.)*.28;
   col+=uC3*rim*(.55+.45*sin(q.x*1.8+t*.35+fi*2.1));
  }
+}else if(uMode==5){
+ float haze=fbm(p*2.4+vec2(t*.05,-t*.035))*.7+fbm(p*6.+vec2(-t*.08,t*.02))*.3;
+ vec3 c=vec3(0.);
+ for(int i=0;i<3;i++){float fi=float(i);
+  vec2 L=vec2((fi-1.)*.9,.66);
+  float sway=sin(t*.32+fi*2.1)*.16;
+  vec2 dir=normalize(vec2(-(fi-1.)*.38+sway,-1.));
+  vec2 d=p-L;float along=dot(d,dir);
+  float perp=abs(d.x*dir.y-d.y*dir.x);
+  float w=.012+along*.17;
+  float cone=smoothstep(w,w*.55,perp)*step(0.,along)*exp(-along*.6);
+  float core=smoothstep(w*.5,0.,perp)*step(0.,along)*exp(-along*1.4);
+  vec3 lc=fi==1.?uC2:uC1;
+  c+=lc*cone*(.12+.95*haze*haze)+lc*core*.35;
+  c+=lc*.006/(dot(d,d)*9.+.004);
+  float sp=step(.9992,hash(floor(gl_FragCoord.xy/1.5)+floor(t*2.)+fi*7.));
+  c+=vec3(sp)*cone*cone*1.5;
+ }
+ float fy=-.34;
+ float fl=smoothstep(fy+.02,fy-.04,p.y);
+ {
+  float k=max(0.,fy-p.y);
+  float pool=exp(-pow(p.x/.6,2.)-pow((k-.1)/.07,2.));
+  float poolL=exp(-pow((p.x+.75)/.25,2.)-pow((k-.06)/.05,2.));
+  float poolR=exp(-pow((p.x-.75)/.25,2.)-pow((k-.06)/.05,2.));
+  vec3 floorC=c*.3+uC2*pool*.55+uC1*(poolL+poolR)*.35+uC3*.05*fbm(vec2(p.x*10.,k*40.));
+  floorC*=smoothstep(.6,0.,k);
+  c=mix(c,floorC,fl);
+ }
+ col=uC0+c;
 }else{
  vec2 w=vec2(fbm(p*1.3+vec2(t*.025,-t*.018)),fbm(p*1.3+vec2(3.1,7.4)-t*.02));
  float f=fbm(p*1.6+2.4*w+vec2(-t*.04,t*.01));

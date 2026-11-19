@@ -31,22 +31,15 @@ export const SCENES = [
  * (la escena usa fotografía o el mapa). `mask` oscurece donde va el contenido.
  */
 export const BACKDROPS = {
-	geminis: {
-		mode: 'aurora',
-		colors: ['#03100b', '#1f8a4c', '#2fd18a', '#b8ffd9'],
-		intensity: 0.9
-	},
 	pregunta: {
 		mode: 'smoke',
 		colors: ['#060302', '#2a1205', '#7a3a0e', '#f2a14a'],
 		intensity: 0.85
 	},
-	telemetria: {
-		mode: 'silk',
-		colors: ['#020814', '#0a2a4a', '#1d6fa3', '#9ad8ff'],
-		mask: [0.5, 0.5, 0.5, 0.42],
-		maskK: 0.6,
-		intensity: 0.8
+	economia: {
+		mode: 'stage',
+		colors: ['#010204', '#9cc8ff', '#7dffc0', '#6a8cb0'],
+		intensity: 1
 	},
 	horizonte: {
 		mode: 'aurora',
@@ -330,7 +323,9 @@ export const MEDIA = {
 	nexusLogo: '/vid/nexus-animation.mp4',
 	kit: `${IMG}/kit-taas.webp`,
 	ciudadPines: `${IMG}/ciudad-pines.webp`,
-	americas: `${IMG}/americas-conexiones.webp`
+	americas: `${IMG}/americas-conexiones.webp`,
+	publico: `${IMG}/publico.webp`,
+	cyberhuman: '/vid/cyberhuman-hero.mp4'
 };
 
 /** Capturas reales de la app móvil (solo pantallas de informes, sin mapas). */

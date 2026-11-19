@@ -2232,118 +2232,7 @@ svg .rv {
 }
 
 /* ══ 08 Oferta: presentación de producto ════════════════════════════ */
-.xs-economia {
-	background: radial-gradient(ellipse 80% 60% at 50% 40%, #0a1020 0%, #020306 70%);
-}
-.xp-showroom {
-	position: absolute;
-	inset: 0;
-	z-index: 0;
-	overflow: hidden;
-	pointer-events: none;
-}
 /* Reflectores: se encienden con parpadeo y barren el escenario. */
-.xp-spot {
-	position: absolute;
-	top: -10%;
-	width: 46vw;
-	height: 120%;
-	background: linear-gradient(
-		180deg,
-		rgba(190, 220, 255, 0.34),
-		rgba(140, 190, 255, 0.07) 60%,
-		transparent 85%
-	);
-	clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
-	filter: blur(14px);
-	mix-blend-mode: screen;
-	transform-origin: 50% 0;
-	opacity: 0;
-	animation:
-		xp-spot-on 1.4s steps(1) forwards,
-		xp-spot-sway 9s ease-in-out infinite;
-}
-.xp-spot-l {
-	left: -6vw;
-	--a0: 16deg;
-	--a1: 26deg;
-	animation-delay: 0.2s, 0s;
-}
-.xp-spot-c {
-	left: 27vw;
-	--a0: -4deg;
-	--a1: 4deg;
-	background: linear-gradient(
-		180deg,
-		rgba(160, 255, 210, 0.38),
-		rgba(73, 242, 176, 0.08) 60%,
-		transparent 85%
-	);
-	animation-delay:
-		0.6s,
-		-3s;
-}
-.xp-spot-r {
-	right: -6vw;
-	--a0: -16deg;
-	--a1: -26deg;
-	animation-delay:
-		0.4s,
-		-6s;
-}
-@keyframes xp-spot-on {
-	0% {
-		opacity: 0;
-	}
-	20% {
-		opacity: 0.8;
-	}
-	30% {
-		opacity: 0.15;
-	}
-	45%,
-	100% {
-		opacity: 1;
-	}
-}
-@keyframes xp-spot-sway {
-	0%,
-	100% {
-		rotate: var(--a0);
-	}
-	50% {
-		rotate: var(--a1);
-	}
-}
-.xp-floor {
-	position: absolute;
-	left: 50%;
-	top: 58%;
-	width: 90vw;
-	height: 40vh;
-	translate: -50% 0;
-	background:
-		radial-gradient(ellipse 45% 30% at 50% 22%, rgba(110, 200, 255, 0.28), transparent 70%),
-		linear-gradient(180deg, rgba(20, 34, 56, 0.6), rgba(2, 3, 6, 0) 70%);
-	border-top: 1px solid rgba(160, 210, 255, 0.12);
-}
-.xp-dust i {
-	position: absolute;
-	left: calc(18% + mod(var(--i) * 37, 64) * 1%);
-	bottom: -4%;
-	width: 2px;
-	height: 2px;
-	border-radius: 50%;
-	background: rgba(220, 240, 255, 0.7);
-	animation: xp-dust calc(9s + mod(var(--i), 7) * 1.3s) linear infinite;
-	animation-delay: calc(var(--i) * -0.55s);
-}
-@keyframes xp-dust {
-	to {
-		translate: calc(mod(var(--i), 5) * 6px - 12px) -110vh;
-		opacity: 0;
-	}
-}
 .xp-econ2 {
 	position: relative;
 	display: flex;
@@ -2384,8 +2273,8 @@ svg .rv {
 	width: 100%;
 	height: auto;
 	border-radius: 18px;
-	-webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
-	mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
+	-webkit-mask-image: radial-gradient(ellipse 66% 64% at 50% 50%, #000 42%, transparent 100%);
+	mask-image: radial-gradient(ellipse 66% 64% at 50% 50%, #000 42%, transparent 100%);
 	-webkit-box-reflect: below 2px linear-gradient(transparent 72%, rgba(255, 255, 255, 0.16));
 }
 /* Destello que recorre el producto. */
@@ -2401,8 +2290,8 @@ svg .rv {
 	background-size: 250% 100%;
 	mix-blend-mode: screen;
 	animation: xp-shine 5.5s ease-in-out 2.4s infinite;
-	-webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
-	mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
+	-webkit-mask-image: radial-gradient(ellipse 66% 64% at 50% 50%, #000 42%, transparent 100%);
+	mask-image: radial-gradient(ellipse 66% 64% at 50% 50%, #000 42%, transparent 100%);
 	background-position: 130% 0;
 }
 @keyframes xp-shine {
@@ -2452,18 +2341,189 @@ svg .rv {
 	}
 }
 @media (prefers-reduced-motion: reduce) {
-	.xp-spot,
 	.xp-product,
 	.xp-plans-row .xp-plan {
 		opacity: 1;
 		animation: none;
-	}
-	.xp-dust {
-		display: none;
 	}
 }
 .xp-horizon2 > .xp-kicker,
 .xp-horizon2 > .xp-horizon-line {
 	position: relative;
 	z-index: 4;
+}
+.xs-hero .xp-audience {
+	top: calc(var(--top) + var(--sh) - 20vh);
+	height: 46vh;
+}
+
+/* ── 03 Geminis Labs: humano + tecnología ──────────────────────────── */
+.xs-geminis {
+	background: #000;
+}
+.xp-gl-human {
+	position: absolute;
+	right: -4vw;
+	top: 50%;
+	height: 96vh;
+	aspect-ratio: 16 / 9;
+	translate: 0 -50%;
+	object-fit: cover;
+	z-index: 0;
+	mix-blend-mode: screen;
+	transform: scaleX(-1);
+	-webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 85%, transparent 100%);
+	mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 85%, transparent 100%);
+	opacity: 0.95;
+}
+.xp-gl2 {
+	max-width: min(780px, 58vw);
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+.xp-gl2 .xp-gl-mark {
+	width: clamp(110px, 11vw, 170px);
+}
+.xp-gl2 .xp-dune {
+	font-size: clamp(2rem, 4.6vw, 4.4rem);
+	white-space: nowrap;
+	margin-bottom: 0.4rem;
+}
+.xp-gl2 .xp-sub {
+	margin: 0 0 1.4rem;
+}
+.xp-gl2 .xp-lema {
+	--xp-weight: 500;
+	margin: 0 0 1.6rem;
+	text-align: left;
+}
+.xp-gl2 .xp-flow {
+	justify-content: flex-start;
+	margin-bottom: 1.6rem;
+}
+.xp-portfolio {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.8rem 1rem;
+}
+.xp-pf {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 0.8rem;
+	padding: 0.7rem 1.1rem 0.7rem 0.8rem;
+	border-radius: 16px;
+	background: rgba(4, 16, 10, 0.85);
+	box-shadow: inset 0 0 0 1px rgba(159, 245, 196, 0.25);
+}
+.xp-pf img {
+	width: 42px;
+	height: auto;
+}
+.xp-pf strong {
+	display: block;
+	font-size: 1.1rem;
+}
+.xp-pf span {
+	font-size: 0.85rem;
+	color: var(--ink-2);
+}
+.xp-pf-c {
+	display: grid;
+	place-items: center;
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	font-family: var(--display);
+	color: #1a1305;
+	background: linear-gradient(160deg, #fff1b8, #e3b94e);
+}
+.xp-pf-centli {
+	box-shadow: inset 0 0 0 1px rgba(241, 217, 138, 0.35);
+}
+.xp-portfolio .xp-proof {
+	flex-basis: 100%;
+	margin: 0.4rem 0 0;
+}
+@media (max-width: 860px) {
+	.xp-gl-human {
+		opacity: 0.35;
+	}
+	.xp-gl2 {
+		max-width: 100%;
+	}
+}
+/* Nexus: el mapa vivo en perspectiva, como la ciudad de la escena 01. */
+.xp-nexus-map {
+	transform-origin: 62% 62%;
+	transform: perspective(1400px) rotateX(26deg) scale(1.5) translateY(-3%);
+}
+.xs-nexus {
+	background: #030913;
+}
+.xs-nexus::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 30%;
+	z-index: 1;
+	pointer-events: none;
+	background: linear-gradient(180deg, #030913 15%, transparent);
+}
+
+/* ── 06 Un día real: estilo app (hexágonos) + celular ──────────────── */
+.xs-telemetria {
+	background: #000;
+}
+.xp-telemetry-grid2 {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) auto;
+}
+.xp-tele-phone {
+	margin: 0;
+	text-align: center;
+	animation: float 7s ease-in-out infinite;
+}
+.xp-tele-phone-body {
+	width: clamp(150px, 13vw, 210px);
+	padding: 8px;
+	border-radius: 30px;
+	background: #05080f;
+	box-shadow:
+		0 0 0 2px rgba(120, 200, 255, 0.45),
+		0 30px 70px rgba(0, 0, 0, 0.7),
+		0 0 60px rgba(40, 180, 160, 0.3);
+}
+.xp-tele-phone-body img {
+	display: block;
+	width: 100%;
+	border-radius: 23px;
+}
+.xp-tele-phone figcaption {
+	margin-top: 0.7rem;
+	font-size: 0.78rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--ink-2);
+}
+@media (max-width: 1100px) {
+	.xp-tele-phone {
+		display: none;
+	}
+	.xp-telemetry-grid2 {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+	}
+}
+
+/* ── 10 Horizonte: tarjetas más grandes ────────────────────────────── */
+.xs-horizonte .xp-orbit3-node {
+	width: clamp(290px, 25vw, 380px);
+}
+.xs-horizonte .xp-orbit3-node .xp-orbit-visual {
+	height: clamp(170px, 23vh, 230px);
+}
+.xs-horizonte .xp-orbit3 {
+	width: min(1400px, 96vw);
+	height: min(74vh, 700px);
 }

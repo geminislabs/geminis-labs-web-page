@@ -5,7 +5,7 @@
 	 * ilustrativo (no son datos de una unidad real).
 	 */
 	import { onMount } from 'svelte';
-	import { loadNetwork, routePoint } from './roadNetwork.js';
+	import { loadNetwork, routePoint, pointAt, endpointKey } from './roadNetwork.js';
 
 	let { phase = $bindable(0), reduced = false, fullbleed = false } = $props();
 
@@ -24,6 +24,77 @@
 		let alive = true;
 		let layer = null;
 		let view = null;
+		let traffic = [];
+		let lastNow = 0;
+
+		/** Tráfico ilustrativo: estelas de luz sobre las vías que se ven en pantalla. */
+		function spawnCar(car = {}) {
+			const { roads, network } = net;
+			let pick = network[Math.floor(Math.random() * network.length)];
+			for (let k = 0; k < 40; k++) {
+				const cand = network[Math.floor(Math.random() * network.length)];
+				const [mx, my] = pointAt(roads[cand], roads[cand].len / 2);
+				const [sx, sy] = toS(mx, my);
+				if (sx > W * 0.2 && sx < W * 1.05 && sy > -40 && sy < H + 40) {
+					pick = cand;
+					break;
+				}
+			}
+			car.i = pick;
+			car.dir = Math.random() < 0.5 ? 1 : -1;
+			car.s = Math.random() * roads[pick].len * 0.6;
+			car.v = 60 + Math.random() * 70;
+			car.trail = [];
+			return car;
+		}
+
+		function stepCars(dt) {
+			const { roads, adjacency } = net;
+			ctx.save();
+			ctx.globalCompositeOperation = 'lighter';
+			ctx.lineCap = 'round';
+			for (const c of traffic) {
+				const road = roads[c.i];
+				c.s += c.v * dt;
+				if (c.s >= road.len) {
+					const opts = (adjacency.get(endpointKey(road, c.dir > 0 ? 1 : 0)) || []).filter(
+						(o) => o.i !== c.i
+					);
+					if (!opts.length) {
+						spawnCar(c);
+						continue;
+					}
+					const nx = opts[Math.floor(Math.random() * opts.length)];
+					c.s -= road.len;
+					c.i = nx.i;
+					c.dir = nx.end === 0 ? 1 : -1;
+				}
+				const r2 = roads[c.i];
+				c.trail.push(toS(...pointAt(r2, c.dir > 0 ? c.s : r2.len - c.s)));
+				if (c.trail.length > 26) c.trail.shift();
+				const n = c.trail.length;
+				for (let k = 1; k < n; k++) {
+					const f = k / n;
+					ctx.strokeStyle = `rgba(110,200,255,${(f * f * 0.85).toFixed(3)})`;
+					ctx.lineWidth = 1 + 2.4 * f;
+					ctx.beginPath();
+					ctx.moveTo(c.trail[k - 1][0], c.trail[k - 1][1]);
+					ctx.lineTo(c.trail[k][0], c.trail[k][1]);
+					ctx.stroke();
+				}
+				if (n) {
+					const [hx, hy] = c.trail[n - 1];
+					const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 9);
+					g.addColorStop(0, 'rgba(235,248,255,0.95)');
+					g.addColorStop(1, 'rgba(110,200,255,0)');
+					ctx.fillStyle = g;
+					ctx.beginPath();
+					ctx.arc(hx, hy, 9, 0, Math.PI * 2);
+					ctx.fill();
+				}
+			}
+			ctx.restore();
+		}
 
 		function resize() {
 			const r = host.getBoundingClientRect();
@@ -91,6 +162,12 @@
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.drawImage(layer, 0, 0);
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			const dt = Math.min(0.05, lastNow ? (now - lastNow) / 1000 : 0.016);
+			lastNow = now;
+			if (fullbleed && !reduced) {
+				while (traffic.length < 34) traffic.push(spawnCar());
+				stepCars(dt);
+			}
 
 			const len = net.route.len;
 			// Recorrido: avanza hasta 0.72, se detiene ahí (40 min «detenida»).

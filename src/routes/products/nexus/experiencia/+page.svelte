@@ -12,6 +12,7 @@
 	import DayRing from './DayRing.svelte';
 	import MiniVisual from './MiniVisual.svelte';
 	import PhoneWall from './PhoneWall.svelte';
+	import HexBackdrop from './HexBackdrop.svelte';
 	import HorizonVisual from './HorizonVisual.svelte';
 	import FlowDiagram from './FlowDiagram.svelte';
 	import {
@@ -344,7 +345,7 @@
 					<div class="xp-screen rv on">
 						<StageHero {reduced} {lite} intro radius={3} />
 					</div>
-					<div class="xp-audience"><Audience {reduced} /></div>
+					<div class="xp-audience"><Audience {reduced} src={MEDIA.publico} /></div>
 					<div class="xp-hero-copy">
 						<div class="xp-hero-lockup rv on" style="--d:300ms">
 							<img src="/img/geminislabs-nobg.webp" alt="" />
@@ -406,7 +407,17 @@
 						datos de Nexus
 					</p>
 				{:else if scene.id === 'geminis'}
-					<div class="xp-center">
+					<HexBackdrop />
+					<video
+						class="xp-gl-human"
+						src={MEDIA.cyberhuman}
+						autoplay
+						muted
+						playsinline
+						use:holdLoop={6000}
+						aria-hidden="true"
+					></video>
+					<div class="xp-gl2">
 						<div class="xp-gl-mark rv on">
 							<span class="xp-gl-halo" aria-hidden="true"></span>
 							<img src="/img/geminislabs-nobg.webp" alt="" />
@@ -415,27 +426,43 @@
 						<p class="xp-sub rv on" style="--d:500ms">
 							Laboratorio de innovación · Desarrollo de productos · Querétaro
 						</p>
+						<AnimatedText
+							tag="p"
+							className="xp-lema"
+							text="Conectamos humanidad y tecnología"
+							delay={700}
+							step={22}
+						/>
 						<ol class="xp-flow" class:joined={beat >= 1}>
 							{#each FLOW as word, i (word)}
 								<li
 									class="rv on beam"
-									style="--d:{700 + i * 160}ms"
+									style="--d:{1100 + i * 140}ms"
 									class:last={i === FLOW.length - 1}
 								>
 									{word}
 								</li>
 							{/each}
 						</ol>
-						<AnimatedText
-							tag="p"
-							className="xp-lema"
-							text="Conectamos humanidad y tecnología"
-							show={beat >= 1}
-							step={22}
-						/>
-						<p class="xp-proof rv" class:on={beat >= 2}>
-							<strong>12 meses</strong> construyendo Nexus · ingeniería propia de punta a punta
-						</p>
+						<div class="xp-portfolio rv" class:on={beat >= 2}>
+							<div class="xp-pf beam">
+								<img src="/img/logo-nexus-3x.png" alt="" />
+								<div>
+									<strong>Nexus</strong>
+									<span>Movilidad · en operación</span>
+								</div>
+							</div>
+							<div class="xp-pf xp-pf-centli">
+								<span class="xp-pf-c">C</span>
+								<div>
+									<strong>Centli</strong>
+									<span>Agro · visión en desarrollo</span>
+								</div>
+							</div>
+							<p class="xp-proof">
+								<strong>12 meses</strong> construyendo Nexus · ingeniería propia de punta a punta
+							</p>
+						</div>
 					</div>
 				{:else if scene.id === 'nexus'}
 					<div class="xp-nexus-map" aria-hidden="true">
@@ -500,6 +527,7 @@
 						</ul>
 					</div>
 				{:else if scene.id === 'telemetria'}
+					<HexBackdrop />
 					<div class="xp-wide xp-telemetry">
 						<p class="xp-kicker">Datos reales</p>
 						<h2 class="xp-h2 xp-h2-tight">Un día de una unidad, en números.</h2>
@@ -534,6 +562,12 @@
 									{reduced}
 								/>
 							</div>
+							<figure class="xp-tele-phone rv on" style="--d:700ms">
+								<div class="xp-tele-phone-body">
+									<img src={PHONE_SCREENS[0]} alt="Pantalla de Informes en la app de Nexus" />
+								</div>
+								<figcaption>App Nexus · Informes</figcaption>
+							</figure>
 						</div>
 						<p class="xp-footnote rv" class:on={beat >= 1}>
 							Informe generado en Nexus · unidad de pruebas del equipo · sin ubicaciones
@@ -581,15 +615,6 @@
 						</p>
 					</div>
 				{:else if scene.id === 'economia'}
-					<div class="xp-showroom" aria-hidden="true">
-						<span class="xp-spot xp-spot-l"></span>
-						<span class="xp-spot xp-spot-c"></span>
-						<span class="xp-spot xp-spot-r"></span>
-						<span class="xp-floor"></span>
-						<span class="xp-dust">
-							{#each Array(36) as _, i (i)}<i style="--i:{i}"></i>{/each}
-						</span>
-					</div>
 					<div class="xp-wide xp-econ2">
 						<div class="xp-econ2-head">
 							<p class="xp-kicker">Oferta comercial</p>
