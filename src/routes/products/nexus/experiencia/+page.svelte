@@ -14,7 +14,7 @@
 	import PhoneWall from './PhoneWall.svelte';
 	import HorizonVisual from './HorizonVisual.svelte';
 	import FlowDiagram from './FlowDiagram.svelte';
-	import CityLayers from './CityLayers.svelte';
+	import CityModel3D from './CityModel3D.svelte';
 	import {
 		SCENES,
 		NEXUS_LIVE_URL,
@@ -70,6 +70,7 @@
 	let nav = $state(initialNav());
 	let menuOpen = $state(false);
 	let chainPhase = $state(0);
+	let activeLayer = $state(0);
 	let orbitT = $state(0);
 
 	// Las tarjetas del horizonte orbitan despacio alrededor del logo de Nexus.
@@ -819,8 +820,12 @@
 								la ciudad.
 							</p>
 							<ul class="xp-capas-list">
-								{#each [...CITY_LAYERS].reverse() as l, i (l.id)}
-									<li class="rv on" style="--d:{400 + i * 110}ms; --rgb:{l.rgb.join(',')}">
+								{#each CITY_LAYERS as l, i (l.id)}
+									<li
+										class="rv on"
+										class:active={activeLayer === i}
+										style="--d:{400 + i * 110}ms; --rgb:{l.rgb.join(',')}"
+									>
 										<strong>{l.n}</strong><span>{l.d}</span>
 									</li>
 								{/each}
@@ -835,11 +840,13 @@
 								</p>
 							</div>
 						</div>
-						<div class="xp-capas-stack"><CityLayers layers={CITY_LAYERS} {reduced} /></div>
+						<div class="xp-capas-stack">
+							<CityModel3D layers={CITY_LAYERS} bind:active={activeLayer} {reduced} />
+						</div>
 					</div>
 					<p class="xp-source">
-						Visión en investigación · celdas H3 reales · movilidad: vías de © OpenStreetMap · capas
-						2–5 ilustrativas
+						Visión en investigación · maqueta del Centro Histórico: edificios y calles ©
+						OpenStreetMap contributors (ODbL) · celdas H3 r10 reales · capas 2–5 ilustrativas
 					</p>
 				{:else if scene.id === 'centli'}
 					<div class="xp-photo xp-kenburns" class:dim={beat >= 1} aria-hidden="true">
