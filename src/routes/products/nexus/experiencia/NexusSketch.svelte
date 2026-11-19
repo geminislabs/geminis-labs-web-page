@@ -7,7 +7,7 @@
 	import { onMount } from 'svelte';
 	import { loadNetwork, routePoint } from './roadNetwork.js';
 
-	let { phase = $bindable(0), reduced = false } = $props();
+	let { phase = $bindable(0), reduced = false, fullbleed = false } = $props();
 
 	const CYCLE = 13000;
 
@@ -37,12 +37,21 @@
 
 		function fit() {
 			const [x0, y0, x1, y1] = net.route.bbox;
-			const pad = 90;
-			const s = Math.min(W / (x1 - x0 + pad * 2), (H - 40) / (y1 - y0 + pad * 2));
-			view = { s, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+			const pad = fullbleed ? 55 : 90;
+			// A pantalla completa la ruta vive a la derecha; el panel va a la izquierda.
+			const availW = fullbleed ? W * 0.44 : W;
+			const availH = fullbleed ? H * 0.7 : H - 40;
+			const s = Math.min(availW / (x1 - x0 + pad * 2), availH / (y1 - y0 + pad * 2));
+			view = {
+				s,
+				cx: (x0 + x1) / 2,
+				cy: (y0 + y1) / 2,
+				ox: fullbleed ? W * 0.74 : W / 2,
+				oy: fullbleed ? H * 0.52 : H / 2 + 14
+			};
 		}
 
-		const toS = (x, y) => [(x - view.cx) * view.s + W / 2, (y - view.cy) * view.s + H / 2 + 14];
+		const toS = (x, y) => [(x - view.cx) * view.s + view.ox, (y - view.cy) * view.s + view.oy];
 
 		function buildLayer() {
 			fit();
@@ -54,7 +63,7 @@
 			l.fillStyle = '#0b1726';
 			l.fillRect(0, 0, W, H);
 			l.save();
-			l.translate(W / 2 - view.cx * view.s, H / 2 + 14 - view.cy * view.s);
+			l.translate(view.ox - view.cx * view.s, view.oy - view.cy * view.s);
 			l.scale(view.s, view.s);
 			l.lineCap = 'round';
 			l.lineJoin = 'round';
@@ -188,6 +197,7 @@
 			if (p > 0.9) ph = 3;
 			if (ph !== phase) phase = ph;
 
+			if (fullbleed) return;
 			// Barra de la ventana.
 			ctx.fillStyle = 'rgba(6,12,22,0.95)';
 			ctx.fillRect(0, 0, W, 30);
@@ -220,7 +230,7 @@
 	});
 </script>
 
-<div class="sketch" bind:this={host}>
+<div class="sketch" class:fullbleed bind:this={host}>
 	<canvas bind:this={canvas} aria-hidden="true"></canvas>
 </div>
 
@@ -235,6 +245,10 @@
 			0 0 0 1px rgba(0, 255, 136, 0.28),
 			0 30px 80px rgba(0, 0, 0, 0.55),
 			0 0 80px rgba(0, 255, 136, 0.12);
+	}
+	.sketch.fullbleed {
+		border-radius: 0;
+		box-shadow: none;
 	}
 	canvas {
 		display: block;

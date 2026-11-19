@@ -12,6 +12,7 @@
 	import DayRing from './DayRing.svelte';
 	import MiniVisual from './MiniVisual.svelte';
 	import PhoneWall from './PhoneWall.svelte';
+	import HorizonVisual from './HorizonVisual.svelte';
 	import FlowDiagram from './FlowDiagram.svelte';
 	import {
 		SCENES,
@@ -255,6 +256,34 @@
 		return { destroy: () => cancelAnimationFrame(raf) };
 	}
 
+	/** Video de fondo que se reproduce una sola vez, más lento, y se queda en el último cuadro. */
+	function slowOnce(node, rate = 0.6) {
+		node.loop = false;
+		const apply = () => (node.playbackRate = rate);
+		apply();
+		node.addEventListener('loadedmetadata', apply);
+		return { destroy: () => node.removeEventListener('loadedmetadata', apply) };
+	}
+
+	/** Al terminar, el video espera `hold` ms antes de volver a empezar. */
+	function holdLoop(node, hold = 7000) {
+		node.loop = false;
+		let timer;
+		const onEnd = () => {
+			timer = setTimeout(() => {
+				node.currentTime = 0;
+				node.play().catch(() => {});
+			}, hold);
+		};
+		node.addEventListener('ended', onEnd);
+		return {
+			destroy() {
+				clearTimeout(timer);
+				node.removeEventListener('ended', onEnd);
+			}
+		};
+	}
+
 	function spotlight(event) {
 		const el = event.currentTarget;
 		const rect = el.getBoundingClientRect();
@@ -318,8 +347,7 @@
 					<div class="xp-audience"><Audience {reduced} /></div>
 					<div class="xp-hero-copy">
 						<div class="xp-hero-lockup rv on" style="--d:300ms">
-							<img src="/img/geminislabs-nobg.webp" alt="" />
-							<span>GEMINIS LABS</span>
+							<img src="/img/geminislabs-nobg.webp" alt="Geminis Labs" />
 							<em>Experience 2026</em>
 						</div>
 						<AnimatedText
@@ -409,54 +437,45 @@
 						</p>
 					</div>
 				{:else if scene.id === 'nexus'}
-					<video
-						class="xp-bgvideo xp-bg-nexus"
-						src={MEDIA.futuroMapa}
-						autoplay
-						muted
-						loop
-						playsinline
-						aria-hidden="true"
-					></video>
-					<div class="xp-bgshade xp-shade-nexus" aria-hidden="true"></div>
-					<div class="xp-nexus2">
-						<div class="xp-nexus-head">
-							<h2 class="xp-nexus-word rv on" aria-label="Nexus">
-								<img src="/img/logo-nexus-3x.png" alt="" /><span>EXUS</span>
-							</h2>
-							<AnimatedText
-								tag="p"
-								className="xp-definition"
-								text="Un ambiente de inteligencia para todo aquello que se pone en movimiento."
-								delay={350}
-								step={12}
-							/>
-						</div>
-						<div class="xp-nexus-body">
-							<div class="xp-nexus-sketch rv on" style="--d:500ms">
-								<NexusSketch bind:phase={chainPhase} {reduced} />
-							</div>
-							<ol class="xp-chain2">
-								{#each CHAIN as step, i (step.k)}
-									<li
-										class="rv on"
-										class:active={chainPhase === i}
-										class:done={chainPhase > i}
-										style="--d:{700 + i * 140}ms"
-									>
-										<span class="xp-chain-n">0{i + 1}</span>
-										<span class="xp-chain-k">{step.k}</span>
-										<span class="xp-chain-v">{step.v}</span>
-									</li>
-								{/each}
-								<li class="xp-to-live2 rv" class:on={beat >= 1}>
-									<span>Ahora, lo que ya funciona.</span>
-									<button class="xp-live-btn" onclick={openLive}>
-										<span class="xp-live-dot"></span> Abrir Nexus en vivo
-									</button>
+					<div class="xp-nexus-map" aria-hidden="true">
+						<NexusSketch bind:phase={chainPhase} {reduced} fullbleed />
+					</div>
+					<div class="xp-bgshade xp-shade-nexusmap" aria-hidden="true"></div>
+					<p class="xp-source xp-nexus-note">
+						Nexus · seguimiento · escenario ilustrativo sobre calles reales de Querétaro (©
+						OpenStreetMap)
+					</p>
+					<div class="xp-nexus3">
+						<h2 class="xp-nexus-word rv on" aria-label="Nexus">
+							<img src="/img/logo-nexus-3x.png" alt="" /><span>EXUS</span>
+						</h2>
+						<AnimatedText
+							tag="p"
+							className="xp-definition"
+							text="Un ambiente de inteligencia para todo aquello que se pone en movimiento."
+							delay={350}
+							step={12}
+						/>
+						<ol class="xp-chain2">
+							{#each CHAIN as step, i (step.k)}
+								<li
+									class="rv on"
+									class:active={chainPhase === i}
+									class:done={chainPhase > i}
+									style="--d:{700 + i * 140}ms"
+								>
+									<span class="xp-chain-n">0{i + 1}</span>
+									<span class="xp-chain-k">{step.k}</span>
+									<span class="xp-chain-v">{step.v}</span>
 								</li>
-							</ol>
-						</div>
+							{/each}
+							<li class="xp-to-live2 rv" class:on={beat >= 1}>
+								<span>Ahora, lo que ya funciona.</span>
+								<button class="xp-live-btn" onclick={openLive}>
+									<span class="xp-live-dot"></span> Abrir Nexus en vivo
+								</button>
+							</li>
+						</ol>
 					</div>
 				{:else if scene.id === 'demo'}
 					<PhoneWall images={PHONE_SCREENS} />
@@ -521,6 +540,7 @@
 					</div>
 				{:else if scene.id === 'mercado'}
 					<video
+						use:slowOnce={0.55}
 						class="xp-bgvideo xp-bg-trucks"
 						src={MEDIA.camiones}
 						autoplay
@@ -560,8 +580,6 @@
 						</p>
 					</div>
 				{:else if scene.id === 'economia'}
-					<img class="xp-bgimage" src={MEDIA.ciudadPines} alt="" aria-hidden="true" />
-					<div class="xp-bgshade xp-shade-econ" aria-hidden="true"></div>
 					<div class="xp-wide xp-econ">
 						<p class="xp-kicker">Oferta comercial</p>
 						<AnimatedText
@@ -645,7 +663,6 @@
 						</div>
 					</div>
 				{:else if scene.id === 'horizonte'}
-					<img class="xp-bgimage xp-bg-americas" src={MEDIA.americas} alt="" aria-hidden="true" />
 					<div class="xp-bgshade xp-shade-horizon" aria-hidden="true"></div>
 					<div class="xp-horizon2">
 						<p class="xp-kicker">Horizonte</p>
@@ -655,8 +672,8 @@
 								src={MEDIA.nexusLogo}
 								autoplay
 								muted
-								loop
 								playsinline
+								use:holdLoop={7000}
 								aria-label="Nexus"
 							></video>
 							<svg class="xp-orbit3-ring" viewBox="-100 -50 200 100" aria-hidden="true">
@@ -672,7 +689,7 @@
 										? 3
 										: 1}; --beam-delay:{i * -1.4}s"
 								>
-									<div class="xp-orbit-visual"><MiniVisual kind={o.visual} /></div>
+									<div class="xp-orbit-visual"><HorizonVisual kind={o.visual} /></div>
 									<strong>{o.t}</strong>
 									<span class="xp-state">{o.s}</span>
 									<small>{o.d}</small>
