@@ -7,10 +7,11 @@
 	import WarpCarousel from './WarpCarousel.svelte';
 	import PeakChart from './PeakChart.svelte';
 	import StageHero from './StageHero.svelte';
+	import Audience from './Audience.svelte';
 	import NexusSketch from './NexusSketch.svelte';
 	import DayRing from './DayRing.svelte';
 	import MiniVisual from './MiniVisual.svelte';
-	import KitVisual from './KitVisual.svelte';
+	import PhoneWall from './PhoneWall.svelte';
 	import FlowDiagram from './FlowDiagram.svelte';
 	import {
 		SCENES,
@@ -33,7 +34,9 @@
 		TELEMETRY,
 		CENTLI_CYCLE,
 		CENTLI_PILOT,
-		ASK_ICONS
+		ASK_ICONS,
+		MEDIA,
+		PHONE_SCREENS
 	} from './content.js';
 	import {
 		advance,
@@ -58,6 +61,20 @@
 	let nav = $state(initialNav());
 	let menuOpen = $state(false);
 	let chainPhase = $state(0);
+	let orbitT = $state(0);
+
+	// Las tarjetas del horizonte orbitan despacio alrededor del logo de Nexus.
+	$effect(() => {
+		if (scene.id !== 'horizonte' || reduced) return;
+		let raf = 0;
+		const start = performance.now() - orbitT * 1000;
+		const tick = (t) => {
+			orbitT = (t - start) / 1000;
+			raf = requestAnimationFrame(tick);
+		};
+		raf = requestAnimationFrame(tick);
+		return () => cancelAnimationFrame(raf);
+	});
 	let ficha = $state(null);
 	let videoOpen = $state(false);
 	let videoError = $state(false);
@@ -294,9 +311,11 @@
 				aria-label={scene.title}
 			>
 				{#if scene.id === 'hero'}
-					<div class="xp-hero-stage rv on">
-						<StageHero {reduced} {lite} />
+					<div class="xp-cinema" aria-hidden="true"><span class="xp-projector"></span></div>
+					<div class="xp-screen rv on">
+						<StageHero {reduced} {lite} intro radius={3} />
 					</div>
+					<div class="xp-audience"><Audience {reduced} /></div>
 					<div class="xp-hero-copy">
 						<div class="xp-hero-lockup rv on" style="--d:300ms">
 							<img src="/img/geminislabs-nobg.webp" alt="" />
@@ -390,6 +409,16 @@
 						</p>
 					</div>
 				{:else if scene.id === 'nexus'}
+					<video
+						class="xp-bgvideo xp-bg-nexus"
+						src={MEDIA.futuroMapa}
+						autoplay
+						muted
+						loop
+						playsinline
+						aria-hidden="true"
+					></video>
+					<div class="xp-bgshade xp-shade-nexus" aria-hidden="true"></div>
 					<div class="xp-nexus2">
 						<div class="xp-nexus-head">
 							<h2 class="xp-nexus-word rv on" aria-label="Nexus">
@@ -430,6 +459,7 @@
 						</div>
 					</div>
 				{:else if scene.id === 'demo'}
+					<PhoneWall images={PHONE_SCREENS} />
 					<div class="xp-wide xp-demo2">
 						<div class="xp-demo-top">
 							<div>
@@ -490,6 +520,16 @@
 						</p>
 					</div>
 				{:else if scene.id === 'mercado'}
+					<video
+						class="xp-bgvideo xp-bg-trucks"
+						src={MEDIA.camiones}
+						autoplay
+						muted
+						loop
+						playsinline
+						aria-hidden="true"
+					></video>
+					<div class="xp-bgshade xp-shade-trucks" aria-hidden="true"></div>
 					<div class="xp-wide">
 						<p class="xp-kicker">A quién sirve</p>
 						<h2 class="xp-h2">Primero, operaciones que necesitan visibilidad.</h2>
@@ -520,6 +560,8 @@
 						</p>
 					</div>
 				{:else if scene.id === 'economia'}
+					<img class="xp-bgimage" src={MEDIA.ciudadPines} alt="" aria-hidden="true" />
+					<div class="xp-bgshade xp-shade-econ" aria-hidden="true"></div>
 					<div class="xp-wide xp-econ">
 						<p class="xp-kicker">Oferta comercial</p>
 						<AnimatedText
@@ -530,7 +572,10 @@
 						/>
 						<div class="xp-econ-grid">
 							<div class="xp-econ-kit rv on" style="--d:300ms">
-								<KitVisual screen={APP_SCREENS[1].src} />
+								<figure class="xp-kit-photo">
+									<img src={MEDIA.kit} alt="Equipos GPS, laptop, tablet y celular con Nexus" />
+									<figcaption>Equipo GPS · instalación · SIM · plataforma web y app</figcaption>
+								</figure>
 							</div>
 							<div class="xp-plans">
 								{#each PLANS as plan, i (plan.name)}
@@ -568,6 +613,16 @@
 						</ul>
 					</div>
 				{:else if scene.id === 'ingenieria'}
+					<video
+						class="xp-bgvideo xp-bg-helix"
+						src={MEDIA.helice}
+						autoplay
+						muted
+						loop
+						playsinline
+						aria-hidden="true"
+					></video>
+					<div class="xp-bgshade xp-shade-helix" aria-hidden="true"></div>
 					<div class="xp-wide">
 						<p class="xp-kicker">Ingeniería y confianza</p>
 						<h2 class="xp-h2">Procesamiento orientado a eventos.</h2>
@@ -590,14 +645,32 @@
 						</div>
 					</div>
 				{:else if scene.id === 'horizonte'}
-					<div class="xp-horizon">
+					<img class="xp-bgimage xp-bg-americas" src={MEDIA.americas} alt="" aria-hidden="true" />
+					<div class="xp-bgshade xp-shade-horizon" aria-hidden="true"></div>
+					<div class="xp-horizon2">
 						<p class="xp-kicker">Horizonte</p>
-						<div class="xp-orbit-stage">
-							<div class="xp-orbit-core"><img src="/img/logo-nexus-3x.png" alt="Nexus" /></div>
+						<div class="xp-orbit3">
+							<video
+								class="xp-orbit3-core"
+								src={MEDIA.nexusLogo}
+								autoplay
+								muted
+								loop
+								playsinline
+								aria-label="Nexus"
+							></video>
+							<svg class="xp-orbit3-ring" viewBox="-100 -50 200 100" aria-hidden="true">
+								<ellipse rx="96" ry="40" />
+								<ellipse rx="70" ry="28" />
+							</svg>
 							{#each ORBITS as o, i (o.t)}
+								{@const a = orbitT * 0.16 + (i * Math.PI * 2) / ORBITS.length}
+								{@const depth = (Math.sin(a) + 1) / 2}
 								<div
-									class="xp-orbit-node beam n{i}"
-									style="--d:{300 + i * 220}ms; --beam-delay:{i * -1.4}s"
+									class="xp-orbit3-node beam"
+									style="--x:{Math.cos(a)}; --y:{Math.sin(a)}; --z:{depth}; z-index:{depth > 0.45
+										? 3
+										: 1}; --beam-delay:{i * -1.4}s"
 								>
 									<div class="xp-orbit-visual"><MiniVisual kind={o.visual} /></div>
 									<strong>{o.t}</strong>
@@ -605,10 +678,6 @@
 									<small>{o.d}</small>
 								</div>
 							{/each}
-							<svg class="xp-orbit-lines" viewBox="-300 -300 600 600" aria-hidden="true">
-								<circle r="190" />
-								<circle r="270" />
-							</svg>
 						</div>
 						<p class="xp-horizon-line">
 							No son productos terminados: son caminos de expansión de una misma capacidad.

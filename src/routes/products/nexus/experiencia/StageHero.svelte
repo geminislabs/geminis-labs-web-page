@@ -7,7 +7,7 @@
 	 */
 	import { onMount } from 'svelte';
 
-	let { reduced = false, lite = false } = $props();
+	let { reduced = false, lite = false, intro = false, radius = 28 } = $props();
 
 	const LAND_URL = '/img/products/nexus/experiencia/globo-tierra.json';
 	const QRO = [20.59, -100.39];
@@ -130,8 +130,7 @@
 			ctx.restore();
 		}
 
-		function frame(now) {
-			raf = requestAnimationFrame(frame);
+		function drawGlobe(now) {
 			const t = reduced ? 8000 : now;
 			const s = t / 1000;
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -343,6 +342,154 @@
 			ctx.fillRect(0, H * 0.8, W, H * 0.2);
 		}
 
+		// ── Intro estilo estudio de cine ──────────────────────────────────
+		const logo = new Image();
+		logo.src = '/img/geminislabs-nobg.webp';
+		const video = document.createElement('video');
+		video.src = '/vid/nexus-animation.mp4';
+		video.muted = true;
+		video.playsInline = true;
+		video.preload = 'auto';
+		let videoStarted = false;
+		const stars = Array.from({ length: 140 }, () => [
+			Math.random(),
+			Math.random() * 0.8,
+			Math.random()
+		]);
+		const INTRO_END = 10.4;
+		let t0 = 0;
+		document.fonts?.load('400 80px "Dune Rise"').catch(() => {});
+
+		const fade = (x, a, b) => Math.max(0, Math.min(1, (x - a) / (b - a)));
+
+		function extruded(text, font, cx, cy, size, depth, face) {
+			ctx.font = font;
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			for (let d = depth; d > 0; d--) {
+				const k = d / depth;
+				ctx.fillStyle = `rgb(${8 + 20 * (1 - k)},${30 + 60 * (1 - k)},${24 + 40 * (1 - k)})`;
+				ctx.fillText(text, cx, cy + d * size * 0.011);
+			}
+			const g = ctx.createLinearGradient(0, cy - size / 2, 0, cy + size / 2);
+			face.forEach(([o, c]) => g.addColorStop(o, c));
+			ctx.fillStyle = g;
+			ctx.shadowColor = 'rgba(120,255,190,0.55)';
+			ctx.shadowBlur = size * 0.25;
+			ctx.fillText(text, cx, cy);
+			ctx.shadowBlur = 0;
+		}
+
+		function drawIntro(el, alpha) {
+			ctx.save();
+			ctx.globalAlpha = alpha;
+			const bg = ctx.createRadialGradient(W / 2, H * 1.1, 0, W / 2, H * 1.1, W * 0.75);
+			bg.addColorStop(0, '#0d3a5c');
+			bg.addColorStop(0.5, '#061a2e');
+			bg.addColorStop(1, '#010409');
+			ctx.fillStyle = bg;
+			ctx.fillRect(0, 0, W, H);
+			for (const [x, y, b] of stars) {
+				ctx.fillStyle = `rgba(220,240,255,${0.25 + 0.5 * b * (0.6 + 0.4 * Math.sin(el * 2 + b * 9))})`;
+				ctx.fillRect(x * W, y * H, 1.3, 1.3);
+			}
+			// Reflectores desde abajo, barriendo el cielo.
+			ctx.globalCompositeOperation = 'lighter';
+			[0.14, 0.32, 0.5, 0.68, 0.86].forEach((fx, i) => {
+				const x0 = W * fx;
+				const ang = (fx - 0.5) * 0.9 + Math.sin(el * 0.8 + i * 1.7) * 0.32;
+				const len = H * 1.6;
+				const x1 = x0 + Math.sin(ang) * len;
+				const y1 = H - Math.cos(ang) * len;
+				const w = H * 0.16;
+				const g = ctx.createLinearGradient(x0, H, x1, y1);
+				g.addColorStop(0, 'rgba(200,235,255,0.35)');
+				g.addColorStop(0.6, 'rgba(140,210,255,0.08)');
+				g.addColorStop(1, 'rgba(140,210,255,0)');
+				ctx.fillStyle = g;
+				ctx.beginPath();
+				ctx.moveTo(x0 - 4, H);
+				ctx.lineTo(x1 - Math.cos(ang) * w, y1 - Math.sin(ang) * w);
+				ctx.lineTo(x1 + Math.cos(ang) * w, y1 + Math.sin(ang) * w);
+				ctx.lineTo(x0 + 4, H);
+				ctx.closePath();
+				ctx.fill();
+			});
+			ctx.globalCompositeOperation = 'source-over';
+
+			// Acto 1: GEMINIS LABS presenta.
+			const a1 = fade(el, 0.6, 1.6) * (1 - fade(el, 4.6, 5.3));
+			if (a1 > 0) {
+				ctx.save();
+				ctx.globalAlpha = alpha * a1;
+				const push = 1 + fade(el, 0.6, 5.3) * 0.06;
+				ctx.translate(W / 2, H * 0.5);
+				ctx.scale(push, push);
+				ctx.translate(-W / 2, -H * 0.5);
+				const size = Math.min(H * 0.2, W * 0.075);
+				if (logo.complete && logo.naturalWidth) {
+					const ls = H * 0.2;
+					ctx.drawImage(logo, W / 2 - ls / 2, H * 0.16, ls, ls);
+				}
+				extruded(
+					'GEMINIS LABS',
+					`400 ${size}px "Dune Rise", Audiowide, sans-serif`,
+					W / 2,
+					H * 0.56,
+					size,
+					14,
+					[
+						[0, '#ffffff'],
+						[0.5, '#c9ffe2'],
+						[1, '#3ec128']
+					]
+				);
+				const a2 = fade(el, 2.3, 3.2);
+				ctx.globalAlpha = alpha * a1 * a2;
+				ctx.font = `italic 300 ${size * 0.42}px Outfit, system-ui, sans-serif`;
+				ctx.fillStyle = '#dff3ff';
+				ctx.letterSpacing = '6px';
+				ctx.fillText('presenta', W / 2, H * 0.78);
+				ctx.restore();
+			}
+
+			// Acto 2: el logo 3D de Nexus.
+			if (el >= 5 && !videoStarted) {
+				videoStarted = true;
+				video.currentTime = 0;
+				video.play().catch(() => {});
+			}
+			const a3 = fade(el, 5.1, 5.8);
+			if (a3 > 0) {
+				ctx.save();
+				ctx.globalAlpha = alpha * a3;
+				if (video.readyState >= 2) {
+					const vs = H * 0.78;
+					ctx.globalCompositeOperation = 'screen';
+					ctx.drawImage(video, W / 2 - vs / 2, H * 0.02, vs, vs);
+					ctx.globalCompositeOperation = 'source-over';
+				}
+				const a4 = fade(el, 7.2, 8.0);
+				ctx.globalAlpha = alpha * a3 * a4;
+				const size = Math.min(H * 0.15, W * 0.06);
+				extruded('NEXUS', `400 ${size}px Audiowide, sans-serif`, W / 2, H * 0.86, size, 10, [
+					[0, '#ffffff'],
+					[1, '#9fb4c8']
+				]);
+				ctx.restore();
+			}
+			ctx.restore();
+		}
+
+		function frame(now) {
+			raf = requestAnimationFrame(frame);
+			if (!t0) t0 = now;
+			const el = (now - t0) / 1000;
+			const playIntro = intro && !reduced && el < INTRO_END;
+			if (!playIntro || el > 9.2) drawGlobe(now);
+			if (playIntro) drawIntro(el, 1 - fade(el, 9.2, INTRO_END));
+		}
+
 		resize();
 		const ro = new ResizeObserver(resize);
 		ro.observe(host);
@@ -361,7 +508,7 @@
 	});
 </script>
 
-<div class="stage" bind:this={host}>
+<div class="stage" bind:this={host} style="--stage-radius:{radius}px">
 	<canvas bind:this={canvas} aria-hidden="true"></canvas>
 </div>
 
@@ -370,7 +517,7 @@
 		position: relative;
 		width: 100%;
 		height: 100%;
-		border-radius: 28px;
+		border-radius: var(--stage-radius, 28px);
 		overflow: hidden;
 		box-shadow:
 			0 0 0 1px rgba(120, 220, 255, 0.22),

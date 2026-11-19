@@ -41,52 +41,12 @@ export const BACKDROPS = {
 		colors: ['#060302', '#2a1205', '#7a3a0e', '#f2a14a'],
 		intensity: 0.85
 	},
-	nexus: {
-		mode: 'fold',
-		colors: ['#020a06', '#03140b', '#1d7a44', '#b8ffd6'],
-		mask: [0.5, 0.5, 0.44, 0.3],
-		maskK: 0.45,
-		intensity: 1
-	},
-	demo: {
-		mode: 'swirl',
-		colors: ['#020a14', '#0b3a5c', '#13a7b8', '#8ff5e6'],
-		mask: [0.5, 0.45, 0.45, 0.35],
-		maskK: 0.45,
-		intensity: 0.8
-	},
 	telemetria: {
 		mode: 'silk',
 		colors: ['#020814', '#0a2a4a', '#1d6fa3', '#9ad8ff'],
 		mask: [0.5, 0.5, 0.5, 0.42],
 		maskK: 0.6,
 		intensity: 0.8
-	},
-	mercado: {
-		mode: 'silk',
-		colors: ['#03120e', '#0e7c5a', '#7ce577', '#f4ffc7'],
-		mask: [0.5, 0.55, 0.5, 0.4],
-		maskK: 0.7,
-		intensity: 0.7
-	},
-	economia: {
-		mode: 'swirl',
-		colors: ['#05061a', '#1b1f5e', '#3b54d6', '#49f2b0'],
-		mask: [0.5, 0.55, 0.5, 0.38],
-		maskK: 0.55,
-		intensity: 0.85
-	},
-	ingenieria: {
-		mode: 'silk',
-		colors: ['#02090c', '#07303a', '#127a7a', '#86f0dd'],
-		mask: [0.5, 0.52, 0.52, 0.36],
-		maskK: 0.7,
-		intensity: 0.75
-	},
-	horizonte: {
-		mode: 'aurora',
-		colors: ['#05040f', '#4a24a8', '#1e6fd9', '#d39bff'],
-		intensity: 0.85
 	},
 	peticion: {
 		mode: 'silk',
@@ -356,3 +316,17 @@ export const ASK_ICONS = {
 	pilotos: 'M5 21V4M5 4h11l-2 4 2 4H5',
 	institucional: 'M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18'
 };
+
+/** Material propio del sitio (videos e imágenes de Nexus). */
+export const MEDIA = {
+	futuroMapa: '/vid/futuro-mapa.mp4',
+	camiones: '/img/products/nexus/taas-1.mp4',
+	helice: '/vid/technology-helix-alt.mp4',
+	nexusLogo: '/vid/nexus-animation.mp4',
+	kit: `${IMG}/kit-taas.webp`,
+	ciudadPines: `${IMG}/ciudad-pines.webp`,
+	americas: `${IMG}/americas-conexiones.webp`
+};
+
+/** Capturas reales de la app móvil (solo pantallas de informes, sin mapas). */
+export const PHONE_SCREENS = [47, 48, 49, 50].map((n) => `${IMG}/movil-${n}.webp`);

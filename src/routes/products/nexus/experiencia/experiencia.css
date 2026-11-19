@@ -1021,7 +1021,7 @@ svg .rv {
 	font-display: swap;
 }
 
-.xp-scene > :not(.xp-photo):not(.xp-photo-shade):not(.xp-fog):not(.xp-source) {
+.xp-scene > :where(:not(.xp-photo, .xp-photo-shade, .xp-fog, .xp-source)) {
 	position: relative;
 	z-index: 1;
 }
@@ -1881,4 +1881,256 @@ svg .rv {
 	.xp-econ-grid {
 		grid-template-columns: 1fr;
 	}
+}
+
+/* ══ v5: sala de cine ════════════════════════════════════════════════ */
+.xs-hero {
+	--sw: min(92vw, 128vh);
+	--sh: calc(var(--sw) / 2.39);
+	--top: 4vh;
+	display: block;
+	padding: 0;
+}
+.xp-cinema {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	background:
+		radial-gradient(ellipse 70% 45% at 50% 26%, rgba(40, 140, 210, 0.3), transparent 70%),
+		radial-gradient(ellipse 90% 40% at 50% 100%, rgba(10, 30, 50, 0.6), transparent 70%), #010306;
+}
+/* Haz del proyector: entra desde arriba (detrás del público) hacia la pantalla. */
+.xp-projector {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: calc(var(--top) + var(--sh));
+	background: linear-gradient(
+		180deg,
+		rgba(180, 225, 255, 0.1),
+		rgba(120, 200, 255, 0.03) 70%,
+		transparent
+	);
+	clip-path: polygon(46% 0, 54% 0, calc(50% + var(--sw) / 2) 100%, calc(50% - var(--sw) / 2) 100%);
+	mix-blend-mode: screen;
+	animation: xp-flicker 4s steps(40) infinite;
+}
+@keyframes xp-flicker {
+	50% {
+		opacity: 0.85;
+	}
+}
+.xp-screen {
+	position: absolute;
+	top: var(--top);
+	left: 50%;
+	width: var(--sw);
+	aspect-ratio: 2.39 / 1;
+	translate: -50% 0;
+	z-index: 1;
+	border: clamp(6px, 0.8vw, 12px) solid #000;
+	border-radius: 4px;
+	box-shadow:
+		0 0 0 1px rgba(255, 255, 255, 0.05),
+		0 0 160px rgba(60, 170, 255, 0.32),
+		0 80px 200px rgba(40, 140, 220, 0.22);
+}
+.xp-audience {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: calc(var(--top) + var(--sh) - 9vh);
+	height: 38vh;
+	z-index: 2;
+}
+.xs-hero .xp-hero-copy {
+	position: absolute;
+	left: 50%;
+	bottom: clamp(14px, 3.5vh, 40px);
+	width: min(var(--sw), calc(100% - 2 * var(--gutter)));
+	translate: -50% 0;
+	z-index: 3;
+}
+.xs-hero .xp-hero-title {
+	font-size: clamp(1.7rem, 3.4vw, 3.6rem);
+	margin-bottom: 0.4rem;
+}
+.xs-hero .xp-hero-lockup {
+	margin-bottom: 0.6rem;
+}
+@media (max-width: 860px) {
+	.xp-audience {
+		height: 26vh;
+	}
+}
+
+/* ── Fondos de video e imagen (material propio del sitio) ─────────── */
+.xp-bgvideo,
+.xp-bgimage {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	z-index: 0;
+	pointer-events: none;
+}
+.xp-bgshade {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+}
+.xp-bg-nexus {
+	filter: brightness(0.7) saturate(1.15);
+	transform: scale(1.06);
+}
+.xp-shade-nexus {
+	background:
+		radial-gradient(ellipse 60% 40% at 50% 22%, rgba(3, 10, 22, 0.85), transparent 75%),
+		linear-gradient(180deg, rgba(3, 10, 22, 0.5), rgba(3, 10, 22, 0.35) 50%, rgba(3, 10, 22, 0.8));
+}
+.xp-bg-trucks {
+	filter: brightness(0.75) saturate(1.1) contrast(1.05);
+}
+.xp-shade-trucks {
+	background:
+		linear-gradient(
+			90deg,
+			rgba(2, 10, 8, 0.92) 0%,
+			rgba(2, 10, 8, 0.65) 45%,
+			rgba(2, 10, 8, 0.35) 100%
+		),
+		linear-gradient(0deg, rgba(2, 10, 8, 0.9), transparent 45%);
+}
+.xs-economia .xp-bgimage {
+	filter: brightness(0.55) saturate(1.2);
+}
+.xp-shade-econ {
+	background:
+		radial-gradient(ellipse 55% 60% at 70% 50%, rgba(3, 6, 18, 0.88), rgba(3, 6, 18, 0.55) 70%),
+		linear-gradient(0deg, rgba(3, 6, 18, 0.9), transparent 40%);
+}
+.xp-kit-photo {
+	margin: 0;
+}
+.xp-kit-photo img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 22px;
+	box-shadow:
+		0 0 0 1px rgba(73, 242, 176, 0.35),
+		0 30px 80px rgba(0, 0, 0, 0.6),
+		0 0 90px rgba(73, 242, 176, 0.18);
+	animation: float 7s ease-in-out infinite;
+}
+@keyframes float {
+	50% {
+		translate: 0 -8px;
+	}
+}
+.xp-kit-photo figcaption {
+	margin-top: 0.9rem;
+	text-align: center;
+	font-size: 0.8rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: #b9c6ff;
+}
+.xp-bg-helix {
+	filter: brightness(0.75) saturate(1.1);
+	transform: scale(1.1);
+}
+.xp-shade-helix {
+	background:
+		radial-gradient(ellipse 70% 45% at 50% 58%, rgba(1, 6, 14, 0.82), rgba(1, 6, 14, 0.45) 75%),
+		linear-gradient(180deg, rgba(1, 6, 14, 0.85), transparent 35%);
+}
+
+/* ── 10 Horizonte: logo 3D al centro y órbita viva ─────────────────── */
+.xs-horizonte .xp-bg-americas {
+	object-position: 30% 35%;
+	filter: brightness(0.72) saturate(1.25);
+}
+.xp-shade-horizon {
+	background: radial-gradient(
+		ellipse 50% 50% at 50% 52%,
+		rgba(2, 4, 10, 0.3),
+		rgba(2, 4, 10, 0.92) 80%
+	);
+}
+.xp-horizon2 {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: 100%;
+	justify-content: center;
+}
+.xp-orbit3 {
+	position: relative;
+	width: min(1200px, 94vw);
+	height: min(68vh, 640px);
+}
+.xp-orbit3-core {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: min(46vh, 440px);
+	aspect-ratio: 1;
+	translate: -50% -50%;
+	mix-blend-mode: screen;
+	z-index: 2;
+	filter: drop-shadow(0 0 50px rgba(62, 193, 40, 0.35));
+}
+.xp-orbit3-ring {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	fill: none;
+	stroke: rgba(148, 181, 208, 0.22);
+	stroke-width: 0.3;
+	stroke-dasharray: 1 2;
+	z-index: 0;
+}
+.xp-orbit3-node {
+	position: absolute;
+	left: calc(50% + var(--x) * 38%);
+	top: calc(50% + var(--y) * 30%);
+	width: clamp(230px, 20vw, 300px);
+	padding: 0.7rem 0.7rem 1rem;
+	border-radius: 18px;
+	background: rgba(8, 10, 26, 0.86);
+	backdrop-filter: blur(8px);
+	box-shadow: inset 0 0 0 1px rgba(195, 139, 255, 0.25);
+	translate: -50% -50%;
+	scale: calc(0.72 + var(--z) * 0.32);
+	opacity: calc(0.45 + var(--z) * 0.55);
+	filter: blur(calc((1 - var(--z)) * 1.6px));
+}
+.xp-orbit3-node > :not(.xp-orbit-visual) {
+	display: block;
+	margin: 0 0.4rem;
+}
+.xp-orbit3-node strong {
+	font-size: 1.2rem;
+	margin-bottom: 0.2rem;
+}
+.xp-orbit3-node .xp-state {
+	display: inline-block;
+}
+.xp-orbit3-node small {
+	color: var(--ink-2);
+	margin-top: 0.3rem;
+}
+/* El logo 3D se mezcla con el fondo: sin contexto de apilamiento propio. */
+.xs-horizonte .xp-horizon2 {
+	z-index: auto;
+}
+.xp-orbit3-core {
+	-webkit-mask-image: radial-gradient(circle, #000 52%, transparent 71%);
+	mask-image: radial-gradient(circle, #000 52%, transparent 71%);
 }
