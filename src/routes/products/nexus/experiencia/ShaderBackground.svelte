@@ -81,7 +81,7 @@ if(uMode==0){
   float pool=exp(-pow(p.x/.6,2.)-pow((k-.1)/.07,2.));
   float poolL=exp(-pow((p.x+.75)/.25,2.)-pow((k-.06)/.05,2.));
   float poolR=exp(-pow((p.x-.75)/.25,2.)-pow((k-.06)/.05,2.));
-  vec3 floorC=c*.3+uC2*pool*.55+uC1*(poolL+poolR)*.35+uC3*.05*fbm(vec2(p.x*10.,k*40.));
+  vec3 floorC=c*.18+uC1*pool*.12+uC1*(poolL+poolR)*.1+uC3*.03*fbm(vec2(p.x*10.,k*40.));
   floorC*=smoothstep(.6,0.,k);
   c=mix(c,floorC,fl);
  }

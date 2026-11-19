@@ -61,13 +61,13 @@
 	.aud-block {
 		position: absolute;
 		bottom: -14%;
-		width: 54%;
+		width: 43%;
 	}
 	.aud-left {
-		left: -3%;
+		left: -5%;
 	}
 	.aud-right {
-		right: -3%;
+		right: -5%;
 	}
 	.aud-block img {
 		display: block;

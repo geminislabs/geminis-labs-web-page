@@ -2363,21 +2363,36 @@ svg .rv {
 }
 .xp-gl-human {
 	position: absolute;
-	right: -4vw;
+	right: -24vw;
 	top: 50%;
 	height: 96vh;
-	aspect-ratio: 16 / 9;
+	width: calc(96vh * 16 / 9);
+	max-width: none;
 	translate: 0 -50%;
 	object-fit: cover;
 	z-index: 0;
 	mix-blend-mode: screen;
 	transform: scaleX(-1);
-	-webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 85%, transparent 100%);
-	mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 85%, transparent 100%);
+	-webkit-mask-image: linear-gradient(
+		270deg,
+		transparent 0%,
+		transparent 40%,
+		#000 62%,
+		#000 88%,
+		transparent 100%
+	);
+	mask-image: linear-gradient(
+		270deg,
+		transparent 0%,
+		transparent 40%,
+		#000 62%,
+		#000 88%,
+		transparent 100%
+	);
 	opacity: 0.95;
 }
 .xp-gl2 {
-	max-width: min(780px, 58vw);
+	max-width: min(720px, 46vw);
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
@@ -2386,7 +2401,7 @@ svg .rv {
 	width: clamp(110px, 11vw, 170px);
 }
 .xp-gl2 .xp-dune {
-	font-size: clamp(2rem, 4.6vw, 4.4rem);
+	font-size: clamp(1.8rem, 3.5vw, 3.6rem);
 	white-space: nowrap;
 	margin-bottom: 0.4rem;
 }
@@ -2456,10 +2471,7 @@ svg .rv {
 	}
 }
 /* Nexus: el mapa vivo en perspectiva, como la ciudad de la escena 01. */
-.xp-nexus-map {
-	transform-origin: 62% 62%;
-	transform: perspective(1400px) rotateX(26deg) scale(1.5) translateY(-3%);
-}
+
 .xs-nexus {
 	background: #030913;
 }
@@ -2476,44 +2488,6 @@ svg .rv {
 /* ── 06 Un día real: estilo app (hexágonos) + celular ──────────────── */
 .xs-telemetria {
 	background: #000;
-}
-.xp-telemetry-grid2 {
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) auto;
-}
-.xp-tele-phone {
-	margin: 0;
-	text-align: center;
-	animation: float 7s ease-in-out infinite;
-}
-.xp-tele-phone-body {
-	width: clamp(150px, 13vw, 210px);
-	padding: 8px;
-	border-radius: 30px;
-	background: #05080f;
-	box-shadow:
-		0 0 0 2px rgba(120, 200, 255, 0.45),
-		0 30px 70px rgba(0, 0, 0, 0.7),
-		0 0 60px rgba(40, 180, 160, 0.3);
-}
-.xp-tele-phone-body img {
-	display: block;
-	width: 100%;
-	border-radius: 23px;
-}
-.xp-tele-phone figcaption {
-	margin-top: 0.7rem;
-	font-size: 0.78rem;
-	letter-spacing: 0.14em;
-	text-transform: uppercase;
-	color: var(--ink-2);
-}
-@media (max-width: 1100px) {
-	.xp-tele-phone {
-		display: none;
-	}
-	.xp-telemetry-grid2 {
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-	}
 }
 
 /* ── 10 Horizonte: tarjetas más grandes ────────────────────────────── */

@@ -12,7 +12,7 @@
 	import DayRing from './DayRing.svelte';
 	import MiniVisual from './MiniVisual.svelte';
 	import PhoneWall from './PhoneWall.svelte';
-	import HexBackdrop from './HexBackdrop.svelte';
+	import H3AuroraMesh from './H3AuroraMesh.svelte';
 	import HorizonVisual from './HorizonVisual.svelte';
 	import FlowDiagram from './FlowDiagram.svelte';
 	import {
@@ -407,7 +407,7 @@
 						datos de Nexus
 					</p>
 				{:else if scene.id === 'geminis'}
-					<HexBackdrop />
+					<H3AuroraMesh {reduced} />
 					<video
 						class="xp-gl-human"
 						src={MEDIA.cyberhuman}
@@ -527,7 +527,7 @@
 						</ul>
 					</div>
 				{:else if scene.id === 'telemetria'}
-					<HexBackdrop />
+					<H3AuroraMesh {reduced} />
 					<div class="xp-wide xp-telemetry">
 						<p class="xp-kicker">Datos reales</p>
 						<h2 class="xp-h2 xp-h2-tight">Un día de una unidad, en números.</h2>
@@ -562,12 +562,6 @@
 									{reduced}
 								/>
 							</div>
-							<figure class="xp-tele-phone rv on" style="--d:700ms">
-								<div class="xp-tele-phone-body">
-									<img src={PHONE_SCREENS[0]} alt="Pantalla de Informes en la app de Nexus" />
-								</div>
-								<figcaption>App Nexus · Informes</figcaption>
-							</figure>
 						</div>
 						<p class="xp-footnote rv" class:on={beat >= 1}>
 							Informe generado en Nexus · unidad de pruebas del equipo · sin ubicaciones
