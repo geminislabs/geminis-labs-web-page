@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Experiencia de presentación de Nexus** en `/products/nexus/experiencia`. Es una presentación web de 14 escenas, sin enlaces desde el sitio y con `noindex`. Se avanza con flechas, espacio, rueda, clic, deslizar o un presentador tipo clicker; `M` abre el índice, `D` abre Nexus en vivo, `V` el video de respaldo y `F` la pantalla completa. La URL guarda escena y revelación (`#escena.beat`), así que al recargar se vuelve al mismo punto. Abre con un escenario dibujado en tiempo real (globo de puntos con los continentes de Natural Earth, reflectores y arcos desde Querétaro) y sigue con la ciudad de noche en perspectiva, con los nombres reales de las avenidas. Tiene fondos WebGL distintos por escena (seda, aurora, remolino, humo y vidrio plegado), capturas reales de Nexus en un carrusel 3D y un día de telemetría real de la unidad de pruebas, sin ubicaciones. La red vial de Querétaro (OpenStreetMap, ODbL) se dibuja en canvas: se revela con un barrido de 0/1 y la recorren trazos ilustrativos, rotulados como tales. Centli aparece como visión en desarrollo, con imágenes conceptuales. No muestra costos internos ni cifras de clientes. Respeta «reducir movimiento» y acepta `?calma` (sin animaciones) y `?lite` (menos carga para equipos lentos). La navegación vive en `src/lib/utils/presentationNav.js`, con pruebas
+
 ### Changed
 
 - **OpenTelemetry 3.** El SDK pasa a 3.1 (exporters e instrumentaciones 0.301) y `@opentelemetry/api` a 1.10 (Dependabot #70). OTel 3 junta `sdk-trace-node` y `sdk-trace-web` en `@opentelemetry/sdk-trace`, quita `register()` (el context manager, el propagador y el provider se registran a mano), los processors reciben `{ exporter }` y la API de logs pasa de `@opentelemetry/api-logs` a `@opentelemetry/api`. `@opentelemetry/core` y `@opentelemetry/instrumentation` se importaban sin estar declarados; ahora lo están. Comprobado contra un collector OTLP falso: el servidor exporta trazas, con el contexto propagado, y logs, y el navegador manda sus trazas por `/internal/otlp`
