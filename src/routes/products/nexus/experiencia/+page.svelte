@@ -12,7 +12,6 @@
 	import DayRing from './DayRing.svelte';
 	import MiniVisual from './MiniVisual.svelte';
 	import PhoneWall from './PhoneWall.svelte';
-	import H3AuroraMesh from './H3AuroraMesh.svelte';
 	import HorizonVisual from './HorizonVisual.svelte';
 	import FlowDiagram from './FlowDiagram.svelte';
 	import {
@@ -37,6 +36,8 @@
 		CENTLI_CYCLE,
 		CENTLI_PILOT,
 		ASK_ICONS,
+		GL_CAPABILITIES,
+		GL_FACTS,
 		MEDIA,
 		PHONE_SCREENS
 	} from './content.js';
@@ -409,7 +410,6 @@
 						datos de Nexus
 					</p>
 				{:else if scene.id === 'geminis'}
-					<H3AuroraMesh {reduced} topCanopy={false} startYRatio={0.78} amplitude={14} />
 					<video
 						class="xp-gl-human"
 						src={MEDIA.cyberhuman}
@@ -419,50 +419,70 @@
 						use:holdLoop={6000}
 						aria-hidden="true"
 					></video>
-					<div class="xp-gl2">
-						<div class="xp-gl-mark rv on">
-							<span class="xp-gl-halo" aria-hidden="true"></span>
-							<img src="/img/geminislabs-nobg.webp" alt="" />
+					<div class="xp-gl3">
+						<div class="xp-gl3-brand">
+							<div class="xp-gl-mark rv on">
+								<span class="xp-gl-halo" aria-hidden="true"></span>
+								<img src="/img/geminislabs-nobg.webp" alt="" />
+							</div>
+							<div>
+								<h2 class="xp-dune rv on" style="--d:200ms">GEMINIS LABS</h2>
+								<p class="xp-sub rv on" style="--d:400ms">
+									Laboratorio de innovación · Desarrollo de productos · Querétaro
+								</p>
+							</div>
 						</div>
-						<h2 class="xp-dune rv on" style="--d:250ms">GEMINIS LABS</h2>
-						<p class="xp-sub rv on" style="--d:500ms">
-							Laboratorio de innovación · Desarrollo de productos · Querétaro
-						</p>
 						<AnimatedText
 							tag="p"
 							className="xp-lema"
 							text="Conectamos humanidad y tecnología"
-							delay={700}
-							step={22}
+							delay={500}
+							step={20}
 						/>
+						<div class="xp-caps">
+							{#each GL_CAPABILITIES as cap, i (cap.t)}
+								<article class="xp-cap rv on" style="--d:{700 + i * 120}ms">
+									<svg viewBox="0 0 24 24" aria-hidden="true"><path d={cap.icon} /></svg>
+									<strong>{cap.t}</strong>
+									<span>{cap.d}</span>
+								</article>
+							{/each}
+						</div>
 						<ol class="xp-flow" class:joined={beat >= 1}>
 							{#each FLOW as word, i (word)}
 								<li
 									class="rv on beam"
-									style="--d:{1100 + i * 140}ms"
+									style="--d:{1200 + i * 120}ms"
 									class:last={i === FLOW.length - 1}
 								>
 									{word}
 								</li>
 							{/each}
 						</ol>
-						<div class="xp-portfolio rv" class:on={beat >= 2}>
-							<div class="xp-pf beam">
-								<img src="/img/logo-nexus-3x.png" alt="" />
-								<div>
-									<strong>Nexus</strong>
-									<span>Movilidad · en operación</span>
+						<div class="xp-gl3-bottom rv" class:on={beat >= 2}>
+							<ul class="xp-gl-facts">
+								{#each GL_FACTS as f (f.k)}
+									<li><strong>{f.v}</strong><span>{f.k}</span></li>
+								{/each}
+							</ul>
+							<div class="xp-portfolio">
+								<div class="xp-pf beam">
+									<img src="/img/logo-nexus-3x.png" alt="" />
+									<div>
+										<strong>Nexus</strong>
+										<span>Movilidad · en operación</span>
+									</div>
+								</div>
+								<div class="xp-pf xp-pf-centli">
+									<span class="xp-pf-c">C</span>
+									<div>
+										<strong>Centli</strong>
+										<span>Agro · visión en desarrollo</span>
+									</div>
 								</div>
 							</div>
-							<div class="xp-pf xp-pf-centli">
-								<span class="xp-pf-c">C</span>
-								<div>
-									<strong>Centli</strong>
-									<span>Agro · visión en desarrollo</span>
-								</div>
-							</div>
-							<p class="xp-proof">
-								<strong>12 meses</strong> construyendo Nexus · ingeniería propia de punta a punta
+							<p class="xp-gl-aim">
+								Aspiramos a convertirnos en una empresa emblemática nacida en Querétaro.
 							</p>
 						</div>
 					</div>

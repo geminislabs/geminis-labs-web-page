@@ -337,3 +337,35 @@ export const MEDIA = {
 
 /** Capturas reales de la app móvil (solo pantallas de informes, sin mapas). */
 export const PHONE_SCREENS = [47, 48, 49, 50].map((n) => `${IMG}/movil-${n}.webp`);
+
+/** Qué sabe hacer Geminis Labs (doc 02 y documento maestro de Centli). */
+export const GL_CAPABILITIES = [
+	{
+		t: 'Hardware e IoT',
+		d: 'Integración de equipos GPS y telemetría de campo',
+		icon: 'M7 7h10v10H7zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4'
+	},
+	{
+		t: 'Plataforma en la nube',
+		d: 'Recepción y procesamiento de eventos en tiempo real',
+		icon: 'M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6 9.5 4.25 4.25 0 0 0 7 18z'
+	},
+	{
+		t: 'Apps web y móviles',
+		d: 'Operación, alertas y reportes donde esté el usuario',
+		icon: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2'
+	},
+	{
+		t: 'Datos e inteligencia',
+		d: 'Contexto y reglas hoy; inteligencia en desarrollo',
+		icon: 'M4 19V5M4 19h16M8 15l3-4 3 2 5-6'
+	}
+];
+
+/** Hechos verificables del equipo (doc 02 y confirmaciones del fundador). */
+export const GL_FACTS = [
+	{ v: '12 meses', k: 'construyendo Nexus' },
+	{ v: '2 marcas', k: 'de GPS integradas (Suntech y Queclink)' },
+	{ v: 'Web + app', k: 'para flotillas y usuarios' },
+	{ v: '4 socios', k: 'en Querétaro' }
+];

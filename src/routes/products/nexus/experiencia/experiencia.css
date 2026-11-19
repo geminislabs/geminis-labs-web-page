@@ -2523,3 +2523,133 @@ svg .rv {
 .xp-gl2 .xp-flow li:not(:last-child)::after {
 	width: clamp(0.4rem, 1.4vw, 1.4rem);
 }
+
+/* ── 03 Geminis Labs v3: identidad + capacidades + hechos ──────────── */
+.xs-geminis {
+	background:
+		radial-gradient(ellipse 50% 60% at 18% 40%, rgba(31, 138, 76, 0.18), transparent 70%),
+		radial-gradient(ellipse 40% 50% at 85% 60%, rgba(30, 110, 160, 0.16), transparent 70%), #000;
+}
+.xp-gl3 {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: clamp(0.7rem, 1.8vh, 1.3rem);
+	max-width: min(860px, 60vw);
+}
+.xp-gl3-brand {
+	display: flex;
+	align-items: center;
+	gap: 1.2rem;
+}
+.xp-gl3 .xp-gl-mark {
+	width: clamp(80px, 7vw, 120px);
+	margin: 0;
+}
+.xp-gl3 .xp-dune {
+	margin: 0 0 0.3rem;
+	font-size: clamp(1.8rem, 3.6vw, 3.6rem);
+	white-space: nowrap;
+}
+.xp-gl3 .xp-sub {
+	margin: 0;
+	text-align: left;
+}
+.xp-gl3 .xp-lema {
+	--xp-weight: 500;
+	margin: 0;
+	font-size: clamp(1.2rem, 2.1vw, 2rem);
+}
+.xp-caps {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.7rem;
+	width: 100%;
+}
+.xp-cap {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	padding: 0.9rem 0.9rem 1rem;
+	border-radius: 16px;
+	background: rgba(6, 18, 14, 0.82);
+	box-shadow: inset 0 0 0 1px rgba(159, 245, 196, 0.18);
+	backdrop-filter: blur(8px);
+}
+.xp-cap svg {
+	width: 30px;
+	height: 30px;
+	margin-bottom: 0.2rem;
+	fill: none;
+	stroke: var(--neon);
+	stroke-width: 1.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.4));
+}
+.xp-cap strong {
+	font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+}
+.xp-cap span {
+	font-size: 0.82rem;
+	line-height: 1.35;
+	color: var(--ink-2);
+}
+.xp-gl3 .xp-flow {
+	flex-wrap: nowrap;
+	justify-content: flex-start;
+	gap: clamp(0.4rem, 1.2vw, 1.2rem);
+	margin: 0.2rem 0;
+}
+.xp-gl3 .xp-flow li {
+	padding: 0.45rem 0.8rem;
+	font-size: clamp(0.8rem, 1vw, 1rem);
+	white-space: nowrap;
+}
+.xp-gl3 .xp-flow li:not(:last-child)::after {
+	width: clamp(0.4rem, 1.2vw, 1.2rem);
+}
+.xp-gl3-bottom {
+	display: flex;
+	flex-direction: column;
+	gap: 0.8rem;
+	width: 100%;
+}
+.xp-gl-facts {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.7rem;
+	margin: 0;
+	padding: 0.9rem 0 0;
+	list-style: none;
+	border-top: 1px solid var(--line);
+}
+.xp-gl-facts strong {
+	display: block;
+	font-size: clamp(1.2rem, 2vw, 1.9rem);
+	font-weight: 650;
+	color: var(--neon);
+}
+.xp-gl-facts span {
+	font-size: 0.82rem;
+	color: var(--ink-2);
+}
+.xp-gl-aim {
+	margin: 0;
+	font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+	font-style: italic;
+	color: var(--ink);
+}
+@media (max-width: 860px) {
+	.xp-gl3 {
+		max-width: 100%;
+	}
+	.xp-caps,
+	.xp-gl-facts {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.xp-gl3 .xp-flow {
+		flex-wrap: wrap;
+	}
+}
