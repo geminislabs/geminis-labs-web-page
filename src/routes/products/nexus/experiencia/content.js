@@ -36,6 +36,12 @@ export const BACKDROPS = {
 		colors: ['#060302', '#2a1205', '#7a3a0e', '#f2a14a'],
 		intensity: 0.85
 	},
+	telemetria: {
+		mode: 'silk',
+		colors: ['#020814', '#0a2a4a', '#1d6fa3', '#9ad8ff'],
+		band: 0.27,
+		intensity: 0.9
+	},
 	economia: {
 		mode: 'stage',
 		colors: ['#010204', '#9cc8ff', '#7dffc0', '#6a8cb0'],
@@ -325,6 +331,7 @@ export const MEDIA = {
 	ciudadPines: `${IMG}/ciudad-pines.webp`,
 	americas: `${IMG}/americas-conexiones.webp`,
 	publico: `${IMG}/publico.webp`,
+	publicoIzq: `${IMG}/publico-izq.webp`,
 	cyberhuman: '/vid/cyberhuman-hero.mp4'
 };
 

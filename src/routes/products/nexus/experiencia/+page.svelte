@@ -345,7 +345,9 @@
 					<div class="xp-screen rv on">
 						<StageHero {reduced} {lite} intro radius={3} />
 					</div>
-					<div class="xp-audience"><Audience {reduced} src={MEDIA.publico} /></div>
+					<div class="xp-audience">
+						<Audience left={MEDIA.publicoIzq} right={MEDIA.publico} />
+					</div>
 					<div class="xp-hero-copy">
 						<div class="xp-hero-lockup rv on" style="--d:300ms">
 							<img src="/img/geminislabs-nobg.webp" alt="" />
@@ -407,7 +409,7 @@
 						datos de Nexus
 					</p>
 				{:else if scene.id === 'geminis'}
-					<H3AuroraMesh {reduced} startYRatio={0.8} topCanopyRatio={0.07} amplitude={14} />
+					<H3AuroraMesh {reduced} topCanopy={false} startYRatio={0.78} amplitude={14} />
 					<video
 						class="xp-gl-human"
 						src={MEDIA.cyberhuman}
@@ -527,7 +529,6 @@
 						</ul>
 					</div>
 				{:else if scene.id === 'telemetria'}
-					<H3AuroraMesh {reduced} topCanopy={false} startYRatio={0.76} amplitude={16} />
 					<div class="xp-wide xp-telemetry">
 						<p class="xp-kicker">Datos reales</p>
 						<h2 class="xp-h2 xp-h2-tight">Un día de una unidad, en números.</h2>

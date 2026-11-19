@@ -18,7 +18,7 @@
 	const FRAG = `
 precision highp float;
 uniform vec2 uRes;uniform float uTime;uniform vec3 uC0,uC1,uC2,uC3;uniform int uMode;
-uniform vec4 uMask;uniform float uMaskK;uniform float uIntensity;
+uniform vec4 uMask;uniform float uMaskK;uniform float uIntensity;uniform float uBand;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
 return mix(mix(hash(i),hash(i+vec2(1.,0.)),u.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),u.x),u.y);}
@@ -94,6 +94,7 @@ if(uMode==0){
 float vig=smoothstep(1.3,.2,length(p*vec2(.85,1.1)));col*=mix(.3,1.,vig);
 vec2 d=(uv-uMask.xy)/uMask.zw;col*=1.-uMaskK*smoothstep(1.,0.,length(d));
 col+=(hash(gl_FragCoord.xy+fract(t*.7)*91.)-.5)*.03;
+if(uBand>0.)col*=1.-smoothstep(uBand-.08,uBand+.06,uv.y);
 gl_FragColor=vec4(col*uIntensity,1.);}`;
 
 	let canvas = $state(null);
@@ -147,7 +148,8 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 			'uMode',
 			'uMask',
 			'uMaskK',
-			'uIntensity'
+			'uIntensity',
+			'uBand'
 		]) {
 			uniforms[name] = gl.getUniformLocation(program, name);
 		}
@@ -172,6 +174,7 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 		gl.uniform4fv(uniforms.uMask, p.mask ?? [0.5, 0.5, 0.01, 0.01]);
 		gl.uniform1f(uniforms.uMaskK, p.maskK ?? 0);
 		gl.uniform1f(uniforms.uIntensity, p.intensity ?? 1);
+		gl.uniform1f(uniforms.uBand, p.band ?? 0);
 	}
 
 	function frame(t) {

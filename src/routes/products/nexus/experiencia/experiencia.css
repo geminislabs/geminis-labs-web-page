@@ -45,6 +45,14 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	/* Anula la regla global «section» del sitio (centrado, alto mínimo y contain). */
+	align-items: stretch;
+	min-height: 0;
+	contain: none;
+	box-sizing: border-box;
+}
+.xp-scene::before {
+	content: none;
 }
 
 /* ── Revelaciones por beat ─────────────────────────────────────────── */
@@ -2486,9 +2494,6 @@ svg .rv {
 }
 
 /* ── 06 Un día real: estilo app (hexágonos) + celular ──────────────── */
-.xs-telemetria {
-	background: #000;
-}
 
 /* ── 10 Horizonte: tarjetas más grandes ────────────────────────────── */
 .xs-horizonte .xp-orbit3-node {

@@ -42,7 +42,7 @@
 		let H = 0;
 		let dpr = 1;
 		let raf = 0;
-		const LOW = 0.18; // aurora y máscara a baja resolución (se desenfocan igual)
+		const LOW = 0.15; // aurora y máscara a baja resolución (se desenfocan igual)
 
 		function resize() {
 			const r = host.getBoundingClientRect();
@@ -226,8 +226,12 @@
 			mctx.filter = 'none';
 		}
 
+		let last = 0;
 		function frame(now) {
 			raf = requestAnimationFrame(frame);
+			// 30 fps bastan para un fondo lento y liberan el hilo principal.
+			if (now - last < 33) return;
+			last = now;
 			const t = reduced ? 0 : (now / 1000) * flowSpeed;
 			drawAurora(t);
 			drawMask(t);
