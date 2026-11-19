@@ -8,6 +8,8 @@
 }
 
 .xp {
+	/* Unidad fluida: igual a 1vw en 16:9, limitada por el alto en ventanas anchas. */
+	--u: min(1vw, 1.7778vh);
 	--bg: #060b16;
 	--ink: #eaf3fc;
 	--ink-2: #94b5d0;
@@ -19,7 +21,7 @@
 	--panel: rgba(10, 20, 36, 0.72);
 	--font: 'Outfit', system-ui, sans-serif;
 	--display: 'Audiowide', 'Outfit', system-ui, sans-serif;
-	--gutter: clamp(16px, 5vw, 96px);
+	--gutter: clamp(16px, calc(5 * var(--u)), 96px);
 
 	position: fixed;
 	inset: 0;
@@ -88,7 +90,7 @@ svg .rv {
 	align-items: center;
 	gap: 0.6em;
 	margin: 0 0 1rem;
-	font-size: clamp(0.8rem, 1.1vw, 1rem);
+	font-size: clamp(0.8rem, calc(1.1 * var(--u)), 1rem);
 	font-weight: 500;
 	letter-spacing: 0.28em;
 	text-transform: uppercase;
@@ -96,7 +98,7 @@ svg .rv {
 }
 .xp-h2 {
 	margin: 0 0 1.2rem;
-	font-size: clamp(1.9rem, 4.2vw, 4rem);
+	font-size: clamp(1.9rem, calc(4.2 * var(--u)), 4rem);
 	font-weight: 600;
 	line-height: 1.05;
 	letter-spacing: -0.02em;
@@ -104,7 +106,7 @@ svg .rv {
 }
 .xp-body {
 	margin: 0 0 1.4rem;
-	font-size: clamp(1.05rem, 1.6vw, 1.5rem);
+	font-size: clamp(1.05rem, calc(1.6 * var(--u)), 1.5rem);
 	font-weight: 300;
 	line-height: 1.45;
 	color: var(--ink-2);
@@ -112,7 +114,7 @@ svg .rv {
 }
 .xp-footnote,
 .xp-source {
-	font-size: clamp(0.78rem, 0.95vw, 0.95rem);
+	font-size: clamp(0.78rem, calc(0.95 * var(--u)), 0.95rem);
 	color: var(--muted);
 }
 .xp-source {
@@ -166,12 +168,12 @@ svg .rv {
 }
 .xp-case-q {
 	margin: 0.2rem 0;
-	font-size: clamp(1.15rem, 1.9vw, 1.7rem);
+	font-size: clamp(1.15rem, calc(1.9 * var(--u)), 1.7rem);
 	font-weight: 500;
 }
 .xp-thesis {
 	margin: 1.4rem 0 0;
-	font-size: clamp(1.4rem, 2.5vw, 2.3rem);
+	font-size: clamp(1.4rem, calc(2.5 * var(--u)), 2.3rem);
 	font-weight: 300;
 	line-height: 1.25;
 }
@@ -196,7 +198,7 @@ svg .rv {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
-	gap: clamp(0.8rem, 3vw, 3rem);
+	gap: clamp(0.8rem, calc(3 * var(--u)), 3rem);
 	margin: 0 0 2.6rem;
 	padding: 0;
 	list-style: none;
@@ -206,7 +208,7 @@ svg .rv {
 	padding: 0.6rem 1.1rem;
 	border: 1px solid var(--line);
 	border-radius: 999px;
-	font-size: clamp(0.95rem, 1.4vw, 1.25rem);
+	font-size: clamp(0.95rem, calc(1.4 * var(--u)), 1.25rem);
 	color: var(--ink-2);
 	background: rgba(10, 20, 36, 0.6);
 }
@@ -215,7 +217,7 @@ svg .rv {
 	position: absolute;
 	top: 50%;
 	left: 100%;
-	width: clamp(0.8rem, 3vw, 3rem);
+	width: clamp(0.8rem, calc(3 * var(--u)), 3rem);
 	height: 1px;
 	background: linear-gradient(90deg, var(--neon), transparent);
 	transform-origin: left;
@@ -239,13 +241,13 @@ svg .rv {
 }
 .xp-lema {
 	margin: 0;
-	font-size: clamp(1.4rem, 2.6vw, 2.4rem);
+	font-size: clamp(1.4rem, calc(2.6 * var(--u)), 2.4rem);
 	font-weight: 300;
 	font-style: italic;
 }
 .xp-sub {
 	margin: 1.4rem 0 0;
-	font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+	font-size: clamp(0.85rem, calc(1.1 * var(--u)), 1.05rem);
 	letter-spacing: 0.22em;
 	text-transform: uppercase;
 	color: var(--ink-2);
@@ -255,7 +257,7 @@ svg .rv {
 .xp-definition {
 	margin: 0 0 2.6rem;
 	max-width: 26ch;
-	font-size: clamp(1.4rem, 2.8vw, 2.6rem);
+	font-size: clamp(1.4rem, calc(2.8 * var(--u)), 2.6rem);
 	font-weight: 300;
 	line-height: 1.25;
 }
@@ -299,7 +301,7 @@ svg .rv {
 .xp-chain-v {
 	display: block;
 	margin-top: 0.3rem;
-	font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+	font-size: clamp(0.95rem, calc(1.2 * var(--u)), 1.15rem);
 }
 .xp-to-live {
 	display: flex;
@@ -309,7 +311,7 @@ svg .rv {
 }
 .xp-to-live p {
 	margin: 0;
-	font-size: clamp(1.2rem, 2vw, 1.8rem);
+	font-size: clamp(1.2rem, calc(2 * var(--u)), 1.8rem);
 	font-weight: 600;
 }
 
@@ -450,7 +452,7 @@ svg .rv {
 }
 .xp-seg h3 {
 	margin: 0 0 0.6rem;
-	font-size: clamp(1.2rem, 1.9vw, 1.8rem);
+	font-size: clamp(1.2rem, calc(1.9 * var(--u)), 1.8rem);
 	font-weight: 600;
 	line-height: 1.15;
 }
@@ -533,7 +535,7 @@ svg .rv {
 }
 .xp-plan-price {
 	margin: 0 0 1rem;
-	font-size: clamp(2.2rem, 4.4vw, 4rem);
+	font-size: clamp(2.2rem, calc(4.4 * var(--u)), 4rem);
 	font-weight: 600;
 	line-height: 1;
 	letter-spacing: -0.02em;
@@ -559,7 +561,7 @@ svg .rv {
 }
 .xp-plan-custom {
 	margin: 0 0 1rem;
-	font-size: clamp(1.5rem, 2.6vw, 2.3rem);
+	font-size: clamp(1.5rem, calc(2.6 * var(--u)), 2.3rem);
 	font-weight: 600;
 	line-height: 1.1;
 }
@@ -611,7 +613,7 @@ svg .rv {
 	margin: 0;
 	padding: 0;
 	list-style: none;
-	font-size: clamp(1rem, 1.5vw, 1.35rem);
+	font-size: clamp(1rem, calc(1.5 * var(--u)), 1.35rem);
 }
 
 /* ── 09 Horizonte y Centli ─────────────────────────────────────────── */
@@ -656,7 +658,7 @@ svg .rv {
 	padding: 1.2rem 1.6rem;
 	border-radius: 999px;
 	font-family: var(--display);
-	font-size: clamp(1.2rem, 2.4vw, 2rem);
+	font-size: clamp(1.2rem, calc(2.4 * var(--u)), 2rem);
 	letter-spacing: 0.08em;
 	background: #08111f;
 	border: 1px solid rgba(0, 255, 136, 0.5);
@@ -665,7 +667,7 @@ svg .rv {
 }
 .xp-orbit-node {
 	position: absolute;
-	width: clamp(150px, 15vw, 210px);
+	width: clamp(150px, calc(15 * var(--u)), 210px);
 	padding: 0.9rem 1rem;
 	border: 1px solid var(--line);
 	border-radius: 14px;
@@ -716,7 +718,7 @@ svg .rv {
 }
 .xp-horizon-line {
 	margin: 1.6rem 0 0;
-	font-size: clamp(1.05rem, 1.7vw, 1.5rem);
+	font-size: clamp(1.05rem, calc(1.7 * var(--u)), 1.5rem);
 	font-weight: 300;
 	text-align: center;
 	transition: opacity 0.8s ease;
@@ -725,7 +727,7 @@ svg .rv {
 /* ── 10 Propuesta ──────────────────────────────────────────────────── */
 .xp-ask-title {
 	margin: 0 0 1rem;
-	font-size: clamp(2rem, 4.6vw, 4.4rem);
+	font-size: clamp(2rem, calc(4.6 * var(--u)), 4.4rem);
 	font-weight: 600;
 	line-height: 1.05;
 	letter-spacing: -0.02em;
@@ -734,7 +736,7 @@ svg .rv {
 .xp-ask-lead {
 	margin: 0 0 2rem;
 	max-width: 52ch;
-	font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+	font-size: clamp(1.05rem, calc(1.6 * var(--u)), 1.45rem);
 	font-weight: 300;
 	color: var(--ink-2);
 }
@@ -770,7 +772,7 @@ svg .rv {
 	color: var(--neon);
 }
 .xp-ask-card strong {
-	font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+	font-size: clamp(1.05rem, calc(1.5 * var(--u)), 1.35rem);
 	font-weight: 600;
 }
 .xp-ask-card > span:last-child {
@@ -783,7 +785,7 @@ svg .rv {
 	align-items: center;
 	gap: 1rem;
 	margin: 0;
-	font-size: clamp(1rem, 1.6vw, 1.4rem);
+	font-size: clamp(1rem, calc(1.6 * var(--u)), 1.4rem);
 	font-weight: 500;
 }
 .xp-ask-next i {
@@ -795,7 +797,7 @@ svg .rv {
 /* ── 11 Cierre ─────────────────────────────────────────────────────── */
 .xp-built {
 	margin: 0;
-	font-size: clamp(1rem, 1.6vw, 1.4rem);
+	font-size: clamp(1rem, calc(1.6 * var(--u)), 1.4rem);
 	letter-spacing: 0.3em;
 	text-transform: uppercase;
 	color: var(--ink-2);
@@ -803,7 +805,7 @@ svg .rv {
 .xp-contact {
 	margin: 0;
 	color: var(--ink-2);
-	font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+	font-size: clamp(0.95rem, calc(1.3 * var(--u)), 1.15rem);
 }
 
 /* ── Cromo: progreso, índice, fichas ───────────────────────────────── */
@@ -909,7 +911,7 @@ svg .rv {
 }
 .xp-ficha h3 {
 	margin: 0 0 0.6rem;
-	font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+	font-size: clamp(1.5rem, calc(2.6 * var(--u)), 2.2rem);
 	font-weight: 600;
 }
 .xp-ficha-lead {
@@ -1139,14 +1141,14 @@ svg .rv {
 }
 .xp-question-lead {
 	margin: 0 0 1.4rem;
-	font-size: clamp(1.2rem, 2vw, 1.8rem);
+	font-size: clamp(1.2rem, calc(2 * var(--u)), 1.8rem);
 	font-weight: 300;
 	color: #ffd9b0;
 }
 .xp-question {
 	--xp-weight: 600;
 	margin: 0;
-	font-size: clamp(2rem, 4.4vw, 4.4rem);
+	font-size: clamp(2rem, calc(4.4 * var(--u)), 4.4rem);
 	line-height: 1.08;
 	letter-spacing: -0.02em;
 	text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
@@ -1183,7 +1185,7 @@ svg .rv {
 	margin: 0 0 0.8rem;
 	font-family: 'Dune Rise', var(--display);
 	font-weight: 400;
-	font-size: clamp(2.2rem, 6.4vw, 6rem);
+	font-size: clamp(2.2rem, calc(6.4 * var(--u)), 6rem);
 	letter-spacing: 0.06em;
 	line-height: 1.05;
 	background: linear-gradient(100deg, #eaf3fc 20%, #9ff5c4 50%, #eaf3fc 80%);
@@ -1195,7 +1197,7 @@ svg .rv {
 	filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.15));
 }
 .xp-dune-xl {
-	font-size: clamp(2.6rem, 7.6vw, 7.4rem);
+	font-size: clamp(2.6rem, calc(7.6 * var(--u)), 7.4rem);
 }
 .xs-geminis .xp-sub {
 	margin: 0 0 2.4rem;
@@ -1207,7 +1209,7 @@ svg .rv {
 .xp-proof {
 	margin: 1.6rem 0 0;
 	color: var(--ink-2);
-	font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+	font-size: clamp(0.95rem, calc(1.3 * var(--u)), 1.15rem);
 }
 .xp-proof strong {
 	color: var(--neon);
@@ -1220,7 +1222,7 @@ svg .rv {
 	margin: 0 0 1.6rem;
 	font-family: var(--display);
 	font-weight: 400;
-	font-size: clamp(3.4rem, 11vw, 10rem);
+	font-size: clamp(3.4rem, calc(11 * var(--u)), 10rem);
 	line-height: 1;
 	letter-spacing: 0.06em;
 }
@@ -1240,7 +1242,7 @@ svg .rv {
 	--xp-weight: 400;
 	margin: 0 0 2.4rem;
 	max-width: 26ch;
-	font-size: clamp(1.4rem, 2.8vw, 2.6rem);
+	font-size: clamp(1.4rem, calc(2.8 * var(--u)), 2.6rem);
 	line-height: 1.25;
 }
 
@@ -1278,7 +1280,7 @@ svg .rv {
 	border-radius: 999px;
 	background: rgba(8, 22, 34, 0.75);
 	box-shadow: inset 0 0 0 1px var(--line);
-	font-size: clamp(0.85rem, 1.1vw, 1rem);
+	font-size: clamp(0.85rem, calc(1.1 * var(--u)), 1rem);
 }
 
 /* ── 06 Telemetría ─────────────────────────────────────────────────── */
@@ -1305,7 +1307,7 @@ svg .rv {
 	grid-column: span 2;
 }
 .xp-kpi-v {
-	font-size: clamp(2rem, 3.8vw, 3.4rem);
+	font-size: clamp(2rem, calc(3.8 * var(--u)), 3.4rem);
 	font-weight: 650;
 	font-variant-numeric: tabular-nums;
 }
@@ -1342,7 +1344,7 @@ svg .rv {
 	background: rgba(6, 18, 24, 0.9);
 	box-shadow: inset 0 0 0 1px var(--line);
 	text-align: center;
-	font-size: clamp(0.85rem, 1.15vw, 1.1rem);
+	font-size: clamp(0.85rem, calc(1.15 * var(--u)), 1.1rem);
 	animation: xp-node-hit var(--cycle) linear infinite;
 	animation-delay: calc(var(--i) * var(--cycle) / 5);
 }
@@ -1361,7 +1363,7 @@ svg .rv {
 	}
 }
 .xp-link {
-	flex: 0 0 clamp(18px, 3vw, 48px);
+	flex: 0 0 clamp(18px, calc(3 * var(--u)), 48px);
 	position: relative;
 	align-self: center;
 	height: 2px;
@@ -1419,7 +1421,7 @@ svg .rv {
 	margin: 0;
 	font-family: var(--display);
 	font-weight: 400;
-	font-size: clamp(3.2rem, 9vw, 8rem);
+	font-size: clamp(3.2rem, calc(9 * var(--u)), 8rem);
 	letter-spacing: 0.1em;
 	line-height: 1;
 	background: linear-gradient(180deg, #fff6d2 20%, #e3b94e 90%);
@@ -1430,13 +1432,13 @@ svg .rv {
 }
 .xp-centli-tag {
 	margin: 0.5rem 0 0.8rem;
-	font-size: clamp(1.2rem, 2.2vw, 2rem);
+	font-size: clamp(1.2rem, calc(2.2 * var(--u)), 2rem);
 	font-weight: 300;
 }
 .xp-centli-def {
 	margin: 0 0 1.6rem;
 	color: #e9e3c9;
-	font-size: clamp(1rem, 1.4vw, 1.2rem);
+	font-size: clamp(1rem, calc(1.4 * var(--u)), 1.2rem);
 }
 .xp-centli-def em {
 	font-style: normal;
@@ -1488,7 +1490,7 @@ svg .rv {
 }
 .xp-centli-quote {
 	margin: 0 0 1rem;
-	font-size: clamp(1.05rem, 1.6vw, 1.4rem);
+	font-size: clamp(1.05rem, calc(1.6 * var(--u)), 1.4rem);
 	font-style: italic;
 	font-weight: 300;
 }
@@ -1572,13 +1574,13 @@ svg .rv {
 	margin-bottom: 0.9rem;
 }
 .xp-hero-lockup img {
-	width: clamp(48px, 4.6vw, 72px);
+	width: clamp(48px, calc(4.6 * var(--u)), 72px);
 	height: auto;
 	filter: drop-shadow(0 0 18px rgba(62, 193, 40, 0.45));
 }
 .xp-hero-lockup span {
 	font-family: 'Dune Rise', var(--display);
-	font-size: clamp(1.3rem, 2.4vw, 2.2rem);
+	font-size: clamp(1.3rem, calc(2.4 * var(--u)), 2.2rem);
 	letter-spacing: 0.06em;
 	background: linear-gradient(100deg, #eaf3fc 20%, #9ff5c4 50%, #eaf3fc 80%);
 	background-size: 220% 100%;
@@ -1599,13 +1601,13 @@ svg .rv {
 .xp-hero-title {
 	--xp-weight: 650;
 	margin: 0 0 0.6rem;
-	font-size: clamp(2rem, 4.4vw, 4.6rem);
+	font-size: clamp(2rem, calc(4.4 * var(--u)), 4.6rem);
 	line-height: 1.02;
 	letter-spacing: -0.025em;
 }
 .xp-hero-sub {
 	margin: 0;
-	font-size: clamp(0.95rem, 1.3vw, 1.2rem);
+	font-size: clamp(0.95rem, calc(1.3 * var(--u)), 1.2rem);
 	font-weight: 300;
 	color: var(--ink-2);
 }
@@ -1650,7 +1652,7 @@ svg .rv {
 	box-shadow: inset 0 0 0 1px rgba(255, 179, 92, 0.35);
 	backdrop-filter: blur(8px);
 	color: #ffe9d2;
-	font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+	font-size: clamp(0.9rem, calc(1.2 * var(--u)), 1.05rem);
 }
 .xp-wwh strong {
 	color: #ffb35c;
@@ -1663,11 +1665,11 @@ svg .rv {
 /* ── 03 Geminis Labs: logo al doble ────────────────────────────────── */
 .xp-gl-mark {
 	position: relative;
-	width: clamp(160px, 18vw, 260px);
+	width: clamp(160px, calc(18 * var(--u)), 260px);
 	margin-bottom: 1.2rem;
 }
 .xp-gl-mark-lg {
-	width: clamp(170px, 17vw, 250px);
+	width: clamp(170px, calc(17 * var(--u)), 250px);
 }
 
 /* ══ v4: cada escena con su pieza visual ════════════════════════════ */
@@ -1685,18 +1687,18 @@ svg .rv {
 	text-align: center;
 }
 .xs-nexus .xp-nexus-word {
-	font-size: clamp(2.6rem, 7vw, 6.4rem);
+	font-size: clamp(2.6rem, calc(7 * var(--u)), 6.4rem);
 	margin-bottom: 0.8rem;
 }
 .xs-nexus .xp-definition {
 	margin-bottom: 1.6rem;
 	max-width: 34ch;
-	font-size: clamp(1.15rem, 2vw, 1.9rem);
+	font-size: clamp(1.15rem, calc(2 * var(--u)), 1.9rem);
 }
 .xp-nexus-body {
 	display: grid;
 	grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-	gap: clamp(1rem, 2.5vw, 2.4rem);
+	gap: clamp(1rem, calc(2.5 * var(--u)), 2.4rem);
 	align-items: stretch;
 }
 .xp-nexus-sketch {
@@ -1759,7 +1761,7 @@ svg .rv {
 .xp-telemetry-grid2 {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-	gap: clamp(1rem, 3vw, 3rem);
+	gap: clamp(1rem, calc(3 * var(--u)), 3rem);
 	align-items: center;
 	margin: 0.6rem 0;
 }
@@ -1790,7 +1792,7 @@ svg .rv {
 .xp-econ-grid {
 	display: grid;
 	grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
-	gap: clamp(1rem, 3vw, 3rem);
+	gap: clamp(1rem, calc(3 * var(--u)), 3rem);
 	align-items: center;
 	margin: 0.6rem 0 1rem;
 }
@@ -1814,12 +1816,12 @@ svg .rv {
 }
 .xp-orbit-core img {
 	display: block;
-	width: clamp(70px, 8vw, 120px);
+	width: clamp(70px, calc(8 * var(--u)), 120px);
 	height: auto;
 	filter: drop-shadow(0 0 24px rgba(62, 193, 40, 0.6));
 }
 .xs-horizonte .xp-orbit-node {
-	width: clamp(220px, 21vw, 300px);
+	width: clamp(220px, calc(21 * var(--u)), 300px);
 	padding: 0.7rem 0.7rem 1rem;
 }
 .xs-horizonte .xp-orbit-node > :not(.xp-orbit-visual) {
@@ -1880,7 +1882,7 @@ svg .rv {
 	filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.4));
 }
 .xp-ask-card strong {
-	font-size: clamp(1.15rem, 1.7vw, 1.55rem);
+	font-size: clamp(1.15rem, calc(1.7 * var(--u)), 1.55rem);
 }
 
 @media (max-width: 860px) {
@@ -1937,7 +1939,7 @@ svg .rv {
 	aspect-ratio: 2.39 / 1;
 	translate: -50% 0;
 	z-index: 1;
-	border: clamp(6px, 0.8vw, 12px) solid #000;
+	border: clamp(6px, calc(0.8 * var(--u)), 12px) solid #000;
 	border-radius: 4px;
 	box-shadow:
 		0 0 0 1px rgba(255, 255, 255, 0.05),
@@ -1961,7 +1963,7 @@ svg .rv {
 	z-index: 3;
 }
 .xs-hero .xp-hero-title {
-	font-size: clamp(1.7rem, 3.4vw, 3.6rem);
+	font-size: clamp(1.7rem, calc(3.4 * var(--u)), 3.6rem);
 	margin-bottom: 0.4rem;
 }
 .xs-hero .xp-hero-lockup {
@@ -2109,7 +2111,7 @@ svg .rv {
 	position: absolute;
 	left: calc(50% + var(--x) * 38%);
 	top: calc(50% + var(--y) * 30%);
-	width: clamp(230px, 20vw, 300px);
+	width: clamp(230px, calc(20 * var(--u)), 300px);
 	padding: 0.7rem 0.7rem 1rem;
 	border-radius: 18px;
 	background: rgba(8, 10, 26, 0.86);
@@ -2178,14 +2180,14 @@ svg .rv {
 }
 .xp-nexus3 .xp-nexus-word {
 	justify-content: flex-start;
-	font-size: clamp(2.6rem, 6vw, 5.4rem);
+	font-size: clamp(2.6rem, calc(6 * var(--u)), 5.4rem);
 	margin-bottom: 0.6rem;
 }
 .xp-nexus3 .xp-definition {
 	--xp-weight: 400;
 	margin: 0 0 1.4rem;
 	text-align: left;
-	font-size: clamp(1.1rem, 1.8vw, 1.6rem);
+	font-size: clamp(1.1rem, calc(1.8 * var(--u)), 1.6rem);
 	line-height: 1.3;
 }
 .xp-nexus3 .xp-chain2 li:not(.xp-to-live2) {
@@ -2208,7 +2210,7 @@ svg .rv {
 
 /* ── 10 Horizonte: paneles holográficos ────────────────────────────── */
 .xp-orbit3-node {
-	width: clamp(250px, 22vw, 320px);
+	width: clamp(250px, calc(22 * var(--u)), 320px);
 	padding: 0.6rem 0.6rem 0.9rem;
 	background: linear-gradient(180deg, rgba(6, 26, 24, 0.9), rgba(3, 10, 12, 0.92));
 	box-shadow:
@@ -2335,7 +2337,7 @@ svg .rv {
 	}
 }
 .xp-plans-row .xp-plan-price {
-	font-size: clamp(1.8rem, 3.2vw, 3rem);
+	font-size: clamp(1.8rem, calc(3.2 * var(--u)), 3rem);
 	margin-bottom: 0.5rem;
 }
 .xs-economia .xp-econ-note,
@@ -2406,10 +2408,10 @@ svg .rv {
 	align-items: flex-start;
 }
 .xp-gl2 .xp-gl-mark {
-	width: clamp(110px, 11vw, 170px);
+	width: clamp(110px, calc(11 * var(--u)), 170px);
 }
 .xp-gl2 .xp-dune {
-	font-size: clamp(1.8rem, 3.5vw, 3.6rem);
+	font-size: clamp(1.8rem, calc(3.5 * var(--u)), 3.6rem);
 	white-space: nowrap;
 	margin-bottom: 0.4rem;
 }
@@ -2497,7 +2499,7 @@ svg .rv {
 
 /* ── 10 Horizonte: tarjetas más grandes ────────────────────────────── */
 .xs-horizonte .xp-orbit3-node {
-	width: clamp(290px, 25vw, 380px);
+	width: clamp(290px, calc(25 * var(--u)), 380px);
 }
 .xs-horizonte .xp-orbit3-node .xp-orbit-visual {
 	height: clamp(170px, 23vh, 230px);
@@ -2509,19 +2511,19 @@ svg .rv {
 
 /* ── 03: texto pegado a la izquierda y cadena en una sola línea ────── */
 .xs-geminis {
-	padding-left: clamp(16px, 3vw, 48px);
+	padding-left: clamp(16px, calc(3 * var(--u)), 48px);
 }
 .xp-gl2 .xp-flow {
 	flex-wrap: nowrap;
-	gap: clamp(0.4rem, 1.4vw, 1.4rem);
+	gap: clamp(0.4rem, calc(1.4 * var(--u)), 1.4rem);
 }
 .xp-gl2 .xp-flow li {
 	padding: 0.5rem 0.8rem;
-	font-size: clamp(0.8rem, 1.05vw, 1.05rem);
+	font-size: clamp(0.8rem, calc(1.05 * var(--u)), 1.05rem);
 	white-space: nowrap;
 }
 .xp-gl2 .xp-flow li:not(:last-child)::after {
-	width: clamp(0.4rem, 1.4vw, 1.4rem);
+	width: clamp(0.4rem, calc(1.4 * var(--u)), 1.4rem);
 }
 
 /* ── 03 Geminis Labs v3: identidad + capacidades + hechos ──────────── */
@@ -2544,12 +2546,12 @@ svg .rv {
 	gap: 1.2rem;
 }
 .xp-gl3 .xp-gl-mark {
-	width: clamp(80px, 7vw, 120px);
+	width: clamp(80px, calc(7 * var(--u)), 120px);
 	margin: 0;
 }
 .xp-gl3 .xp-dune {
 	margin: 0 0 0.3rem;
-	font-size: clamp(1.8rem, 3.6vw, 3.6rem);
+	font-size: clamp(1.8rem, calc(3.6 * var(--u)), 3.6rem);
 	white-space: nowrap;
 }
 .xp-gl3 .xp-sub {
@@ -2559,7 +2561,7 @@ svg .rv {
 .xp-gl3 .xp-lema {
 	--xp-weight: 500;
 	margin: 0;
-	font-size: clamp(1.2rem, 2.1vw, 2rem);
+	font-size: clamp(1.2rem, calc(2.1 * var(--u)), 2rem);
 }
 .xp-caps {
 	display: grid;
@@ -2589,7 +2591,7 @@ svg .rv {
 	filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.4));
 }
 .xp-cap strong {
-	font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+	font-size: clamp(0.95rem, calc(1.2 * var(--u)), 1.1rem);
 }
 .xp-cap span {
 	font-size: 0.82rem;
@@ -2599,16 +2601,16 @@ svg .rv {
 .xp-gl3 .xp-flow {
 	flex-wrap: nowrap;
 	justify-content: flex-start;
-	gap: clamp(0.4rem, 1.2vw, 1.2rem);
+	gap: clamp(0.4rem, calc(1.2 * var(--u)), 1.2rem);
 	margin: 0.2rem 0;
 }
 .xp-gl3 .xp-flow li {
 	padding: 0.45rem 0.8rem;
-	font-size: clamp(0.8rem, 1vw, 1rem);
+	font-size: clamp(0.8rem, calc(1 * var(--u)), 1rem);
 	white-space: nowrap;
 }
 .xp-gl3 .xp-flow li:not(:last-child)::after {
-	width: clamp(0.4rem, 1.2vw, 1.2rem);
+	width: clamp(0.4rem, calc(1.2 * var(--u)), 1.2rem);
 }
 .xp-gl3-bottom {
 	display: flex;
@@ -2627,7 +2629,7 @@ svg .rv {
 }
 .xp-gl-facts strong {
 	display: block;
-	font-size: clamp(1.2rem, 2vw, 1.9rem);
+	font-size: clamp(1.2rem, calc(2 * var(--u)), 1.9rem);
 	font-weight: 650;
 	color: var(--neon);
 }
@@ -2637,7 +2639,7 @@ svg .rv {
 }
 .xp-gl-aim {
 	margin: 0;
-	font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+	font-size: clamp(0.95rem, calc(1.3 * var(--u)), 1.15rem);
 	font-style: italic;
 	color: var(--ink);
 }
@@ -2652,4 +2654,121 @@ svg .rv {
 	.xp-gl3 .xp-flow {
 		flex-wrap: wrap;
 	}
+}
+
+/* ── Proporciones independientes del tamaño de ventana ────────────── */
+/* Hero: el público se dimensiona con la pantalla del cine, no con la ventana. */
+.xs-hero .xp-audience {
+	left: 50%;
+	right: auto;
+	width: calc(var(--sw) * 1.32);
+	height: calc(var(--sh) * 0.95);
+	top: calc(var(--top) + var(--sh) * 0.42);
+	translate: -50% 0;
+}
+/* Geminis Labs: el video se recorre en unidades de su propio ancho. */
+.xp-gl-human {
+	--vw-video: calc(96vh * 16 / 9);
+	right: calc(var(--vw-video) * -0.15);
+}
+/* Hero: pantalla, público y texto caben en cualquier proporción de ventana. */
+.xs-hero {
+	--sw: min(90vw, 108vh);
+	--top: 3vh;
+}
+.xs-hero .xp-audience {
+	top: calc(var(--top) + var(--sh) * 0.7);
+	height: calc(var(--sh) * 0.78);
+}
+.xs-hero .xp-hero-copy {
+	bottom: clamp(16px, 4vh, 48px);
+	width: min(calc(var(--sw) * 1.45), calc(100% - 2 * var(--gutter)));
+}
+.xs-hero .xp-hero-title {
+	font-size: clamp(1.5rem, min(calc(3.4 * var(--u)), 6.2vh), 3.6rem);
+}
+.xs-hero .xp-hero-lockup span {
+	font-size: clamp(1.1rem, min(calc(2.4 * var(--u)), 4vh), 2.2rem);
+}
+.xs-hero .xp-hero-lockup img {
+	width: clamp(40px, min(calc(4.6 * var(--u)), 8vh), 72px);
+}
+.xs-hero .xp-hero-sub {
+	font-size: clamp(0.85rem, min(calc(1.3 * var(--u)), 2.2vh), 1.2rem);
+}
+
+/* ── Pantallas bajas (laptops 1366×768, ultrawide) ─────────────────── */
+@media (max-height: 820px) {
+	.xp-scene {
+		padding-top: 3vh;
+		padding-bottom: 3vh;
+	}
+	.xp-kicker {
+		margin-bottom: 0.5rem;
+	}
+	.xp-h2 {
+		margin-bottom: 0.6rem;
+		font-size: clamp(1.6rem, min(calc(3.6 * var(--u)), 6vh), 3.4rem);
+	}
+	.xp-kpi {
+		padding: 0.7rem 0.9rem;
+	}
+	.xp-kpi-v {
+		font-size: clamp(1.5rem, 5vh, 2.6rem);
+	}
+	.xp-telemetry-grid2 {
+		margin: 0.2rem 0;
+	}
+	.xp-ready-chips {
+		margin-top: 0.6rem !important;
+	}
+	.xp-seg-visual {
+		height: 14vh;
+	}
+	.xp-asks .xp-ask-card {
+		min-height: 18vh;
+		padding: 1rem;
+	}
+	.xp-cycle li {
+		padding: 0.55rem 0.7rem;
+	}
+	.xp-plans-row .xp-plan {
+		padding: 0.7rem 0.9rem;
+	}
+	.xp-product {
+		width: min(52vw, 820px, 58vh);
+	}
+	.xp-orbit3 {
+		height: 70vh;
+	}
+}
+@media (max-height: 820px) {
+	.xp-centli-name {
+		font-size: clamp(2.4rem, 11vh, 7rem);
+	}
+	.xp-centli-tag {
+		margin: 0.2rem 0 0.4rem;
+		font-size: clamp(1rem, 3vh, 1.6rem);
+	}
+	.xp-centli-def {
+		margin-bottom: 0.8rem;
+	}
+	.xp-cycle {
+		gap: 0.4rem;
+		margin-bottom: 0.8rem;
+	}
+	.xp-cycle small {
+		font-size: 0.74rem;
+	}
+	.xp-centli-quote {
+		margin-bottom: 0.5rem;
+		font-size: clamp(0.9rem, 2.4vh, 1.2rem);
+	}
+	.xs-horizonte .xp-orbit3-core {
+		width: min(50vh, 460px);
+	}
+}
+/* Horizonte: elipse más alta para que las tarjetas no pasen sobre el logo. */
+.xp-orbit3-node {
+	top: calc(50% + var(--y) * 36%);
 }

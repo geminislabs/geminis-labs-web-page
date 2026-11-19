@@ -57,7 +57,7 @@
 	.wc {
 		position: relative;
 		width: 100%;
-		height: min(56vh, 500px);
+		height: min(50vh, 500px);
 		perspective: 1400px;
 		perspective-origin: 50% 40%;
 	}
@@ -87,10 +87,10 @@
 		transform-style: preserve-3d;
 	}
 	.wc-card {
-		--w: min(46vw, 700px);
+		--w: min(46vw, 700px, 80vh);
 		position: absolute;
 		left: calc(var(--w) / -2);
-		top: calc(min(56vh, 500px) * -0.46);
+		top: calc(min(50vh, 500px) * -0.46);
 		width: var(--w);
 		padding: 10px;
 		border: 0;
@@ -125,7 +125,7 @@
 	.wc-card img {
 		display: block;
 		width: 100%;
-		height: min(40vh, 360px);
+		height: min(34vh, 360px);
 		object-fit: contain;
 		background: #050b14;
 		border-radius: 10px;

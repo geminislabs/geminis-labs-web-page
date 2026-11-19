@@ -113,7 +113,7 @@
 	svg {
 		display: block;
 		width: 100%;
-		height: clamp(110px, 18vh, 170px);
+		height: clamp(80px, 16vh, 170px);
 		margin-top: 0.6rem;
 		overflow: visible;
 	}

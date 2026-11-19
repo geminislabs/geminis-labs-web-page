@@ -75,6 +75,7 @@
 	}
 	svg {
 		width: min(100%, 52vh);
+		max-height: 54vh;
 		height: auto;
 		overflow: visible;
 	}
