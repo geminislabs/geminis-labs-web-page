@@ -14,6 +14,7 @@
 	import PhoneWall from './PhoneWall.svelte';
 	import HorizonVisual from './HorizonVisual.svelte';
 	import FlowDiagram from './FlowDiagram.svelte';
+	import CityModel3D from './CityModel3D.svelte';
 	import {
 		SCENES,
 		NEXUS_LIVE_URL,
@@ -38,6 +39,11 @@
 		ASK_ICONS,
 		GL_CAPABILITIES,
 		GL_FACTS,
+		H3_LEVELS,
+		H3_ADVANTAGES,
+		RESEARCH_LINES,
+		CITY_LAYERS,
+		CORRIDOR_PHASES,
 		MEDIA,
 		PHONE_SCREENS
 	} from './content.js';
@@ -64,6 +70,7 @@
 	let nav = $state(initialNav());
 	let menuOpen = $state(false);
 	let chainPhase = $state(0);
+	let activeLayer = $state(0);
 	let orbitT = $state(0);
 
 	// Las tarjetas del horizonte orbitan despacio alrededor del logo de Nexus.
@@ -527,6 +534,45 @@
 							</li>
 						</ol>
 					</div>
+				{:else if scene.id === 'h3'}
+					<div class="xp-left xp-h3">
+						<p class="xp-kicker">Indexación geoespacial H3</p>
+						<h2 class="xp-h2 rv on">Querétaro, con contexto geoespacial.</h2>
+						{#if beat === 0}
+							<p class="xp-body rv on" style="--d:300ms">
+								Cada posición se convierte en una celda. 706 celdas H3 de 0.74 km² cubren este mapa;
+								se encienden cuando una unidad pasa por ellas.
+							</p>
+						{:else if beat === 1}
+							<p class="xp-body rv on">Una posición, cinco escalas.</p>
+							<ol class="xp-h3-levels">
+								{#each H3_LEVELS as l, i (l.r)}
+									<li style="--i:{i}">
+										<span class="xp-h3-r">r{l.r}</span>
+										<strong>{l.d}</strong>
+										<span>{l.area} · lado {l.edge}</span>
+									</li>
+								{/each}
+							</ol>
+							<p class="xp-h3-note">
+								GeoContext calcula r10 y sus padres r9–r6 en cada evento · en validación
+							</p>
+						{:else}
+							<ul class="xp-h3-adv">
+								{#each H3_ADVANTAGES as a, i (a.t)}
+									<li class="rv on" style="--d:{i * 120}ms">
+										<strong>{a.t}</strong>
+										<span>{a.d}</span>
+										<em class:ready={a.st === 'Listo'}>{a.st}</em>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</div>
+					<p class="xp-source">
+						Celdas H3 reales (librería h3 4.5) · densidad de vías principales © OpenStreetMap
+						contributors · estelas ilustrativas
+					</p>
 				{:else if scene.id === 'demo'}
 					<PhoneWall images={PHONE_SCREENS} />
 					<div class="xp-wide xp-demo2">
@@ -693,22 +739,38 @@
 						<p class="xp-kicker">Ingeniería y confianza</p>
 						<h2 class="xp-h2">Procesamiento orientado a eventos.</h2>
 						<div class="xp-flow-wrap rv on" style="--d:300ms">
-							<FlowDiagram {reduced} />
+							<FlowDiagram {reduced} future={beat >= 3} />
 						</div>
-						<div class="xp-layers">
-							<div class="rv beam" class:on={beat >= 1}>
-								<p class="xp-layer-title">Hoy</p>
+						<ul class="xp-flow-legend">
+							<li><i class="ok"></i>Operando</li>
+							<li><i class="partial"></i>Desarrollado, en validación</li>
+							<li class:dim={beat < 3}><i class="lab"></i>Investigación</li>
+						</ul>
+						{#if beat >= 3}
+							<div class="xp-research rv on">
+								<p class="xp-layer-title xp-lab-title">Laboratorio Geminis · investigación</p>
 								<ul>
-									{#each CONTROLS as c (c)}<li>{c}</li>{/each}
+									{#each RESEARCH_LINES as r, i (r.t)}
+										<li style="--d:{i * 90}ms"><strong>{r.t}</strong><span>{r.d}</span></li>
+									{/each}
 								</ul>
 							</div>
-							<div class="rv" class:on={beat >= 2}>
-								<p class="xp-layer-title xp-accent-next">Siguientes hitos</p>
-								<ul>
-									{#each NEXT_STEPS as c (c)}<li>{c}</li>{/each}
-								</ul>
+						{:else}
+							<div class="xp-layers">
+								<div class="rv beam" class:on={beat >= 1}>
+									<p class="xp-layer-title">Hoy</p>
+									<ul>
+										{#each CONTROLS as c (c)}<li>{c}</li>{/each}
+									</ul>
+								</div>
+								<div class="rv" class:on={beat >= 2}>
+									<p class="xp-layer-title xp-accent-next">Siguientes hitos</p>
+									<ul>
+										{#each NEXT_STEPS as c (c)}<li>{c}</li>{/each}
+									</ul>
+								</div>
 							</div>
-						</div>
+						{/if}
 					</div>
 				{:else if scene.id === 'horizonte'}
 					<div class="xp-bgshade xp-shade-horizon" aria-hidden="true"></div>
@@ -748,6 +810,44 @@
 							No son productos terminados: son caminos de expansión de una misma capacidad.
 						</p>
 					</div>
+				{:else if scene.id === 'capas'}
+					<div class="xp-capas">
+						<div class="xp-capas-text">
+							<p class="xp-kicker xp-kicker-lab">Visión · inteligencia urbana</p>
+							<h2 class="xp-h2 rv on">Querétaro, por capas.</h2>
+							<p class="xp-body rv on" style="--d:200ms">
+								Lo que Nexus observa, ordenado en celdas H3, puede ayudar a entender cómo se mueve
+								la ciudad.
+							</p>
+							<ul class="xp-capas-list">
+								{#each CITY_LAYERS as l, i (l.id)}
+									<li
+										class="rv on"
+										class:active={activeLayer === i}
+										style="--d:{400 + i * 110}ms; --rgb:{l.rgb.join(',')}"
+									>
+										<strong>{l.n}</strong><span>{l.d}</span>
+									</li>
+								{/each}
+							</ul>
+							<div class="xp-corridor rv" class:on={beat >= 1}>
+								<p class="xp-corridor-t">Primer experimento posible: un corredor vial</p>
+								<ol>
+									{#each CORRIDOR_PHASES as ph, i (ph)}<li><b>{i + 1}</b>{ph}</li>{/each}
+								</ol>
+								<p class="xp-corridor-n">
+									Resultados agregados, muestras mínimas y sin seguimiento individual.
+								</p>
+							</div>
+						</div>
+						<div class="xp-capas-stack">
+							<CityModel3D layers={CITY_LAYERS} bind:active={activeLayer} {reduced} />
+						</div>
+					</div>
+					<p class="xp-source">
+						Visión en investigación · maqueta del Centro Histórico: edificios y calles ©
+						OpenStreetMap contributors (ODbL) · celdas H3 r10 reales · capas 2–5 ilustrativas
+					</p>
 				{:else if scene.id === 'centli'}
 					<div class="xp-photo xp-kenburns" class:dim={beat >= 1} aria-hidden="true">
 						<img src={IMAGES.centliCampo} alt="" />

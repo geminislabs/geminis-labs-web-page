@@ -15,12 +15,14 @@ export const SCENES = [
 	{ id: 'queretaro', beats: 3, title: 'Querétaro en movimiento' },
 	{ id: 'geminis', beats: 2, title: 'Geminis Labs' },
 	{ id: 'nexus', beats: 1, title: 'Nexus' },
+	{ id: 'h3', beats: 2, title: 'Contexto geoespacial H3' },
 	{ id: 'demo', beats: 1, title: 'Nexus en vivo' },
 	{ id: 'telemetria', beats: 1, title: 'Un día real' },
 	{ id: 'mercado', beats: 2, title: 'A quién sirve' },
 	{ id: 'economia', beats: 2, title: 'Oferta comercial' },
-	{ id: 'ingenieria', beats: 2, title: 'Ingeniería y confianza' },
+	{ id: 'ingenieria', beats: 3, title: 'Ingeniería y laboratorio' },
 	{ id: 'horizonte', beats: 0, title: 'Horizonte' },
+	{ id: 'capas', beats: 1, title: 'Querétaro por capas' },
 	{ id: 'centli', beats: 2, title: 'Centli' },
 	{ id: 'peticion', beats: 2, title: 'La propuesta' },
 	{ id: 'cierre', beats: 1, title: 'Cierre' }
@@ -368,4 +370,91 @@ export const GL_FACTS = [
 	{ v: '2 marcas', k: 'de GPS integradas (Suntech y Queclink)' },
 	{ v: 'Web + app', k: 'para flotillas y usuarios' },
 	{ v: '4 socios', k: 'en Querétaro' }
+];
+
+/** Resoluciones H3 que GeoContext calcula por evento (valores de la librería h3 4.5). */
+export const H3_LEVELS = [
+	{ r: 6, area: '36 km²', edge: '3.7 km', d: 'Ciudad' },
+	{ r: 7, area: '5.2 km²', edge: '1.4 km', d: 'Sector' },
+	{ r: 8, area: '0.74 km²', edge: '531 m', d: 'Colonia' },
+	{ r: 9, area: '0.11 km²', edge: '201 m', d: 'Manzanas' },
+	{ r: 10, area: '0.015 km²', edge: '76 m', d: 'Calle' }
+];
+
+export const H3_ADVANTAGES = [
+	{
+		t: '¿Está dentro? Una búsqueda',
+		d: 'La geocerca es un conjunto de celdas: saber si una unidad entró es buscar su celda, no calcular geometría.',
+		st: 'Listo'
+	},
+	{
+		t: 'De la calle a la ciudad',
+		d: 'El mismo evento se agrega en cinco escalas sin volver a procesarlo.',
+		st: 'En validación'
+	},
+	{
+		t: 'Vecinos a la misma distancia',
+		d: 'Zonas comparables entre sí y búsquedas de cercanía directas.',
+		st: 'Propiedad de H3'
+	},
+	{
+		t: 'Agregar por zona',
+		d: 'Indicadores por celda con menos exposición de recorridos individuales.',
+		st: 'Propiedad de H3'
+	}
+];
+
+/** Líneas de investigación (no implementadas) que se muestran en violeta. */
+export const RESEARCH_LINES = [
+	{
+		t: 'Huella radioeléctrica de un lugar',
+		d: 'Reconocer una zona por Wi-Fi, celdas y LoRa observables'
+	},
+	{ t: 'Posicionamiento sin GPS', d: 'Región probable con huellas inalámbricas e IMU' },
+	{ t: 'Mapa dinámico de cobertura', d: 'Tramos con mala conectividad por operador y horario' },
+	{ t: 'Relaciones y patrones', d: 'Coincidencias persistentes y cambios de comportamiento' },
+	{ t: 'Equipo multimodal', d: 'Degradación controlada ante pérdida de GNSS' }
+];
+
+/** Capas del gemelo de movilidad (visión). Solo movilidad usa datos reales. */
+export const CITY_LAYERS = [
+	{
+		id: 'movilidad',
+		n: 'Movilidad',
+		d: 'Rutas, velocidad, recorridos y permanencia',
+		rgb: [79, 209, 255]
+	},
+	{
+		id: 'rf',
+		n: 'Infraestructura RF',
+		d: 'Cobertura celular, Wi-Fi y LoRaWAN',
+		rgb: [195, 139, 255]
+	},
+	{
+		id: 'seguridad',
+		n: 'Seguridad vial',
+		d: 'Maniobras bruscas, incidentes y riesgo',
+		rgb: [255, 96, 72]
+	},
+	{
+		id: 'comportamiento',
+		n: 'Comportamiento',
+		d: 'Patrones por horario, zona y evento',
+		rgb: [255, 186, 72]
+	},
+	{
+		id: 'prediccion',
+		n: 'Predicción',
+		d: 'Escenarios, anomalías e intervenciones',
+		rgb: [0, 255, 150]
+	}
+];
+
+/** Primer experimento posible: observatorio de un corredor vial. */
+export const CORRIDOR_PHASES = [
+	'Mapa base: red vial e INEGI ATUS',
+	'Telemetría consentida de unidades',
+	'H3 + ventanas de tiempo, tasas por km',
+	'Validación con registros independientes',
+	'Tablero institucional agregado'
 ];

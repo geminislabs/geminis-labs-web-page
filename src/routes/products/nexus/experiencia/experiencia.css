@@ -2378,11 +2378,11 @@ svg .rv {
 	height: 96vh;
 	width: calc(96vh * 16 / 9);
 	max-width: none;
-	translate: 0 -50%;
 	object-fit: cover;
 	z-index: 0;
 	mix-blend-mode: screen;
-	transform: scaleX(-1);
+	/* Un solo transform: el minificador descarta «translate» si conviven. */
+	transform: translateY(-50%) scaleX(-1);
 	-webkit-mask-image: linear-gradient(
 		270deg,
 		transparent 0%,
@@ -2771,4 +2771,418 @@ svg .rv {
 /* Horizonte: elipse más alta para que las tarjetas no pasen sobre el logo. */
 .xp-orbit3-node {
 	top: calc(50% + var(--y) * 36%);
+}
+
+/* ── Hero en pantallas verticales (celular): pantalla grande, no ultrawide ─ */
+@media (max-aspect-ratio: 1/1) {
+	.xs-hero {
+		--sw: 100vw;
+		--sh: min(92vw, 52vh);
+		--top: 9vh;
+	}
+	.xs-hero .xp-screen {
+		aspect-ratio: auto;
+		height: var(--sh);
+		border-width: 4px 0;
+		border-radius: 0;
+	}
+	.xs-hero .xp-audience {
+		width: 150vw;
+		top: calc(var(--top) + var(--sh) * 0.8);
+		height: calc(var(--sh) * 0.62);
+	}
+	.xs-hero .xp-hero-copy {
+		width: calc(100% - 2 * var(--gutter));
+		bottom: clamp(16px, 5vh, 48px);
+	}
+	.xs-hero .xp-hero-title {
+		font-size: clamp(1.5rem, 7.4vw, 2.6rem);
+	}
+	.xs-hero .xp-hero-lockup span {
+		font-size: clamp(1.1rem, 5vw, 1.8rem);
+	}
+	.xs-hero .xp-hero-lockup img {
+		width: clamp(36px, 10vw, 56px);
+	}
+	.xs-hero .xp-hero-lockup em {
+		display: none;
+	}
+	.xs-hero .xp-hero-sub {
+		font-size: clamp(0.85rem, 3.6vw, 1.05rem);
+	}
+}
+
+/* ── Celular: escenas que necesitan otro acomodo ───────────────────── */
+@media (max-width: 860px) {
+	.xp-gl3 .xp-dune {
+		white-space: normal;
+		font-size: clamp(1.6rem, 9vw, 2.6rem);
+	}
+	.xp-gl3-brand {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.6rem;
+	}
+	.xp-gl-human {
+		opacity: 0.28;
+	}
+	/* Horizonte: sin órbita; logo arriba y tarjetas apiladas. */
+	.xs-horizonte .xp-orbit3 {
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.9rem;
+	}
+	.xs-horizonte .xp-orbit3::before,
+	.xs-horizonte .xp-orbit3-ring {
+		display: none;
+	}
+	.xs-horizonte .xp-orbit3-core {
+		position: relative;
+		left: auto;
+		top: auto;
+		translate: none;
+		width: min(60vw, 260px);
+	}
+	.xs-horizonte .xp-orbit3-node {
+		position: relative;
+		left: auto !important;
+		top: auto !important;
+		translate: none;
+		scale: 1;
+		opacity: 1;
+		filter: none;
+		width: 100%;
+		max-width: 420px;
+	}
+	.xs-horizonte .xp-horizon2 {
+		justify-content: flex-start;
+		height: auto;
+	}
+}
+@media (max-width: 860px) {
+	.xs-horizonte .xp-orbit3-core {
+		-webkit-mask-image: radial-gradient(circle, #000 56%, transparent 72%);
+		mask-image: radial-gradient(circle, #000 56%, transparent 72%);
+	}
+}
+
+/* ══ H3: Querétaro en hexágonos ═════════════════════════════════════ */
+.xp-h3 {
+	max-width: min(520px, 40vw);
+}
+.xp-h3-levels {
+	margin: 0.4rem 0 0.8rem;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+.xp-h3-levels li {
+	display: grid;
+	grid-template-columns: 3.2rem 6rem 1fr;
+	align-items: baseline;
+	gap: 0.6rem;
+	padding: 0.45rem 0.8rem;
+	border-radius: 12px;
+	background: rgba(4, 16, 22, 0.8);
+	box-shadow: inset 0 0 0 1px rgba(0, 255, 150, 0.12);
+	opacity: 0.3;
+	/* Se encienden al ritmo del acercamiento del mapa (1.7 s por nivel). */
+	animation: xp-h3-lit 0.6s ease forwards;
+	animation-delay: calc(var(--i) * 1.7s);
+}
+@keyframes xp-h3-lit {
+	to {
+		opacity: 1;
+		box-shadow: inset 0 0 0 1px rgba(0, 255, 150, 0.6);
+	}
+}
+.xp-h3-r {
+	font-family: var(--display);
+	color: var(--neon);
+}
+.xp-h3-levels strong {
+	font-size: 1rem;
+}
+.xp-h3-levels span:last-child {
+	font-size: 0.85rem;
+	color: var(--ink-2);
+}
+.xp-h3-note {
+	margin: 0;
+	font-size: 0.85rem;
+	color: #ffbe5c;
+}
+.xp-h3-adv {
+	margin: 0.6rem 0 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+.xp-h3-adv li {
+	padding: 0.8rem 1rem;
+	border-radius: 14px;
+	background: rgba(4, 16, 22, 0.85);
+	box-shadow: inset 0 0 0 1px rgba(110, 220, 255, 0.2);
+}
+.xp-h3-adv strong {
+	display: block;
+	font-size: 1.05rem;
+}
+.xp-h3-adv span {
+	display: block;
+	margin: 0.2rem 0 0.35rem;
+	font-size: 0.88rem;
+	color: var(--ink-2);
+}
+.xp-h3-adv em {
+	font-style: normal;
+	font-size: 0.72rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: #ffbe5c;
+}
+.xp-h3-adv em.ready {
+	color: var(--neon);
+}
+@media (prefers-reduced-motion: reduce) {
+	.xp-h3-levels li {
+		animation: none;
+		opacity: 1;
+	}
+}
+
+/* ══ Ingeniería: leyenda de estados y laboratorio ═══════════════════ */
+.xp-flow-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 1.4rem;
+	margin: -0.6rem 0 1rem;
+	padding: 0;
+	list-style: none;
+	font-size: 0.85rem;
+	color: var(--ink-2);
+}
+.xp-flow-legend li {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	transition: opacity 0.6s ease;
+}
+.xp-flow-legend li.dim {
+	opacity: 0.35;
+}
+.xp-flow-legend i {
+	width: 22px;
+	height: 0;
+	border-top: 2px solid #86f0dd;
+}
+.xp-flow-legend i.partial {
+	border-top: 2px dashed #ffbe5c;
+}
+.xp-flow-legend i.lab {
+	border-top: 2px dashed #c38bff;
+}
+.xp-research {
+	padding: 1rem 1.3rem;
+	border-radius: 18px;
+	background: rgba(18, 8, 34, 0.82);
+	box-shadow:
+		inset 0 0 0 1px rgba(195, 139, 255, 0.4),
+		0 0 50px rgba(195, 139, 255, 0.12);
+}
+.xp-lab-title {
+	color: #c38bff;
+}
+.xp-research ul {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 0.8rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.xp-research strong {
+	display: block;
+	font-size: 0.95rem;
+	color: #efe2ff;
+}
+.xp-research span {
+	font-size: 0.8rem;
+	color: #b9a6d6;
+}
+.xp-kicker-lab {
+	color: #c38bff;
+}
+
+/* ══ Querétaro por capas ═══════════════════════════════════════════ */
+.xs-capas {
+	background:
+		radial-gradient(ellipse 50% 60% at 70% 55%, rgba(60, 40, 140, 0.25), transparent 70%),
+		radial-gradient(ellipse 40% 40% at 70% 80%, rgba(0, 140, 200, 0.15), transparent 70%), #02030a;
+}
+.xp-capas {
+	display: grid;
+	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+	gap: clamp(1rem, calc(3 * var(--u)), 3rem);
+	align-items: center;
+	height: 100%;
+}
+.xp-capas-stack {
+	height: min(82vh, 760px);
+}
+.xp-capas-list {
+	margin: 0.4rem 0 1rem;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+.xp-capas-list li {
+	display: flex;
+	align-items: baseline;
+	gap: 0.7rem;
+	padding-left: 0.9rem;
+	border-left: 3px solid rgb(var(--rgb));
+}
+.xp-capas-list strong {
+	min-width: 9.5rem;
+	color: rgb(var(--rgb));
+}
+.xp-capas-list span {
+	font-size: 0.9rem;
+	color: var(--ink-2);
+}
+.xp-corridor {
+	padding: 0.9rem 1.1rem;
+	border-radius: 16px;
+	background: rgba(14, 10, 32, 0.85);
+	box-shadow: inset 0 0 0 1px rgba(195, 139, 255, 0.35);
+}
+.xp-corridor-t {
+	margin: 0 0 0.5rem;
+	font-weight: 600;
+	color: #efe2ff;
+}
+.xp-corridor ol {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin: 0 0 0.5rem;
+	padding: 0;
+	list-style: none;
+}
+.xp-corridor li {
+	padding: 0.25rem 0.7rem;
+	border-radius: 999px;
+	background: rgba(195, 139, 255, 0.12);
+	font-size: 0.82rem;
+}
+.xp-corridor b {
+	margin-right: 0.35rem;
+	color: #c38bff;
+}
+.xp-corridor-n {
+	margin: 0;
+	font-size: 0.8rem;
+	color: #b9a6d6;
+}
+@media (max-width: 860px) {
+	.xp-h3 {
+		max-width: 100%;
+	}
+	.xp-research ul {
+		grid-template-columns: 1fr;
+	}
+	.xp-capas {
+		grid-template-columns: 1fr;
+		height: auto;
+	}
+	.xp-capas-stack {
+		height: 60vh;
+	}
+}
+@media (max-height: 820px) {
+	.xp-capas-list li {
+		font-size: 0.85rem;
+	}
+	.xp-h3-adv li {
+		padding: 0.55rem 0.8rem;
+	}
+}
+/* Capas: la activa en la maqueta 3D se resalta en la lista. */
+.xp-capas-list li {
+	transition:
+		opacity 0.5s ease,
+		background 0.5s ease;
+	opacity: 0.55;
+	padding: 0.25rem 0.6rem 0.25rem 0.9rem;
+	border-radius: 0 10px 10px 0;
+}
+.xp-capas-list li.active {
+	opacity: 1;
+	background: rgba(var(--rgb), 0.12);
+}
+.xs-capas .xp-capas {
+	grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+}
+.xs-capas .xp-capas-stack {
+	background: radial-gradient(
+		ellipse 70% 45% at 50% 52%,
+		rgba(40, 120, 200, 0.22),
+		transparent 70%
+	);
+}
+
+/* Capas sobre la maqueta 3D del Centro Histórico (pantalla completa). */
+.xs-capas .xp-capas {
+	position: static;
+	display: block;
+}
+.xs-capas .xp-capas-stack {
+	position: absolute;
+	inset: 0;
+	height: auto;
+	z-index: 0;
+	background: none;
+}
+.xs-capas .xp-capas-text {
+	position: relative;
+	z-index: 1;
+	max-width: min(470px, 36vw);
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.xs-capas .xp-capas-text::before {
+	content: '';
+	position: absolute;
+	inset: -20vh -14vw -20vh -30vw;
+	background: radial-gradient(
+		ellipse at 30% 50%,
+		rgba(5, 13, 22, 0.92) 0%,
+		rgba(5, 13, 22, 0.6) 45%,
+		transparent 72%
+	);
+	z-index: -1;
+}
+.xs-capas .xp-source {
+	z-index: 1;
+}
+@media (max-width: 860px) {
+	.xs-capas .xp-capas-text {
+		max-width: 100%;
+		height: auto;
+	}
+	.xs-capas .xp-capas-stack {
+		top: 45%;
+	}
 }

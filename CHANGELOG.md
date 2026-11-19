@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Experiencia de Nexus: H3 y laboratorio.** Escena nueva «Querétaro, con contexto geoespacial» con celdas H3 reales (librería h3 4.5, precalculadas en `queretaro-h3.json`): 706 celdas r8 que se encienden al paso de las estelas, acercamiento r6 → r10 sobre el Centro Histórico y las ventajas de indexar por celdas. Escena nueva «Querétaro por capas» (visión de inteligencia urbana: maqueta 3D del Centro Histórico con 2,460 edificios y 1,722 tramos de calles de OpenStreetMap en glTF, con cinco capas de celdas H3 r10 reales flotando encima y tráfico ilustrativo en las calles; solo movilidad usa datos reales) con un primer experimento posible por corredor. En Nexus, la geocerca es un conjunto de celdas H3 r9. En ingeniería, el diagrama distingue lo operando, lo parcial (GeoContext) y lo que es investigación, y añade las líneas del laboratorio
+
+### Dependencies
+
+- **three 0.170.0** (MIT), fijada a versión exacta. Renderiza la maqueta glTF del Centro Histórico en la experiencia; se importa de forma perezosa, solo al llegar a esa escena
+
+### Fixed
+
+- **Experiencia de Nexus en producción y en celular.** En la escena de Geminis Labs el video del rostro aparecía media pantalla abajo en producción: el minificador de CSS descartaba `translate` porque la misma regla tenía `transform`. Ahora va en un solo `transform`. En pantallas verticales, la pantalla de cine del inicio ocupa todo el ancho (antes era una franja ultrawide diminuta), el diagrama de arquitectura corre de arriba hacia abajo, el horizonte apila sus tarjetas bajo el logo y la ruta del acercamiento a Querétaro queda debajo del texto
+
 ## [1.17.0] — 2026-11-19
 
 ### Added

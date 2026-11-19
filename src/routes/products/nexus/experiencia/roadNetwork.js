@@ -178,3 +178,53 @@ export function loadNetwork(classCount = 5) {
 	}
 	return networkPromise;
 }
+
+const H3_URL = '/img/products/nexus/experiencia/queretaro-h3.json';
+let h3Promise = null;
+
+/** Celdas H3 reales precalculadas (ver scripts de la experiencia). */
+export function loadH3() {
+	if (!h3Promise) {
+		h3Promise = fetch(H3_URL)
+			.then((r) => r.json())
+			.catch((err) => {
+				h3Promise = null;
+				throw err;
+			});
+	}
+	return h3Promise;
+}
+
+/**
+ * Selecciona celdas cuyo centro cae dentro de un radio y devuelve las aristas
+ * del contorno (las que no comparten dos celdas).
+ */
+export function hexZone(cells, cx, cy, radius) {
+	const inside = cells.filter((c) => Math.hypot(c.c[0] - cx, c.c[1] - cy) <= radius);
+	const count = new Map();
+	const key = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+	const pt = (b, i) => `${b[i]},${b[i + 1]}`;
+	for (const c of inside) {
+		const n = c.b.length;
+		for (let i = 0; i < n; i += 2) {
+			const j = (i + 2) % n;
+			const k = key(pt(c.b, i), pt(c.b, j));
+			const e = count.get(k);
+			if (e) e.n += 1;
+			else count.set(k, { n: 1, a: [c.b[i], c.b[i + 1]], b: [c.b[j], c.b[j + 1]] });
+		}
+	}
+	const edges = [...count.values()].filter((e) => e.n === 1).map((e) => [e.a, e.b]);
+	return { inside, edges };
+}
+
+/** Índice espacial simple: celdas agrupadas por cubeta de `size` unidades. */
+export function bucketCells(cells, size) {
+	const bucket = new Map();
+	cells.forEach((c, i) => {
+		const k = `${Math.floor(c.c[0] / size)},${Math.floor(c.c[1] / size)}`;
+		if (!bucket.has(k)) bucket.set(k, []);
+		bucket.get(k).push(i);
+	});
+	return bucket;
+}

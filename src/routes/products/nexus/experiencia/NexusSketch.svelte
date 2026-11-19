@@ -5,7 +5,7 @@
 	 * ilustrativo (no son datos de una unidad real).
 	 */
 	import { onMount } from 'svelte';
-	import { loadNetwork, routePoint, pointAt, endpointKey } from './roadNetwork.js';
+	import { loadNetwork, loadH3, hexZone, routePoint, pointAt, endpointKey } from './roadNetwork.js';
 
 	let { phase = $bindable(0), reduced = false, fullbleed = false } = $props();
 
@@ -25,6 +25,8 @@
 		let layer = null;
 		let view = null;
 		let traffic = [];
+		let h3cells = null;
+		let zone = null;
 		let lastNow = 0;
 
 		/** Tráfico ilustrativo: estelas de luz sobre las vías que se ven en pantalla. */
@@ -179,21 +181,56 @@
 			const [ex, ey] = toS(...exitPt);
 			const fr = Math.hypot(ex - fx, ey - fy);
 
-			// Geocerca.
+			// Geocerca hecha de celdas H3 r9 reales, como en la app.
 			const outside = dist > len * 0.52;
-			ctx.fillStyle = outside ? 'rgba(217,145,77,0.12)' : 'rgba(0,255,136,0.12)';
-			ctx.strokeStyle = outside ? 'rgba(217,145,77,0.8)' : 'rgba(0,255,136,0.75)';
-			ctx.setLineDash([6, 5]);
-			ctx.lineWidth = 1.5;
-			ctx.beginPath();
-			ctx.arc(fx, fy, fr, 0, Math.PI * 2);
-			ctx.fill();
-			ctx.stroke();
-			ctx.setLineDash([]);
+			if (h3cells && !zone)
+				zone = hexZone(h3cells, fenceCenter[0], fenceCenter[1], (fr / view.s) * 0.98);
+			let labelY = fy - fr - 8;
+			if (h3cells) {
+				ctx.lineJoin = 'round';
+				// Malla r9 tenue alrededor de la ruta.
+				ctx.strokeStyle = 'rgba(110,200,255,0.08)';
+				ctx.lineWidth = 1;
+				for (const c of h3cells) {
+					ctx.beginPath();
+					for (let k = 0; k < c.b.length; k += 2) {
+						const [x, y] = toS(c.b[k], c.b[k + 1]);
+						if (k) ctx.lineTo(x, y);
+						else ctx.moveTo(x, y);
+					}
+					ctx.closePath();
+					ctx.stroke();
+				}
+				const rgb = outside ? '217,145,77' : '0,255,136';
+				for (const c of zone.inside) {
+					ctx.beginPath();
+					for (let k = 0; k < c.b.length; k += 2) {
+						const [x, y] = toS(c.b[k], c.b[k + 1]);
+						if (k) ctx.lineTo(x, y);
+						else ctx.moveTo(x, y);
+					}
+					ctx.closePath();
+					ctx.fillStyle = `rgba(${rgb},0.13)`;
+					ctx.fill();
+					ctx.strokeStyle = `rgba(${rgb},0.28)`;
+					ctx.stroke();
+				}
+				ctx.strokeStyle = `rgba(${rgb},0.95)`;
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				for (const [a, b] of zone.edges) {
+					const [x0, y0] = toS(a[0], a[1]);
+					const [x1, y1] = toS(b[0], b[1]);
+					ctx.moveTo(x0, y0);
+					ctx.lineTo(x1, y1);
+					labelY = Math.min(labelY, y0 - 10, y1 - 10);
+				}
+				ctx.stroke();
+			}
 			ctx.font = '600 12px Outfit, system-ui, sans-serif';
-			ctx.fillStyle = 'rgba(234,243,252,0.8)';
+			ctx.fillStyle = 'rgba(234,243,252,0.85)';
 			ctx.textAlign = 'center';
-			ctx.fillText('Geocerca · Cliente', fx, fy - fr - 8);
+			ctx.fillText('Geocerca · Cliente · celdas H3', fx, labelY);
 
 			// Ruta recorrida.
 			ctx.lineCap = 'round';
@@ -293,6 +330,11 @@
 		resize();
 		const ro = new ResizeObserver(resize);
 		ro.observe(host);
+		loadH3()
+			.then((d) => {
+				if (alive) h3cells = d.r9route;
+			})
+			.catch(() => {});
 		loadNetwork()
 			.then((n) => {
 				if (alive) net = n;

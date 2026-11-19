@@ -6,7 +6,7 @@
 	 * ilustrativo: no representa vehículos ni datos de Nexus.
 	 */
 	import { onMount } from 'svelte';
-	import { prepareNetwork, pointAt, endpointKey, routePoint } from './roadNetwork.js';
+	import { prepareNetwork, pointAt, endpointKey, routePoint, bucketCells } from './roadNetwork.js';
 
 	let { sceneId = 'hero', beat = 0, reduced = false, lite = false } = $props();
 
@@ -33,7 +33,12 @@
 	const NIGHT_VIEW = { x: 1060, y: 1180, zoom: 1.55 };
 
 	/** Opacidad del mapa por escena. */
-	const MAP_ALPHA = { pregunta: 1, queretaro: 1, peticion: 0.5 };
+	const MAP_ALPHA = { pregunta: 1, queretaro: 1, peticion: 0.5, h3: 0.5 };
+	const H3_URL = '/img/products/nexus/experiencia/queretaro-h3.json';
+	let hex = null; // { r8, drill, bucket }
+	let hexGlow = null;
+	let drillStart = -1;
+	const DRILL_STEP = 1700;
 	const INDUSTRY_URL = '/img/products/nexus/experiencia/queretaro-industria.json';
 	let industry = null;
 
@@ -247,6 +252,10 @@
 		const bh = Math.max(40, y1 - y0) * base;
 		const zoom = Math.max(1.8, Math.min(4.5, Math.min((W * 0.26) / bw, (H * 0.45) / bh)));
 		// El texto vive a la izquierda: desplaza la ruta hacia la derecha.
+		// En celular el texto va arriba: la ruta se coloca en la mitad inferior.
+		if (W < 860) {
+			return { x: (x0 + x1) / 2, y: (y0 + y1) / 2 - (H * 0.25) / (base * zoom), zoom };
+		}
 		const offset = (W * 0.32) / (base * zoom);
 		return { x: (x0 + x1) / 2 - offset, y: (y0 + y1) / 2, zoom };
 	}
@@ -258,6 +267,155 @@
 		return { x: 760 - (W * 0.24) / s, y: 920 + (H * 0.14) / s, zoom };
 	}
 
+	/** Escena H3: la ciudad a la derecha; el texto vive a la izquierda. */
+	function hexCamera() {
+		if (sceneId === 'h3' && beat === 1 && hex && drillStart >= 0) {
+			const lvl = Math.min(4, Math.floor((performance.now() - drillStart) / DRILL_STEP));
+			return fitCells(hex.drill[Math.max(0, lvl)].cells, 0.5);
+		}
+		const zoom = 1.15;
+		const s = baseScale() * zoom;
+		return { x: 1030 - (W * 0.2) / s, y: 1020, zoom };
+	}
+
+	function fitCells(cells, frac) {
+		let x0 = Infinity;
+		let y0 = Infinity;
+		let x1 = -Infinity;
+		let y1 = -Infinity;
+		for (const c of cells) {
+			for (let i = 0; i < c.b.length; i += 2) {
+				x0 = Math.min(x0, c.b[i]);
+				x1 = Math.max(x1, c.b[i]);
+				y0 = Math.min(y0, c.b[i + 1]);
+				y1 = Math.max(y1, c.b[i + 1]);
+			}
+		}
+		const base = baseScale();
+		const narrow = W < 860;
+		const zoom = Math.min(
+			(W * (narrow ? 0.8 : 0.42)) / ((x1 - x0) * base),
+			(H * frac) / ((y1 - y0) * base)
+		);
+		const s = base * zoom;
+		return {
+			x: (x0 + x1) / 2 - (narrow ? 0 : (W * 0.2) / s),
+			y: (y0 + y1) / 2 - (narrow ? (H * 0.18) / s : 0),
+			zoom
+		};
+	}
+
+	function prepareHex(d) {
+		hexGlow = new Float32Array(d.r8.length);
+		hex = { ...d, bucket: bucketCells(d.r8, 80) };
+	}
+
+	/** Celda r8 que contiene (aprox.) un punto del mapa: la de centro más cercano. */
+	function cellAt(x, y) {
+		const bx = Math.floor(x / 80);
+		const by = Math.floor(y / 80);
+		let best = -1;
+		let bd = Infinity;
+		for (let dx = -1; dx <= 1; dx++) {
+			for (let dy = -1; dy <= 1; dy++) {
+				for (const i of hex.bucket.get(`${bx + dx},${by + dy}`) || []) {
+					const c = hex.r8[i].c;
+					const d = (c[0] - x) ** 2 + (c[1] - y) ** 2;
+					if (d < bd) {
+						bd = d;
+						best = i;
+					}
+				}
+			}
+		}
+		return best;
+	}
+
+	function traceCell(b) {
+		ctx.beginPath();
+		for (let i = 0; i < b.length; i += 2) {
+			const [x, y] = toScreen(b[i], b[i + 1]);
+			if (i) ctx.lineTo(x, y);
+			else ctx.moveTo(x, y);
+		}
+		ctx.closePath();
+	}
+
+	function drawHexGrid(t, alpha) {
+		const el = (t - sceneT0) / 1000;
+		const [ox, oy] = hex.drill[0].cells[0].c;
+		const drilling = sceneId === 'h3' && beat === 1;
+		const gridAlpha = alpha * (drilling ? 0.35 : 1);
+		// Las estelas encienden la celda por la que pasan.
+		for (const c of comets) {
+			const n = c.trail.length;
+			if (!n) continue;
+			const i = cellAt(c.trail[n - 1][0], c.trail[n - 1][1]);
+			if (i >= 0) hexGlow[i] = 1;
+		}
+		ctx.save();
+		ctx.lineJoin = 'round';
+		hex.r8.forEach((c, i) => {
+			const d = Math.hypot(c.c[0] - ox, c.c[1] - oy);
+			const wave = reduced ? 1 : Math.max(0, Math.min(1, (el * 520 - d) / 180));
+			if (wave <= 0) return;
+			const g = hexGlow[i];
+			hexGlow[i] *= 0.955;
+			const a = gridAlpha * wave;
+			traceCell(c.b);
+			ctx.fillStyle = `rgba(0,210,170,${(0.03 + 0.34 * c.w) * a})`;
+			ctx.fill();
+			if (g > 0.02) {
+				ctx.fillStyle = `rgba(150,255,200,${0.55 * g * a})`;
+				ctx.fill();
+			}
+			ctx.strokeStyle = `rgba(110,220,255,${(0.16 + 0.5 * g) * a})`;
+			ctx.lineWidth = 0.8 + g;
+			ctx.stroke();
+		});
+		ctx.restore();
+	}
+
+	/** De la ciudad a la calle: r6 → r10 sobre el Centro Histórico. */
+	function drawDrill(t) {
+		if (drillStart < 0) return;
+		const el = t - drillStart;
+		const lvl = reduced ? 4 : Math.min(4, Math.floor(el / DRILL_STEP));
+		ctx.save();
+		ctx.lineJoin = 'round';
+		for (let k = 0; k <= lvl; k++) {
+			const level = hex.drill[k];
+			const fresh = k === lvl;
+			const p = reduced ? 1 : Math.min(1, (el - k * DRILL_STEP) / 600);
+			level.cells.forEach((c, i) => {
+				const focus = i === level.focus;
+				traceCell(c.b);
+				if (fresh) {
+					ctx.fillStyle = `rgba(0,255,150,${(focus ? 0.28 : 0.1) * p})`;
+					ctx.fill();
+				}
+				ctx.strokeStyle = focus
+					? `rgba(220,255,235,${0.95 * p})`
+					: `rgba(0,255,150,${(fresh ? 0.75 : 0.3) * p})`;
+				ctx.lineWidth = focus ? 2.4 : fresh ? 1.6 : 1;
+				ctx.stroke();
+			});
+		}
+		const focusCell = hex.drill[lvl].cells[hex.drill[lvl].focus];
+		const [fx, fy] = toScreen(...focusCell.c);
+		const pulse = reduced ? 0.5 : (t % 1400) / 1400;
+		ctx.strokeStyle = `rgba(0,255,150,${1 - pulse})`;
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(fx, fy, 6 + pulse * 22, 0, Math.PI * 2);
+		ctx.stroke();
+		ctx.fillStyle = '#eafff4';
+		ctx.beginPath();
+		ctx.arc(fx, fy, 4, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.restore();
+	}
+
 	function applyScene() {
 		if (!world) return;
 		if (sceneId !== prevScene) {
@@ -265,7 +423,8 @@
 				revealed = false;
 				revealStart = performance.now();
 			}
-			if (sceneId === 'pregunta' || sceneId === 'peticion') revealed = true;
+			if (sceneId === 'pregunta' || sceneId === 'peticion' || sceneId === 'h3') revealed = true;
+			if (hexGlow) hexGlow.fill(0);
 			if (sceneId === 'hero') {
 				revealed = false;
 				revealStart = -1;
@@ -283,7 +442,14 @@
 				? NIGHT_VIEW
 				: sceneId === 'peticion'
 					? buyersCamera()
-					: OVERVIEW;
+					: sceneId === 'h3'
+						? hexCamera()
+						: OVERVIEW;
+		if (sceneId === 'h3' && beat === 1) {
+			if (drillStart < 0) drillStart = performance.now();
+		} else {
+			drillStart = -1;
+		}
 		camTarget.x = target.x;
 		camTarget.y = target.y;
 		camTarget.zoom = target.zoom;
@@ -494,6 +660,9 @@
 		if (R !== Infinity && R > 0) drawBinaryBand(R, band);
 		if (sceneId === 'queretaro' && !zoomed && revealed) drawFlicker(t, mapAlpha);
 
+		// La malla H3 va debajo de las estelas.
+		if (sceneId === 'h3' && hex) drawHexGrid(t, Math.min(1, mapAlpha * 2));
+
 		// Cometas.
 		const warm = isWarm();
 		const cometCount = warm
@@ -506,7 +675,11 @@
 					: 18
 				: sceneId === 'peticion'
 					? 12
-					: 0;
+					: sceneId === 'h3'
+						? lite
+							? 10
+							: 22
+						: 0;
 		const cometAlpha = warm
 			? mapAlpha
 			: sceneId === 'queretaro'
@@ -515,7 +688,11 @@
 					: 0
 				: sceneId === 'peticion'
 					? mapAlpha * 1.4
-					: 0;
+					: sceneId === 'h3'
+						? beat === 1
+							? 0.35
+							: 1
+						: 0;
 		if (cometAlpha > 0.01 && revealed) {
 			while (comets.length < cometCount) comets.push(spawnComet());
 			if (comets.length > cometCount) comets.length = cometCount;
@@ -526,6 +703,11 @@
 		if (zoomed) drawRoute(t);
 		if (warm && mapAlpha > 0.3) drawLabels(mapAlpha);
 		if (sceneId === 'peticion' && industry) drawIndustry(t, Math.min(1, mapAlpha * 2));
+		if (sceneId === 'h3' && hex) {
+			// La cámara del recorrido r6 → r10 avanza nivel por nivel.
+			if (beat === 1) Object.assign(camTarget, hexCamera());
+			if (beat === 1) drawDrill(t);
+		}
 	}
 
 	/** Zonas industriales reales (OSM): dónde están los compradores potenciales. */
@@ -596,6 +778,12 @@
 			.then((data) => {
 				if (!alive) return;
 				world = prepareNetwork(data, CLASS_STYLE.length);
+				fetch(H3_URL)
+					.then((r) => r.json())
+					.then((d) => {
+						if (alive) prepareHex(d);
+					})
+					.catch(() => {});
 				fetch(INDUSTRY_URL)
 					.then((r) => r.json())
 					.then((d) => {
