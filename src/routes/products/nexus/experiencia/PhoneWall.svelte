@@ -39,7 +39,7 @@
 		position: absolute;
 		inset: 0;
 		background:
-			radial-gradient(ellipse 60% 45% at 50% 55%, rgba(2, 8, 16, 0.5), rgba(2, 8, 16, 0.2) 70%),
+			radial-gradient(ellipse 48% 40% at 50% 58%, rgba(2, 8, 16, 0.88), rgba(2, 8, 16, 0.25) 100%),
 			linear-gradient(
 				180deg,
 				rgba(2, 8, 16, 0.9),

@@ -428,28 +428,26 @@
 				ctx.translate(-W / 2, -H * 0.5);
 				const size = Math.min(H * 0.2, W * 0.075);
 				if (logo.complete && logo.naturalWidth) {
-					const ls = H * 0.2;
-					ctx.drawImage(logo, W / 2 - ls / 2, H * 0.16, ls, ls);
+					// Solo el logo, grande, con un halo que respira.
+					const ls = H * 0.5;
+					const glow = ctx.createRadialGradient(W / 2, H * 0.4, 0, W / 2, H * 0.4, ls);
+					glow.addColorStop(0, `rgba(62,193,40,${0.35 + 0.1 * Math.sin(el * 2)})`);
+					glow.addColorStop(1, 'rgba(62,193,40,0)');
+					ctx.fillStyle = glow;
+					ctx.fillRect(0, 0, W, H);
+					ctx.shadowColor = 'rgba(120,255,170,0.7)';
+					ctx.shadowBlur = ls * 0.2;
+					ctx.drawImage(logo, W / 2 - ls / 2, H * 0.4 - ls / 2, ls, ls);
+					ctx.shadowBlur = 0;
 				}
-				extruded(
-					'GEMINIS LABS',
-					`400 ${size}px "Dune Rise", Audiowide, sans-serif`,
-					W / 2,
-					H * 0.56,
-					size,
-					14,
-					[
-						[0, '#ffffff'],
-						[0.5, '#c9ffe2'],
-						[1, '#3ec128']
-					]
-				);
-				const a2 = fade(el, 2.3, 3.2);
+				const a2 = fade(el, 2.0, 2.9);
 				ctx.globalAlpha = alpha * a1 * a2;
-				ctx.font = `italic 300 ${size * 0.42}px Outfit, system-ui, sans-serif`;
+				ctx.font = `italic 300 ${size * 0.5}px Outfit, system-ui, sans-serif`;
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle';
 				ctx.fillStyle = '#dff3ff';
-				ctx.letterSpacing = '6px';
-				ctx.fillText('presenta', W / 2, H * 0.78);
+				ctx.letterSpacing = '8px';
+				ctx.fillText('presenta', W / 2, H * 0.82);
 				ctx.restore();
 			}
 

@@ -48,13 +48,6 @@ export const BACKDROPS = {
 		maskK: 0.6,
 		intensity: 0.8
 	},
-	economia: {
-		mode: 'fold',
-		colors: ['#02040f', '#081446', '#1e3cc8', '#a9c6ff'],
-		mask: [0.6, 0.5, 0.42, 0.38],
-		maskK: 0.45,
-		intensity: 1
-	},
 	horizonte: {
 		mode: 'aurora',
 		colors: ['#010605', '#0b5a3a', '#11707a', '#9ff5c4'],

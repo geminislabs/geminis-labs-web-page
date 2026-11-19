@@ -57,9 +57,26 @@
 	.wc {
 		position: relative;
 		width: 100%;
-		height: min(46vh, 420px);
+		height: min(44vh, 390px);
 		perspective: 1400px;
 		perspective-origin: 50% 40%;
+	}
+	.wc::before {
+		content: '';
+		position: absolute;
+		left: 50%;
+		top: 46%;
+		width: 80%;
+		height: 120%;
+		translate: -50% -50%;
+		background: radial-gradient(
+			ellipse,
+			rgba(40, 190, 230, 0.32),
+			rgba(10, 60, 90, 0.12) 50%,
+			transparent 72%
+		);
+		filter: blur(10px);
+		pointer-events: none;
 	}
 	.wc-ring {
 		position: absolute;
@@ -73,12 +90,13 @@
 		--w: min(34vw, 520px);
 		position: absolute;
 		left: calc(var(--w) / -2);
-		top: -140px;
+		top: calc(min(44vh, 390px) * -0.46);
 		width: var(--w);
 		padding: 10px;
 		border: 0;
 		border-radius: 18px;
-		background: rgba(8, 18, 30, 0.92);
+		background: linear-gradient(180deg, rgba(22, 44, 66, 0.96), rgba(9, 20, 34, 0.97));
+		backdrop-filter: blur(10px);
 		color: #eaf3fc;
 		font: inherit;
 		text-align: left;
@@ -100,14 +118,16 @@
 	}
 	.wc-card.front {
 		box-shadow:
-			0 0 0 1px hsla(var(--hue), 95%, 65%, 0.9),
-			0 0 70px hsla(var(--hue), 95%, 55%, 0.45),
-			0 30px 80px rgba(0, 0, 0, 0.6);
+			0 0 0 2px hsla(var(--hue), 95%, 68%, 1),
+			0 0 90px hsla(var(--hue), 95%, 55%, 0.6),
+			0 30px 80px rgba(0, 0, 0, 0.7);
 	}
 	.wc-card img {
 		display: block;
 		width: 100%;
-		height: auto;
+		height: min(30vh, 260px);
+		object-fit: contain;
+		background: #050b14;
 		border-radius: 10px;
 	}
 	.wc-cap {

@@ -347,7 +347,8 @@
 					<div class="xp-audience"><Audience {reduced} /></div>
 					<div class="xp-hero-copy">
 						<div class="xp-hero-lockup rv on" style="--d:300ms">
-							<img src="/img/geminislabs-nobg.webp" alt="Geminis Labs" />
+							<img src="/img/geminislabs-nobg.webp" alt="" />
+							<span>GEMINIS LABS</span>
 							<em>Experience 2026</em>
 						</div>
 						<AnimatedText
@@ -580,45 +581,52 @@
 						</p>
 					</div>
 				{:else if scene.id === 'economia'}
-					<div class="xp-wide xp-econ">
-						<p class="xp-kicker">Oferta comercial</p>
-						<AnimatedText
-							tag="h2"
-							className="xp-h2"
-							text="Precios definidos. Listos para facturar."
-							step={16}
-						/>
-						<div class="xp-econ-grid">
-							<div class="xp-econ-kit rv on" style="--d:300ms">
-								<figure class="xp-kit-photo">
-									<img src={MEDIA.kit} alt="Equipos GPS, laptop, tablet y celular con Nexus" />
-									<figcaption>Equipo GPS · instalación · SIM · plataforma web y app</figcaption>
-								</figure>
-							</div>
-							<div class="xp-plans">
-								{#each PLANS as plan, i (plan.name)}
-									<article
-										class="xp-plan beam"
-										class:featured={plan.featured}
-										style="--d:{i * 120}ms; --beam-delay:{i * -1.3}s"
-									>
-										<p class="xp-plan-name">{plan.name}</p>
-										<p class="xp-plan-price">
-											<span use:countUp={plan.monthly}>${plan.monthly}</span>
-											<small>/ mes</small>
-										</p>
-										<p class="xp-plan-setup rv" class:on={beat >= 1}>
-											Alta ${plan.setup.toLocaleString('es-MX')}
-											<small>equipo GPS, instalación y SIM</small>
-										</p>
-									</article>
-								{/each}
-								<article class="xp-plan xp-plan-dual rv" class:on={beat >= 1}>
-									<p class="xp-plan-name">DUAL</p>
-									<p class="xp-plan-custom">A la medida</p>
-									<p class="xp-plan-setup">Se cotiza según la operación</p>
+					<div class="xp-showroom" aria-hidden="true">
+						<span class="xp-spot xp-spot-l"></span>
+						<span class="xp-spot xp-spot-c"></span>
+						<span class="xp-spot xp-spot-r"></span>
+						<span class="xp-floor"></span>
+						<span class="xp-dust">
+							{#each Array(36) as _, i (i)}<i style="--i:{i}"></i>{/each}
+						</span>
+					</div>
+					<div class="xp-wide xp-econ2">
+						<div class="xp-econ2-head">
+							<p class="xp-kicker">Oferta comercial</p>
+							<AnimatedText
+								tag="h2"
+								className="xp-h2"
+								text="Precios definidos. Listos para facturar."
+								step={16}
+							/>
+						</div>
+						<figure class="xp-product">
+							<img src={MEDIA.kit} alt="Equipos GPS, laptop, tablet y celular con Nexus" />
+							<span class="xp-product-shine" aria-hidden="true"></span>
+						</figure>
+						<div class="xp-plans xp-plans-row">
+							{#each PLANS as plan, i (plan.name)}
+								<article
+									class="xp-plan beam"
+									class:featured={plan.featured}
+									style="--d:{1400 + i * 120}ms; --beam-delay:{i * -1.3}s"
+								>
+									<p class="xp-plan-name">{plan.name}</p>
+									<p class="xp-plan-price">
+										<span use:countUp={plan.monthly}>${plan.monthly}</span>
+										<small>/ mes</small>
+									</p>
+									<p class="xp-plan-setup rv" class:on={beat >= 1}>
+										Alta ${plan.setup.toLocaleString('es-MX')}
+										<small>equipo GPS, instalación y SIM</small>
+									</p>
 								</article>
-							</div>
+							{/each}
+							<article class="xp-plan xp-plan-dual">
+								<p class="xp-plan-name">DUAL</p>
+								<p class="xp-plan-custom">A la medida</p>
+								<p class="xp-plan-setup">Se cotiza según la operación</p>
+							</article>
 						</div>
 						<p class="xp-econ-note rv" class:on={beat >= 1}>
 							Precios en MXN más IVA · Con plazo mínimo de permanencia

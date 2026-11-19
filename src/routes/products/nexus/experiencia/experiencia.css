@@ -2083,7 +2083,8 @@ svg .rv {
 	translate: -50% -50%;
 	mix-blend-mode: screen;
 	z-index: 2;
-	filter: drop-shadow(0 0 50px rgba(62, 193, 40, 0.35));
+	/* Negros más profundos para que el cuadro del video no se note. */
+	filter: contrast(1.2) brightness(0.92);
 }
 .xp-orbit3-ring {
 	position: absolute;
@@ -2130,19 +2131,23 @@ svg .rv {
 .xs-horizonte .xp-horizon2 {
 	z-index: auto;
 }
-.xp-orbit3-core {
-	-webkit-mask-image: radial-gradient(circle, #000 52%, transparent 71%);
-	mask-image: radial-gradient(circle, #000 52%, transparent 71%);
+/* Lecho negro amplio: el video (fondo negro) se funde sin recorte visible. */
+.xp-orbit3::before {
+	content: '';
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 160vh;
+	aspect-ratio: 1;
+	translate: -50% -50%;
+	border-radius: 50%;
+	background: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.8) 40%, transparent 62%);
+	z-index: 1;
+	pointer-events: none;
 }
-/* Hero: el logo de Geminis Labs solo, más grande. */
-.xs-hero .xp-hero-lockup img {
-	width: clamp(84px, 8vw, 128px);
-	filter: drop-shadow(0 0 28px rgba(62, 193, 40, 0.55));
+.xs-horizonte .xp-orbit3-core {
+	width: min(60vh, 560px);
 }
-.xs-hero .xp-hero-lockup em {
-	font-size: 0.95rem;
-}
-
 /* ── 04 Nexus: la escena es la app ─────────────────────────────────── */
 .xp-nexus-map {
 	position: absolute;
@@ -2216,4 +2221,249 @@ svg .rv {
 		rgba(1, 6, 5, 0.2),
 		rgba(1, 6, 5, 0.75) 85%
 	);
+}
+.xp-demo2 .xp-ready-chips {
+	margin-top: clamp(1.2rem, 4vh, 2.6rem);
+	position: relative;
+	z-index: 5;
+}
+.xp-ready-chips li {
+	background: rgba(4, 12, 22, 0.92);
+}
+
+/* ══ 08 Oferta: presentación de producto ════════════════════════════ */
+.xs-economia {
+	background: radial-gradient(ellipse 80% 60% at 50% 40%, #0a1020 0%, #020306 70%);
+}
+.xp-showroom {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+/* Reflectores: se encienden con parpadeo y barren el escenario. */
+.xp-spot {
+	position: absolute;
+	top: -10%;
+	width: 46vw;
+	height: 120%;
+	background: linear-gradient(
+		180deg,
+		rgba(190, 220, 255, 0.34),
+		rgba(140, 190, 255, 0.07) 60%,
+		transparent 85%
+	);
+	clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+	filter: blur(14px);
+	mix-blend-mode: screen;
+	transform-origin: 50% 0;
+	opacity: 0;
+	animation:
+		xp-spot-on 1.4s steps(1) forwards,
+		xp-spot-sway 9s ease-in-out infinite;
+}
+.xp-spot-l {
+	left: -6vw;
+	--a0: 16deg;
+	--a1: 26deg;
+	animation-delay: 0.2s, 0s;
+}
+.xp-spot-c {
+	left: 27vw;
+	--a0: -4deg;
+	--a1: 4deg;
+	background: linear-gradient(
+		180deg,
+		rgba(160, 255, 210, 0.38),
+		rgba(73, 242, 176, 0.08) 60%,
+		transparent 85%
+	);
+	animation-delay:
+		0.6s,
+		-3s;
+}
+.xp-spot-r {
+	right: -6vw;
+	--a0: -16deg;
+	--a1: -26deg;
+	animation-delay:
+		0.4s,
+		-6s;
+}
+@keyframes xp-spot-on {
+	0% {
+		opacity: 0;
+	}
+	20% {
+		opacity: 0.8;
+	}
+	30% {
+		opacity: 0.15;
+	}
+	45%,
+	100% {
+		opacity: 1;
+	}
+}
+@keyframes xp-spot-sway {
+	0%,
+	100% {
+		rotate: var(--a0);
+	}
+	50% {
+		rotate: var(--a1);
+	}
+}
+.xp-floor {
+	position: absolute;
+	left: 50%;
+	top: 58%;
+	width: 90vw;
+	height: 40vh;
+	translate: -50% 0;
+	background:
+		radial-gradient(ellipse 45% 30% at 50% 22%, rgba(110, 200, 255, 0.28), transparent 70%),
+		linear-gradient(180deg, rgba(20, 34, 56, 0.6), rgba(2, 3, 6, 0) 70%);
+	border-top: 1px solid rgba(160, 210, 255, 0.12);
+}
+.xp-dust i {
+	position: absolute;
+	left: calc(18% + mod(var(--i) * 37, 64) * 1%);
+	bottom: -4%;
+	width: 2px;
+	height: 2px;
+	border-radius: 50%;
+	background: rgba(220, 240, 255, 0.7);
+	animation: xp-dust calc(9s + mod(var(--i), 7) * 1.3s) linear infinite;
+	animation-delay: calc(var(--i) * -0.55s);
+}
+@keyframes xp-dust {
+	to {
+		translate: calc(mod(var(--i), 5) * 6px - 12px) -110vh;
+		opacity: 0;
+	}
+}
+.xp-econ2 {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: 100%;
+	justify-content: center;
+	gap: clamp(0.6rem, 2vh, 1.4rem);
+}
+.xp-econ2-head {
+	align-self: flex-start;
+}
+.xp-econ2-head .xp-h2 {
+	margin-bottom: 0;
+	max-width: none;
+}
+.xp-product {
+	position: relative;
+	margin: 0;
+	width: min(52vw, 820px, 70vh);
+	opacity: 0;
+	animation: xp-reveal 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.9s forwards;
+}
+@keyframes xp-reveal {
+	from {
+		opacity: 0;
+		filter: brightness(0.2) blur(6px);
+		transform: scale(0.94) translateY(16px);
+	}
+	to {
+		opacity: 1;
+		filter: none;
+		transform: none;
+	}
+}
+.xp-product img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 18px;
+	-webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
+	mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
+	-webkit-box-reflect: below 2px linear-gradient(transparent 72%, rgba(255, 255, 255, 0.16));
+}
+/* Destello que recorre el producto. */
+.xp-product-shine {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		105deg,
+		transparent 40%,
+		rgba(255, 255, 255, 0.22) 50%,
+		transparent 60%
+	);
+	background-size: 250% 100%;
+	mix-blend-mode: screen;
+	animation: xp-shine 5.5s ease-in-out 2.4s infinite;
+	-webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
+	mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
+	background-position: 130% 0;
+}
+@keyframes xp-shine {
+	0% {
+		background-position: 130% 0;
+	}
+	45%,
+	100% {
+		background-position: -40% 0;
+	}
+}
+.xp-plans-row {
+	width: 100%;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	margin: 0;
+}
+.xp-plans-row .xp-plan {
+	padding: 1rem 1.1rem;
+	background: rgba(8, 14, 30, 0.82);
+	backdrop-filter: blur(10px);
+	opacity: 0;
+	animation: xp-plate 0.8s ease forwards;
+	animation-delay: var(--d, 1.8s);
+}
+@keyframes xp-plate {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+.xp-plans-row .xp-plan-price {
+	font-size: clamp(1.8rem, 3.2vw, 3rem);
+	margin-bottom: 0.5rem;
+}
+.xs-economia .xp-econ-note,
+.xs-economia .xp-facts {
+	align-self: stretch;
+	margin: 0;
+}
+@media (max-width: 860px) {
+	.xp-plans-row {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.xp-spot,
+	.xp-product,
+	.xp-plans-row .xp-plan {
+		opacity: 1;
+		animation: none;
+	}
+	.xp-dust {
+		display: none;
+	}
+}
+.xp-horizon2 > .xp-kicker,
+.xp-horizon2 > .xp-horizon-line {
+	position: relative;
+	z-index: 4;
 }
