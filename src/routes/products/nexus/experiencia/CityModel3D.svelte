@@ -7,7 +7,7 @@
 	 */
 	import { onMount } from 'svelte';
 
-	let { layers = [], active = $bindable(0), reduced = false } = $props();
+	let { layers = [], active = $bindable(0), reduced = false, layersOn = true } = $props();
 
 	const BASE = '/img/products/nexus/experiencia';
 	const CYCLE = 3600;
@@ -271,7 +271,9 @@
 			const t0 = performance.now();
 			let last = t0;
 			let raf = 0;
+			let revealT = -1;
 			const v = new THREE.Vector3();
+			const lookAt = new THREE.Vector3();
 			ready = true;
 
 			function frame(now) {
@@ -279,18 +281,36 @@
 				const dt = Math.min(0.05, (now - last) / 1000);
 				last = now;
 				const el = (now - t0) / 1000;
-				const act = reduced ? 0 : Math.floor((now - t0) / CYCLE) % layers.length;
+				// Las capas aparecen solo cuando la escena lo pide.
+				if (layersOn && revealT < 0) revealT = now;
+				if (!layersOn) revealT = -1;
+				const sinceReveal = revealT < 0 ? 0 : (now - revealT) / 1000;
+				const act =
+					reduced || revealT < 0 ? 0 : Math.floor((now - revealT) / CYCLE) % layers.length;
 				if (act !== active) active = act;
 
 				// Órbita lenta de la cámara.
 				const ang = reduced ? 0.7 : 0.7 + Math.sin(el * 0.06) * 0.35;
-				camera.position.set(target.x + Math.sin(ang) * 6500, 2650, target.z + Math.cos(ang) * 6500);
-				camera.lookAt(target);
 
 				// Las capas se separan al entrar; la activa brilla.
-				const open = reduced ? 1 : Math.min(1, el / 2.2);
+				const open = revealT < 0 ? 0 : reduced ? 1 : Math.min(1, sinceReveal / 2.2);
 				const ease = 1 - Math.pow(1 - open, 3);
+				// Sin capas la cámara se acerca a la ciudad; al aparecer, se aleja para abarcarlas.
+				const zoomOut = reduced
+					? revealT < 0
+						? 0
+						: 1
+					: 1 - Math.pow(1 - Math.min(1, sinceReveal / 2.8), 3);
+				const radius = 3700 + 2800 * zoomOut;
+				lookAt.set(target.x, 40 + (target.y - 40) * zoomOut, target.z);
+				camera.position.set(
+					target.x + Math.sin(ang) * radius,
+					1750 + 900 * zoomOut,
+					target.z + Math.cos(ang) * radius
+				);
+				camera.lookAt(lookAt);
 				for (const p of planes) {
+					p.group.visible = revealT >= 0;
 					const on = p.li === act;
 					p.group.position.y = FIRST * ease + p.li * GAP * ease;
 					const k = 1 - Math.pow(0.002, dt);
@@ -322,22 +342,25 @@
 
 				// Etiquetas que siguen a la esquina de cada capa.
 				const r = host.getBoundingClientRect();
-				tags = planes.map((p) => {
-					// La esquina más a la derecha que quepa en pantalla.
-					let best = null;
-					for (const [cx, cz] of [
-						[x0, z0],
-						[x1, z0],
-						[x1, z1],
-						[x0, z1]
-					]) {
-						v.set(cx, p.group.position.y, cz).project(camera);
-						const sx = ((v.x + 1) / 2) * r.width;
-						const sy = ((1 - v.y) / 2) * r.height;
-						if (sx < r.width - 190 && (!best || sx > best.x)) best = { x: sx, y: sy };
-					}
-					return { ...(best || { x: -999, y: -999 }), on: p.li === act };
-				});
+				tags =
+					revealT < 0
+						? []
+						: planes.map((p) => {
+								// La esquina más a la derecha que quepa en pantalla.
+								let best = null;
+								for (const [cx, cz] of [
+									[x0, z0],
+									[x1, z0],
+									[x1, z1],
+									[x0, z1]
+								]) {
+									v.set(cx, p.group.position.y, cz).project(camera);
+									const sx = ((v.x + 1) / 2) * r.width;
+									const sy = ((1 - v.y) / 2) * r.height;
+									if (sx < r.width - 190 && (!best || sx > best.x)) best = { x: sx, y: sy };
+								}
+								return { ...(best || { x: -999, y: -999 }), on: p.li === act };
+							});
 			}
 			raf = requestAnimationFrame(frame);
 

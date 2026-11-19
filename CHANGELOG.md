@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Experiencia de Nexus · Querétaro por capas:** primero se muestra solo la maqueta del Centro Histórico, de cerca; en el siguiente paso la cámara se aleja y aparecen las capas
+
+### Fixed
+
+- **Página de Nexus sin cifras simuladas.** Los contadores «vehículos en línea», «flotillas activas» y «eventos/hora» se generaban con números aleatorios; ahora muestran capacidades reales (ubicación en tiempo real; trayectos, alertas y reportes; equipos Suntech y Queclink). El gráfico del encabezado y el tablero de ejemplo dejan de mostrar un porcentaje de disponibilidad. En la experiencia, la oferta indica el plazo mínimo de 3 meses. La pantalla «Un día real» muestra también la salud del equipo (94.9% de posiciones válidas, 412 de 434, con sus excepciones), un diagnóstico indicativo de batería (la gráfica marca el mínimo y el estado «Saludable» con su criterio), el estilo de manejo en validación y, en violeta, lo que permitirán los mismos datos (mantenimiento predictivo, estado de las calles por horario, correlación entre unidades, carga vehicular, planeación urbana y enlace con el celular)
+
 ## [1.18.0] — 2026-11-19
 
 ### Added

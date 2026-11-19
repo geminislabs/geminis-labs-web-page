@@ -18,7 +18,6 @@
 	let contentEl = $state(null);
 	let selectorEl = $state(null);
 	let isMobile = $state(false);
-	let liveCounters = $state({ familias: 23847, flotillas: 148, partners: 3.2 });
 
 	const panelVideos = {
 		familias: '/img/products/nexus/familia.mp4',
@@ -155,18 +154,8 @@
 		);
 		document.querySelectorAll('.nx-reveal').forEach((el) => observer.observe(el));
 
-		// Live counter — simulates real platform activity
-		const counterInterval = setInterval(() => {
-			liveCounters = {
-				familias: 23600 + Math.floor(Math.random() * 400),
-				flotillas: 138 + Math.floor(Math.random() * 24),
-				partners: +(2.9 + Math.random() * 0.5).toFixed(1)
-			};
-		}, 3500);
-
 		return () => {
 			observer.disconnect();
-			clearInterval(counterInterval);
 		};
 	});
 </script>
@@ -572,7 +561,7 @@
 							y="545"
 							fill="rgba(0,243,255,0.3)"
 							font-size="8"
-							font-family="'Courier New',monospace">UPTIME: 98.7%</text
+							font-family="'Courier New',monospace">SEÑAL: GPS · LTE</text
 						>
 					</svg>
 				</div>
@@ -638,7 +627,7 @@
 						<p class="nx-panel-hook">Ya llegaste.<br />Ellos, todavía no.</p>
 						<span class="nx-panel-live">
 							<span class="nx-live-dot"></span>
-							<span>{liveCounters.familias.toLocaleString('es-MX')} vehículos en línea</span>
+							<span>Ubicación en tiempo real</span>
 						</span>
 					</div>
 					<svg
@@ -701,7 +690,7 @@
 						<p class="nx-panel-hook">Sabes cuánto gastas.<br />Mentira.</p>
 						<span class="nx-panel-live">
 							<span class="nx-live-dot"></span>
-							<span>{liveCounters.flotillas} flotillas activas</span>
+							<span>Trayectos, alertas y reportes</span>
 						</span>
 					</div>
 					<svg
@@ -764,7 +753,7 @@
 						<p class="nx-panel-hook">Tu hardware.<br />Nuestra plataforma. Mañana.</p>
 						<span class="nx-panel-live">
 							<span class="nx-live-dot"></span>
-							<span>{liveCounters.partners}M eventos/hora</span>
+							<span>Equipos Suntech y Queclink</span>
 						</span>
 					</div>
 					<svg
@@ -1316,8 +1305,8 @@
 										<span class="nx-mock-metric-lbl">Alertas</span>
 									</div>
 									<div class="nx-mock-metric">
-										<span class="nx-mock-metric-val">98%</span>
-										<span class="nx-mock-metric-lbl">Uptime</span>
+										<span class="nx-mock-metric-val">3</span>
+										<span class="nx-mock-metric-lbl">Geocercas</span>
 									</div>
 								</div>
 								<div class="nx-mock-fleet-map">
