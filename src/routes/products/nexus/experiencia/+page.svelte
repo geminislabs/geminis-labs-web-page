@@ -39,6 +39,7 @@
 		ASK_ICONS,
 		GL_CAPABILITIES,
 		GL_FACTS,
+		TELEMETRY_NEXT,
 		H3_LEVELS,
 		H3_ADVANTAGES,
 		RESEARCH_LINES,
@@ -595,44 +596,97 @@
 						</ul>
 					</div>
 				{:else if scene.id === 'telemetria'}
-					<div class="xp-wide xp-telemetry">
-						<p class="xp-kicker">Datos reales</p>
-						<h2 class="xp-h2 xp-h2-tight">Un día de una unidad, en números.</h2>
-						<div class="xp-telemetry-grid2">
-							<div class="rv on" style="--d:200ms">
+					<div class="xp-wide xp-telemetry xp-tele3" class:next={beat >= 2}>
+						<p class="xp-kicker">Datos reales · unidad de pruebas del equipo</p>
+						<h2 class="xp-h2 xp-h2-tight">Un día real: lo que pasó, cómo está y lo que viene.</h2>
+						<div class="xp-tele3-top">
+							<div class="xp-tele3-ring rv on" style="--d:200ms">
 								<DayRing speeds={TELEMETRY.speeds} center="28.8 km" caption={TELEMETRY.period} />
 							</div>
-							<div class="xp-telemetry-side">
-								<div class="xp-kpis">
-									{#each TELEMETRY.kpis.slice(1) as kpi, i (kpi.k)}
-										<div
-											class="xp-kpi beam rv on"
-											style="--d:{400 + i * 120}ms; --beam-delay:{i * -1.1}s"
-										>
-											<span
-												class="xp-kpi-v"
-												use:countNumber={{ value: kpi.v, decimals: kpi.d, delay: 500 + i * 120 }}
-												>{kpi.v}</span
-											><small>{kpi.u}</small>
-											<span class="xp-kpi-k">{kpi.k}</span>
-										</div>
-									{/each}
-								</div>
-								<PeakChart
-									data={TELEMETRY.battery}
-									value={14.0}
-									decimals={1}
-									unit=" V"
-									label="Batería del vehículo · pico"
-									note="Trazo del informe de Nexus · el alternador sube el voltaje al arrancar"
-									color="#4fd1ff"
-									{reduced}
-								/>
+							<div class="xp-kpis">
+								{#each TELEMETRY.kpis.slice(1) as kpi, i (kpi.k)}
+									<div
+										class="xp-kpi beam rv on"
+										style="--d:{400 + i * 120}ms; --beam-delay:{i * -1.1}s"
+									>
+										<span
+											class="xp-kpi-v"
+											use:countNumber={{ value: kpi.v, decimals: kpi.d, delay: 500 + i * 120 }}
+											>{kpi.v}</span
+										><small>{kpi.u}</small>
+										<span class="xp-kpi-k">{kpi.k}</span>
+									</div>
+								{/each}
 							</div>
+							<PeakChart
+								data={TELEMETRY.battery}
+								value={14.0}
+								decimals={1}
+								unit=" V"
+								label="Batería del vehículo"
+								minLabel="mín."
+								status={TELEMETRY.batteryStatus}
+								note="Trazo del informe de Nexus · el pico de 14.0 V es el alternador cargando con el motor encendido"
+								color="#4fd1ff"
+								{reduced}
+							/>
 						</div>
-						<p class="xp-footnote rv" class:on={beat >= 1}>
-							Informe generado en Nexus · unidad de pruebas del equipo · sin ubicaciones
-						</p>
+						<div class="xp-health rv" class:on={beat >= 1}>
+							<div class="xp-health-gauge">
+								<svg viewBox="0 0 120 120" aria-hidden="true">
+									<circle cx="60" cy="60" r="50" class="xp-gauge-bg" />
+									<circle
+										cx="60"
+										cy="60"
+										r="50"
+										class="xp-gauge-val"
+										pathLength="100"
+										style="--v:{(TELEMETRY.health.valid / TELEMETRY.health.total) * 100}"
+									/>
+								</svg>
+								<div class="xp-gauge-text">
+									<strong
+										>{((TELEMETRY.health.valid / TELEMETRY.health.total) * 100).toFixed(1)}%</strong
+									>
+									<span>válidas</span>
+								</div>
+							</div>
+							<div class="xp-health-txt">
+								<p class="xp-layer-title">Salud del equipo</p>
+								<p>
+									<b>{TELEMETRY.health.valid}</b> de <b>{TELEMETRY.health.total}</b> comunicaciones con
+									posición válida.
+								</p>
+								<p class="xp-health-exc">
+									2 excepciones ({TELEMETRY.health.at}): {TELEMETRY.health.exceptions.join(' · ')}
+								</p>
+							</div>
+							<ul class="xp-battery-check">
+								{#each TELEMETRY.batteryCheck as b (b.k)}
+									<li>
+										<span>{b.k}</span>
+										<strong>{b.v}</strong>
+										<small>{b.d}</small>
+									</li>
+								{/each}
+								<li class="xp-driving">
+									<span>Estilo de manejo</span>
+									<strong>Aceleraciones y frenados bruscos</strong>
+									<small>Modelo de conducción en validación</small>
+								</li>
+								<li class="xp-battery-note">
+									Lectura indicativa por voltaje; no sustituye una prueba de carga.
+								</li>
+							</ul>
+						</div>
+						<div class="xp-tele-next rv" class:on={beat >= 2}>
+							<p class="xp-layer-title xp-lab-title">Con los mismos datos · investigación</p>
+							<ul>
+								{#each TELEMETRY_NEXT as n, i (n.t)}
+									<li style="--d:{i * 80}ms"><strong>{n.t}</strong><span>{n.d}</span></li>
+								{/each}
+							</ul>
+						</div>
 					</div>
 				{:else if scene.id === 'mercado'}
 					<video
@@ -715,7 +769,7 @@
 							</article>
 						</div>
 						<p class="xp-econ-note rv" class:on={beat >= 1}>
-							Precios en MXN más IVA · Con plazo mínimo de permanencia
+							Precios en MXN más IVA · Plazo mínimo de 3 meses
 						</p>
 						<ul class="xp-facts rv" class:on={beat >= 2}>
 							<li><strong>12 meses</strong> de desarrollo</li>
@@ -819,18 +873,18 @@
 								Lo que Nexus observa, ordenado en celdas H3, puede ayudar a entender cómo se mueve
 								la ciudad.
 							</p>
-							<ul class="xp-capas-list">
+							<ul class="xp-capas-list" class:shown={beat >= 1}>
 								{#each CITY_LAYERS as l, i (l.id)}
 									<li
 										class="rv on"
-										class:active={activeLayer === i}
+										class:active={beat >= 1 && activeLayer === i}
 										style="--d:{400 + i * 110}ms; --rgb:{l.rgb.join(',')}"
 									>
 										<strong>{l.n}</strong><span>{l.d}</span>
 									</li>
 								{/each}
 							</ul>
-							<div class="xp-corridor rv" class:on={beat >= 1}>
+							<div class="xp-corridor rv" class:on={beat >= 2}>
 								<p class="xp-corridor-t">Primer experimento posible: un corredor vial</p>
 								<ol>
 									{#each CORRIDOR_PHASES as ph, i (ph)}<li><b>{i + 1}</b>{ph}</li>{/each}
@@ -841,7 +895,12 @@
 							</div>
 						</div>
 						<div class="xp-capas-stack">
-							<CityModel3D layers={CITY_LAYERS} bind:active={activeLayer} {reduced} />
+							<CityModel3D
+								layers={CITY_LAYERS}
+								bind:active={activeLayer}
+								layersOn={beat >= 1}
+								{reduced}
+							/>
 						</div>
 					</div>
 					<p class="xp-source">

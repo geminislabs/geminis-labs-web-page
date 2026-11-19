@@ -13,7 +13,9 @@
 		label = '',
 		note = '',
 		reduced = false,
-		color = '#4fd1ff'
+		color = '#4fd1ff',
+		minLabel = '',
+		status = null
 	} = $props();
 
 	const W = 520;
@@ -33,7 +35,8 @@
 			.join(' ');
 		const area = `${line} L${W} ${H} L0 ${H} Z`;
 		const peak = pts[data.indexOf(max)];
-		return { line, area, peak };
+		const low = pts[data.indexOf(min)];
+		return { line, area, peak, low, min };
 	});
 
 	onMount(() => {
@@ -55,7 +58,12 @@
 
 <figure class="pk" style="--c:{color}">
 	<figcaption>
-		<span class="pk-label">{label}</span>
+		<span class="pk-label"
+			>{label}
+			{#if status}
+				<em class="pk-status" class:ok={status.ok}>● {status.label}</em>
+			{/if}
+		</span>
 		<span class="pk-value">
 			{shown.toLocaleString('es-MX', {
 				minimumFractionDigits: decimals,
@@ -63,18 +71,33 @@
 			})}<small>{unit}</small>
 		</span>
 	</figcaption>
-	<svg viewBox="0 0 {W} {H}" preserveAspectRatio="none" aria-hidden="true">
-		<defs>
-			<linearGradient id="pk-fill" x1="0" x2="0" y1="0" y2="1">
-				<stop offset="0" stop-color={color} stop-opacity="0.35" />
-				<stop offset="1" stop-color={color} stop-opacity="0" />
-			</linearGradient>
-		</defs>
-		<path class="pk-area" d={geometry.area} fill="url(#pk-fill)" />
-		<path class="pk-line" d={geometry.line} pathLength="1" />
-		<circle class="pk-ping" cx={geometry.peak[0]} cy={geometry.peak[1]} r="6" />
-		<circle class="pk-dot" cx={geometry.peak[0]} cy={geometry.peak[1]} r="5" />
-	</svg>
+	<div class="pk-plot">
+		<svg viewBox="0 0 {W} {H}" preserveAspectRatio="none" aria-hidden="true">
+			<defs>
+				<linearGradient id="pk-fill" x1="0" x2="0" y1="0" y2="1">
+					<stop offset="0" stop-color={color} stop-opacity="0.35" />
+					<stop offset="1" stop-color={color} stop-opacity="0" />
+				</linearGradient>
+			</defs>
+			<path class="pk-area" d={geometry.area} fill="url(#pk-fill)" />
+			<path class="pk-line" d={geometry.line} pathLength="1" />
+			<circle class="pk-ping" cx={geometry.peak[0]} cy={geometry.peak[1]} r="6" />
+			<circle class="pk-dot" cx={geometry.peak[0]} cy={geometry.peak[1]} r="5" />
+		</svg>
+		{#if minLabel}
+			<span
+				class="pk-min"
+				style="left:{(geometry.low[0] / W) * 100}%; top:{(geometry.low[1] / H) * 100}%"
+			>
+				<i></i>{minLabel}
+				{geometry.min.toLocaleString('es-MX', {
+					minimumFractionDigits: decimals,
+					maximumFractionDigits: decimals
+				})}{unit}
+			</span>
+		{/if}
+	</div>
+	{#if status?.detail}<p class="pk-criteria">{status.detail}</p>{/if}
 	{#if note}<p class="pk-note">{note}</p>{/if}
 </figure>
 
@@ -99,6 +122,8 @@
 		color: #94b5d0;
 	}
 	.pk-value {
+		white-space: nowrap;
+		flex: none;
 		font-size: clamp(2rem, 4vw, 3.4rem);
 		font-weight: 650;
 		font-variant-numeric: tabular-nums;
@@ -144,6 +169,50 @@
 		transform-box: fill-box;
 		transform-origin: center;
 		animation: pk-ping 1.8s ease-out 1.9s infinite;
+	}
+	.pk-plot {
+		position: relative;
+	}
+	.pk-min {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		translate: -4px -50%;
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: #ffbe5c;
+		white-space: nowrap;
+		opacity: 0;
+		animation: pk-fade 0.5s ease 1.4s forwards;
+	}
+	.pk-min i {
+		width: 9px;
+		height: 9px;
+		border-radius: 50%;
+		background: #ffbe5c;
+		box-shadow: 0 0 8px #ffbe5c;
+	}
+	.pk-status {
+		display: inline-block;
+		margin-left: 0.5rem;
+		white-space: nowrap;
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		font-style: normal;
+		font-size: 0.72rem;
+		letter-spacing: 0.08em;
+		color: #ffbe5c;
+		background: rgba(255, 190, 92, 0.12);
+	}
+	.pk-status.ok {
+		color: #00ff96;
+		background: rgba(0, 255, 150, 0.12);
+	}
+	.pk-criteria {
+		margin: 0.4rem 0 0;
+		font-size: 0.78rem;
+		color: var(--ink-2, #94b5d0);
 	}
 	.pk-note {
 		margin: 0.6rem 0 0;
