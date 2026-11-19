@@ -7,6 +7,11 @@
 	import WarpCarousel from './WarpCarousel.svelte';
 	import PeakChart from './PeakChart.svelte';
 	import StageHero from './StageHero.svelte';
+	import NexusSketch from './NexusSketch.svelte';
+	import DayRing from './DayRing.svelte';
+	import MiniVisual from './MiniVisual.svelte';
+	import KitVisual from './KitVisual.svelte';
+	import FlowDiagram from './FlowDiagram.svelte';
 	import {
 		SCENES,
 		NEXUS_LIVE_URL,
@@ -17,7 +22,6 @@
 		SEGMENTS,
 		CHANNELS,
 		PLANS,
-		PIPELINE,
 		CONTROLS,
 		NEXT_STEPS,
 		ORBITS,
@@ -28,7 +32,8 @@
 		APP_SCREENS,
 		TELEMETRY,
 		CENTLI_CYCLE,
-		CENTLI_PILOT
+		CENTLI_PILOT,
+		ASK_ICONS
 	} from './content.js';
 	import {
 		advance,
@@ -52,6 +57,7 @@
 
 	let nav = $state(initialNav());
 	let menuOpen = $state(false);
+	let chainPhase = $state(0);
 	let ficha = $state(null);
 	let videoOpen = $state(false);
 	let videoError = $state(false);
@@ -384,30 +390,43 @@
 						</p>
 					</div>
 				{:else if scene.id === 'nexus'}
-					<div class="xp-center">
-						<h2 class="xp-nexus-word rv on" aria-label="Nexus">
-							<img src="/img/logo-nexus-3x.png" alt="" /><span>EXUS</span>
-						</h2>
-						<AnimatedText
-							tag="p"
-							className="xp-definition"
-							text="Un ambiente de inteligencia para todo aquello que se pone en movimiento."
-							delay={350}
-							step={12}
-						/>
-						<ol class="xp-chain rv" class:on={beat >= 1}>
-							{#each CHAIN as step, i (step.k)}
-								<li class="beam" style="--d:{i * 140}ms; --beam-delay:{i * -0.9}s">
-									<span class="xp-chain-k">{step.k}</span>
-									<span class="xp-chain-v">{step.v}</span>
+					<div class="xp-nexus2">
+						<div class="xp-nexus-head">
+							<h2 class="xp-nexus-word rv on" aria-label="Nexus">
+								<img src="/img/logo-nexus-3x.png" alt="" /><span>EXUS</span>
+							</h2>
+							<AnimatedText
+								tag="p"
+								className="xp-definition"
+								text="Un ambiente de inteligencia para todo aquello que se pone en movimiento."
+								delay={350}
+								step={12}
+							/>
+						</div>
+						<div class="xp-nexus-body">
+							<div class="xp-nexus-sketch rv on" style="--d:500ms">
+								<NexusSketch bind:phase={chainPhase} {reduced} />
+							</div>
+							<ol class="xp-chain2">
+								{#each CHAIN as step, i (step.k)}
+									<li
+										class="rv on"
+										class:active={chainPhase === i}
+										class:done={chainPhase > i}
+										style="--d:{700 + i * 140}ms"
+									>
+										<span class="xp-chain-n">0{i + 1}</span>
+										<span class="xp-chain-k">{step.k}</span>
+										<span class="xp-chain-v">{step.v}</span>
+									</li>
+								{/each}
+								<li class="xp-to-live2 rv" class:on={beat >= 1}>
+									<span>Ahora, lo que ya funciona.</span>
+									<button class="xp-live-btn" onclick={openLive}>
+										<span class="xp-live-dot"></span> Abrir Nexus en vivo
+									</button>
 								</li>
-							{/each}
-						</ol>
-						<div class="xp-to-live rv" class:on={beat >= 2}>
-							<p>Ahora, lo que ya funciona.</p>
-							<button class="xp-live-btn" onclick={openLive}>
-								<span class="xp-live-dot"></span> Abrir Nexus en vivo
-							</button>
+							</ol>
 						</div>
 					</div>
 				{:else if scene.id === 'demo'}
@@ -434,35 +453,40 @@
 					<div class="xp-wide xp-telemetry">
 						<p class="xp-kicker">Datos reales</p>
 						<h2 class="xp-h2 xp-h2-tight">Un día de una unidad, en números.</h2>
-						<div class="xp-telemetry-grid">
-							<div class="xp-kpis">
-								{#each TELEMETRY.kpis as kpi, i (kpi.k)}
-									<div
-										class="xp-kpi beam rv on"
-										style="--d:{200 + i * 120}ms; --beam-delay:{i * -1.1}s"
-									>
-										<span
-											class="xp-kpi-v"
-											use:countNumber={{ value: kpi.v, decimals: kpi.d, delay: 300 + i * 120 }}
-											>{kpi.v}</span
-										><small>{kpi.u}</small>
-										<span class="xp-kpi-k">{kpi.k}</span>
-									</div>
-								{/each}
+						<div class="xp-telemetry-grid2">
+							<div class="rv on" style="--d:200ms">
+								<DayRing speeds={TELEMETRY.speeds} center="28.8 km" caption={TELEMETRY.period} />
 							</div>
-							<PeakChart
-								data={TELEMETRY.battery}
-								value={14.0}
-								decimals={1}
-								unit=" V"
-								label="Batería del vehículo · pico"
-								note="Trazo del informe de Nexus · el alternador sube el voltaje al arrancar"
-								color="#4fd1ff"
-								{reduced}
-							/>
+							<div class="xp-telemetry-side">
+								<div class="xp-kpis">
+									{#each TELEMETRY.kpis.slice(1) as kpi, i (kpi.k)}
+										<div
+											class="xp-kpi beam rv on"
+											style="--d:{400 + i * 120}ms; --beam-delay:{i * -1.1}s"
+										>
+											<span
+												class="xp-kpi-v"
+												use:countNumber={{ value: kpi.v, decimals: kpi.d, delay: 500 + i * 120 }}
+												>{kpi.v}</span
+											><small>{kpi.u}</small>
+											<span class="xp-kpi-k">{kpi.k}</span>
+										</div>
+									{/each}
+								</div>
+								<PeakChart
+									data={TELEMETRY.battery}
+									value={14.0}
+									decimals={1}
+									unit=" V"
+									label="Batería del vehículo · pico"
+									note="Trazo del informe de Nexus · el alternador sube el voltaje al arrancar"
+									color="#4fd1ff"
+									{reduced}
+								/>
+							</div>
 						</div>
 						<p class="xp-footnote rv" class:on={beat >= 1}>
-							{TELEMETRY.period} · Informe generado en Nexus · sin ubicaciones
+							Informe generado en Nexus · unidad de pruebas del equipo · sin ubicaciones
 						</p>
 					</div>
 				{:else if scene.id === 'mercado'}
@@ -479,6 +503,7 @@
 									onpointermove={spotlight}
 									style="--d:{i * 120}ms"
 								>
+									<div class="xp-seg-visual"><MiniVisual kind={seg.visual} /></div>
 									<p class="xp-seg-when">{seg.when}</p>
 									<h3>{seg.title}</h3>
 									<p class="xp-seg-who">{seg.who}</p>
@@ -503,29 +528,34 @@
 							text="Precios definidos. Listos para facturar."
 							step={16}
 						/>
-						<div class="xp-plans">
-							{#each PLANS as plan, i (plan.name)}
-								<article
-									class="xp-plan beam"
-									class:featured={plan.featured}
-									style="--d:{i * 120}ms; --beam-delay:{i * -1.3}s"
-								>
-									<p class="xp-plan-name">{plan.name}</p>
-									<p class="xp-plan-price">
-										<span use:countUp={plan.monthly}>${plan.monthly}</span>
-										<small>/ mes</small>
-									</p>
-									<p class="xp-plan-setup rv" class:on={beat >= 1}>
-										Alta ${plan.setup.toLocaleString('es-MX')}
-										<small>equipo GPS, instalación y SIM</small>
-									</p>
+						<div class="xp-econ-grid">
+							<div class="xp-econ-kit rv on" style="--d:300ms">
+								<KitVisual screen={APP_SCREENS[1].src} />
+							</div>
+							<div class="xp-plans">
+								{#each PLANS as plan, i (plan.name)}
+									<article
+										class="xp-plan beam"
+										class:featured={plan.featured}
+										style="--d:{i * 120}ms; --beam-delay:{i * -1.3}s"
+									>
+										<p class="xp-plan-name">{plan.name}</p>
+										<p class="xp-plan-price">
+											<span use:countUp={plan.monthly}>${plan.monthly}</span>
+											<small>/ mes</small>
+										</p>
+										<p class="xp-plan-setup rv" class:on={beat >= 1}>
+											Alta ${plan.setup.toLocaleString('es-MX')}
+											<small>equipo GPS, instalación y SIM</small>
+										</p>
+									</article>
+								{/each}
+								<article class="xp-plan xp-plan-dual rv" class:on={beat >= 1}>
+									<p class="xp-plan-name">DUAL</p>
+									<p class="xp-plan-custom">A la medida</p>
+									<p class="xp-plan-setup">Se cotiza según la operación</p>
 								</article>
-							{/each}
-							<article class="xp-plan xp-plan-dual rv" class:on={beat >= 1}>
-								<p class="xp-plan-name">DUAL</p>
-								<p class="xp-plan-custom">A la medida</p>
-								<p class="xp-plan-setup">Se cotiza según la operación</p>
-							</article>
+							</div>
 						</div>
 						<p class="xp-econ-note rv" class:on={beat >= 1}>
 							Precios en MXN más IVA · Con plazo mínimo de permanencia
@@ -541,14 +571,9 @@
 					<div class="xp-wide">
 						<p class="xp-kicker">Ingeniería y confianza</p>
 						<h2 class="xp-h2">Procesamiento orientado a eventos.</h2>
-						<ol class="xp-pipeline" style="--steps:{PIPELINE.length}">
-							{#each PIPELINE as step, i (step)}
-								<li class="xp-node" style="--i:{i}">{step}</li>
-								{#if i < PIPELINE.length - 1}
-									<li class="xp-link" style="--i:{i}" aria-hidden="true"><span></span></li>
-								{/if}
-							{/each}
-						</ol>
+						<div class="xp-flow-wrap rv on" style="--d:300ms">
+							<FlowDiagram {reduced} />
+						</div>
 						<div class="xp-layers">
 							<div class="rv beam" class:on={beat >= 1}>
 								<p class="xp-layer-title">Hoy</p>
@@ -568,12 +593,13 @@
 					<div class="xp-horizon">
 						<p class="xp-kicker">Horizonte</p>
 						<div class="xp-orbit-stage">
-							<div class="xp-orbit-core">NEXUS</div>
+							<div class="xp-orbit-core"><img src="/img/logo-nexus-3x.png" alt="Nexus" /></div>
 							{#each ORBITS as o, i (o.t)}
 								<div
 									class="xp-orbit-node beam n{i}"
 									style="--d:{300 + i * 220}ms; --beam-delay:{i * -1.4}s"
 								>
+									<div class="xp-orbit-visual"><MiniVisual kind={o.visual} /></div>
 									<strong>{o.t}</strong>
 									<span class="xp-state">{o.s}</span>
 									<small>{o.d}</small>
@@ -649,7 +675,12 @@
 									onclick={() => (ficha = ask)}
 									style="--d:{i * 110}ms; --beam-delay:{i * -1.2}s"
 								>
-									<span class="xp-ask-n">{ask.n}</span>
+									<span class="xp-ask-top">
+										<span class="xp-ask-n">{ask.n}</span>
+										<svg class="xp-ask-icon" viewBox="0 0 24 24" aria-hidden="true"
+											><path d={ASK_ICONS[ask.id]} /></svg
+										>
+									</span>
 									<strong>{ask.title}</strong>
 									<span>{ask.short}</span>
 								</button>

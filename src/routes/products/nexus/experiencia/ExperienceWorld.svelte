@@ -33,7 +33,9 @@
 	const NIGHT_VIEW = { x: 1060, y: 1180, zoom: 1.55 };
 
 	/** Opacidad del mapa por escena. */
-	const MAP_ALPHA = { pregunta: 1, queretaro: 1 };
+	const MAP_ALPHA = { pregunta: 1, queretaro: 1, peticion: 0.5 };
+	const INDUSTRY_URL = '/img/products/nexus/experiencia/queretaro-industria.json';
+	let industry = null;
 
 	let canvas = $state(null);
 
@@ -249,6 +251,13 @@
 		return { x: (x0 + x1) / 2 - offset, y: (y0 + y1) / 2, zoom };
 	}
 
+	/** Escena 12: zonas industriales del poniente a la derecha, arriba de las tarjetas. */
+	function buyersCamera() {
+		const zoom = 1.45;
+		const s = baseScale() * zoom;
+		return { x: 760 - (W * 0.24) / s, y: 920 + (H * 0.14) / s, zoom };
+	}
+
 	function applyScene() {
 		if (!world) return;
 		if (sceneId !== prevScene) {
@@ -256,7 +265,7 @@
 				revealed = false;
 				revealStart = performance.now();
 			}
-			if (sceneId === 'pregunta') revealed = true;
+			if (sceneId === 'pregunta' || sceneId === 'peticion') revealed = true;
 			if (sceneId === 'hero') {
 				revealed = false;
 				revealStart = -1;
@@ -268,7 +277,13 @@
 			prevScene = sceneId;
 		}
 		const zoomed = sceneId === 'queretaro' && beat >= 2;
-		const target = zoomed ? routeCamera() : sceneId === 'pregunta' ? NIGHT_VIEW : OVERVIEW;
+		const target = zoomed
+			? routeCamera()
+			: sceneId === 'pregunta'
+				? NIGHT_VIEW
+				: sceneId === 'peticion'
+					? buyersCamera()
+					: OVERVIEW;
 		camTarget.x = target.x;
 		camTarget.y = target.y;
 		camTarget.zoom = target.zoom;
@@ -489,8 +504,18 @@
 				? lite
 					? 8
 					: 18
-				: 0;
-		const cometAlpha = warm ? mapAlpha : sceneId === 'queretaro' ? (beat >= 1 ? 1 : 0) : 0;
+				: sceneId === 'peticion'
+					? 12
+					: 0;
+		const cometAlpha = warm
+			? mapAlpha
+			: sceneId === 'queretaro'
+				? beat >= 1
+					? 1
+					: 0
+				: sceneId === 'peticion'
+					? mapAlpha * 1.4
+					: 0;
 		if (cometAlpha > 0.01 && revealed) {
 			while (comets.length < cometCount) comets.push(spawnComet());
 			if (comets.length > cometCount) comets.length = cometCount;
@@ -500,6 +525,51 @@
 
 		if (zoomed) drawRoute(t);
 		if (warm && mapAlpha > 0.3) drawLabels(mapAlpha);
+		if (sceneId === 'peticion' && industry) drawIndustry(t, Math.min(1, mapAlpha * 2));
+	}
+
+	/** Zonas industriales reales (OSM): dónde están los compradores potenciales. */
+	function drawIndustry(t, alpha) {
+		const pulse = reduced ? 0.5 : 0.5 + 0.5 * Math.sin(t / 900);
+		ctx.save();
+		ctx.globalCompositeOperation = 'lighter';
+		for (const a of industry) {
+			ctx.beginPath();
+			for (let i = 0; i < a.p.length; i += 2) {
+				const [x, y] = toScreen(a.p[i], a.p[i + 1]);
+				if (i) ctx.lineTo(x, y);
+				else ctx.moveTo(x, y);
+			}
+			ctx.closePath();
+			ctx.fillStyle = `rgba(0,255,136,${(0.12 + 0.1 * pulse) * alpha})`;
+			ctx.strokeStyle = `rgba(120,255,190,${0.75 * alpha})`;
+			ctx.lineWidth = 1.2;
+			ctx.fill();
+			ctx.stroke();
+		}
+		ctx.globalCompositeOperation = 'source-over';
+		ctx.font = '600 12px Outfit, system-ui, sans-serif';
+		ctx.textAlign = 'left';
+		for (const a of industry) {
+			if (!a.n) continue;
+			const [x, y] = toScreen(a.c[0], a.c[1]);
+			const k = ((t / 1600 + a.c[0] * 0.001) % 1) * (reduced ? 0 : 1);
+			ctx.strokeStyle = `rgba(0,255,136,${(1 - k) * alpha})`;
+			ctx.lineWidth = 1.5;
+			ctx.beginPath();
+			ctx.arc(x, y, 5 + k * 22, 0, Math.PI * 2);
+			ctx.stroke();
+			ctx.fillStyle = '#eafff4';
+			ctx.beginPath();
+			ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+			ctx.fill();
+			ctx.fillStyle = `rgba(214,255,234,${0.9 * alpha})`;
+			ctx.shadowColor = 'rgba(0,0,0,0.9)';
+			ctx.shadowBlur = 6;
+			ctx.fillText(a.n.toUpperCase(), x + 10, y - 8);
+			ctx.shadowBlur = 0;
+		}
+		ctx.restore();
 	}
 
 	onMount(() => {
@@ -526,6 +596,12 @@
 			.then((data) => {
 				if (!alive) return;
 				world = prepareNetwork(data, CLASS_STYLE.length);
+				fetch(INDUSTRY_URL)
+					.then((r) => r.json())
+					.then((d) => {
+						if (alive) industry = d.areas;
+					})
+					.catch(() => {});
 				layerDirty = true;
 				applyScene();
 			})

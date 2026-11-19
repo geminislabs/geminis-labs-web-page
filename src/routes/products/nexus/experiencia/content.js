@@ -14,7 +14,7 @@ export const SCENES = [
 	{ id: 'pregunta', beats: 1, title: 'La pregunta' },
 	{ id: 'queretaro', beats: 3, title: 'Querétaro en movimiento' },
 	{ id: 'geminis', beats: 2, title: 'Geminis Labs' },
-	{ id: 'nexus', beats: 2, title: 'Nexus' },
+	{ id: 'nexus', beats: 1, title: 'Nexus' },
 	{ id: 'demo', beats: 1, title: 'Nexus en vivo' },
 	{ id: 'telemetria', beats: 1, title: 'Un día real' },
 	{ id: 'mercado', beats: 2, title: 'A quién sirve' },
@@ -116,8 +116,8 @@ export const FLOW = ['Dispositivos', 'Conectividad', 'Eventos', 'Contexto', 'Dec
 
 export const CHAIN = [
 	{ k: 'Vehículo', v: 'Unidad 14 en ruta' },
-	{ k: 'Evento', v: 'Sale de la geocerca del cliente' },
-	{ k: 'Contexto', v: '15:40 · 40 min detenida' },
+	{ k: 'Evento', v: 'Sale de la geocerca del cliente a las 15:02' },
+	{ k: 'Contexto', v: 'Detenida 40 min fuera de ruta' },
 	{ k: 'Decisión', v: 'Operaciones llama al operador' }
 ];
 
@@ -173,6 +173,8 @@ export const TELEMETRY = {
 		{ v: 3.4, d: 1, u: 'L', k: 'Combustible' },
 		{ v: 412, d: 0, u: '', k: 'Reportes con posición válida' }
 	],
+	/** Velocidad promedio por hora (km/h), del trazo de la gráfica del informe. */
+	speeds: [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 31, 2, 10, 9, 1, 10, 10, 1, 0, 0, 0, 0, 0, 0],
 	battery: [
 		12.62, 12.6, 12.62, 12.58, 12.6, 12.55, 12.58, 12.6, 12.4, 12.62, 12.55, 13.85, 12.8, 13.98,
 		13.8, 12.9, 13.75, 13.5, 12.9, 12.85, 12.83, 12.85
@@ -187,6 +189,7 @@ export const SEGMENTS = [
 		who: 'Dirección, logística, operaciones y seguridad patrimonial',
 		problem: '¿Dónde está? ¿Qué pasó? ¿Cuándo debo actuar?',
 		answer: 'Seguimiento, trayectos, geocercas y alertas',
+		visual: 'flotilla',
 		primary: true
 	},
 	{
@@ -195,7 +198,8 @@ export const SEGMENTS = [
 		title: 'Integradores GPS',
 		who: 'Empresas con cartera de clientes y equipos instalados',
 		problem: 'Necesitan plataforma propia sin construirla',
-		answer: 'Marca blanca: personalización lista, distribución en pruebas'
+		answer: 'Marca blanca: personalización lista, distribución en pruebas',
+		visual: 'marca'
 	},
 	{
 		id: 'movilidad',
@@ -203,7 +207,8 @@ export const SEGMENTS = [
 		title: 'Aseguradoras y movilidad',
 		who: 'Riesgo, siniestros y planeación',
 		problem: 'Entender el riesgo con datos de movimiento',
-		answer: 'Investigación y alianzas'
+		answer: 'Investigación y alianzas',
+		visual: 'riesgo'
 	}
 ];
 
@@ -227,9 +232,19 @@ export const CONTROLS = ['Roles y permisos', 'Comunicación cifrada', 'Respaldos
 export const NEXT_STEPS = ['Redundancia', 'Pruebas de carga', 'Despliegues sin interrupción'];
 
 export const ORBITS = [
-	{ t: 'Teams', s: 'En pruebas', d: 'Grupos con propósito y duración' },
-	{ t: 'Marca blanca', s: 'Parcial', d: 'Personalización lista · distribución en pruebas' },
-	{ t: 'Inteligencia', s: 'Experimental', d: 'Relacionar señales para decidir mejor' }
+	{ t: 'Teams', s: 'En pruebas', d: 'Grupos con propósito y duración', visual: 'teams' },
+	{
+		t: 'Marca blanca',
+		s: 'Parcial',
+		d: 'Personalización lista · distribución en pruebas',
+		visual: 'marca'
+	},
+	{
+		t: 'Inteligencia',
+		s: 'Experimental',
+		d: 'Relacionar señales para decidir mejor',
+		visual: 'inteligencia'
+	}
 ];
 
 /** Ciclo de inteligencia de Centli (documento maestro v0.7). */
@@ -331,4 +346,13 @@ export const ASKS = [
 export const CONTACT = {
 	site: 'geminislabs.com',
 	email: 'contacto@geminislabs.com'
+};
+
+/** Íconos de línea (24×24) para las tarjetas de la propuesta. */
+export const ASK_ICONS = {
+	compradores: 'M3 17h2a2 2 0 0 0 4 0h6a2 2 0 0 0 4 0h2v-5l-3-4h-4V6H3v11zm12-7h3l2 3h-5V10z',
+	integradores:
+		'M6 3a3 3 0 1 1 0 6a3 3 0 0 1 0-6zM18 3a3 3 0 1 1 0 6a3 3 0 0 1 0-6zM12 15a3 3 0 1 1 0 6a3 3 0 0 1 0-6zM8 8l3 7M16 8l-3 7M9 6h6',
+	pilotos: 'M5 21V4M5 4h11l-2 4 2 4H5',
+	institucional: 'M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18'
 };

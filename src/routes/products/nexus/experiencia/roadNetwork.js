@@ -161,3 +161,20 @@ export function routePoint(route, d) {
 		pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t
 	];
 }
+
+const ROADS_URL = '/img/products/nexus/experiencia/queretaro-vias.json';
+let networkPromise = null;
+
+/** Carga y prepara la red vial una sola vez para todos los lienzos. */
+export function loadNetwork(classCount = 5) {
+	if (!networkPromise) {
+		networkPromise = fetch(ROADS_URL)
+			.then((r) => r.json())
+			.then((data) => prepareNetwork(data, classCount))
+			.catch((err) => {
+				networkPromise = null;
+				throw err;
+			});
+	}
+	return networkPromise;
+}

@@ -1661,3 +1661,224 @@ svg .rv {
 .xp-gl-mark-lg {
 	width: clamp(170px, 17vw, 250px);
 }
+
+/* ══ v4: cada escena con su pieza visual ════════════════════════════ */
+
+/* ── 04 Nexus: ventana viva + cadena sincronizada ──────────────────── */
+.xp-nexus2 {
+	width: 100%;
+	max-width: 1380px;
+	margin: 0 auto;
+}
+.xp-nexus-head {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+.xs-nexus .xp-nexus-word {
+	font-size: clamp(2.6rem, 7vw, 6.4rem);
+	margin-bottom: 0.8rem;
+}
+.xs-nexus .xp-definition {
+	margin-bottom: 1.6rem;
+	max-width: 34ch;
+	font-size: clamp(1.15rem, 2vw, 1.9rem);
+}
+.xp-nexus-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+	gap: clamp(1rem, 2.5vw, 2.4rem);
+	align-items: stretch;
+}
+.xp-nexus-sketch {
+	height: clamp(260px, 46vh, 520px);
+}
+.xp-chain2 {
+	display: flex;
+	flex-direction: column;
+	gap: 0.7rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.xp-chain2 li:not(.xp-to-live2) {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-rows: auto auto;
+	column-gap: 0.9rem;
+	padding: 0.9rem 1.1rem;
+	border-radius: 16px;
+	background: rgba(4, 16, 10, 0.78);
+	box-shadow: inset 0 0 0 1px rgba(148, 181, 208, 0.18);
+	backdrop-filter: blur(8px);
+	transition:
+		box-shadow 0.5s ease,
+		background 0.5s ease,
+		transform 0.5s ease;
+}
+.xp-chain2 li.active {
+	background: rgba(6, 40, 22, 0.9);
+	box-shadow:
+		inset 0 0 0 1.5px rgba(0, 255, 136, 0.9),
+		0 0 40px rgba(0, 255, 136, 0.25);
+	transform: translateX(-6px);
+}
+.xp-chain2 li.done {
+	box-shadow: inset 0 0 0 1px rgba(0, 255, 136, 0.35);
+}
+.xp-chain-n {
+	grid-row: span 2;
+	align-self: center;
+	font-family: var(--display);
+	font-size: 1.3rem;
+	color: rgba(0, 255, 136, 0.55);
+}
+.xp-chain2 li.active .xp-chain-n {
+	color: var(--neon);
+}
+.xp-to-live2 {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	flex-wrap: wrap;
+	margin-top: 0.4rem;
+	font-weight: 600;
+}
+
+/* ── 06 Un día real ────────────────────────────────────────────────── */
+.xp-telemetry-grid2 {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+	gap: clamp(1rem, 3vw, 3rem);
+	align-items: center;
+	margin: 0.6rem 0;
+}
+.xp-telemetry-side {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+.xp-telemetry-side .xp-kpi:last-child {
+	grid-column: auto;
+}
+
+/* ── 07 Mercado: tarjetas con ilustración viva ─────────────────────── */
+.xp-seg {
+	display: flex;
+	flex-direction: column;
+	padding: 0.8rem 0.8rem 1.4rem;
+}
+.xp-seg > :not(.xp-seg-visual) {
+	padding: 0 0.7rem;
+}
+.xp-seg-visual {
+	height: clamp(120px, 18vh, 190px);
+	margin-bottom: 1rem;
+}
+
+/* ── 08 Oferta: kit + planes ───────────────────────────────────────── */
+.xp-econ-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+	gap: clamp(1rem, 3vw, 3rem);
+	align-items: center;
+	margin: 0.6rem 0 1rem;
+}
+.xp-econ-grid .xp-plans {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	margin: 0;
+}
+
+/* ── 09 Ingeniería ─────────────────────────────────────────────────── */
+.xp-flow-wrap {
+	margin: 0.6rem 0 1.4rem;
+}
+
+/* ── 10 Horizonte: logo al centro y tarjetas grandes ───────────────── */
+.xs-horizonte .xp-orbit-stage {
+	width: min(900px, 94vw, 78vh);
+}
+.xp-orbit-core {
+	padding: 1.1rem;
+	border-radius: 50%;
+}
+.xp-orbit-core img {
+	display: block;
+	width: clamp(70px, 8vw, 120px);
+	height: auto;
+	filter: drop-shadow(0 0 24px rgba(62, 193, 40, 0.6));
+}
+.xs-horizonte .xp-orbit-node {
+	width: clamp(220px, 21vw, 300px);
+	padding: 0.7rem 0.7rem 1rem;
+}
+.xs-horizonte .xp-orbit-node > :not(.xp-orbit-visual) {
+	margin-left: 0.4rem;
+	margin-right: 0.4rem;
+}
+.xp-orbit-visual {
+	height: clamp(100px, 14vh, 150px);
+	margin-bottom: 0.7rem;
+}
+.xs-horizonte .xp-orbit-node strong {
+	font-size: 1.2rem;
+}
+.xs-horizonte .xp-orbit-node.n0 {
+	top: -4%;
+}
+
+/* ── 12 Propuesta: sobre el mapa industrial ────────────────────────── */
+.xs-peticion .xp-ask {
+	position: relative;
+}
+.xs-peticion .xp-ask::before {
+	content: '';
+	position: absolute;
+	inset: -30vh 30% -30vh -40vw;
+	background: radial-gradient(
+		ellipse at 20% 45%,
+		rgba(2, 8, 6, 0.92) 0%,
+		rgba(2, 8, 6, 0.6) 45%,
+		transparent 75%
+	);
+	z-index: -1;
+	pointer-events: none;
+}
+.xp-ask-card {
+	min-height: clamp(170px, 24vh, 240px);
+	padding: 1.4rem 1.3rem;
+	background: rgba(4, 16, 10, 0.82);
+	backdrop-filter: blur(10px);
+}
+.xp-ask-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.6rem;
+}
+.xp-ask-icon {
+	width: 40px;
+	height: 40px;
+	padding: 8px;
+	border-radius: 12px;
+	background: rgba(0, 255, 136, 0.1);
+	fill: none;
+	stroke: var(--neon);
+	stroke-width: 1.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.4));
+}
+.xp-ask-card strong {
+	font-size: clamp(1.15rem, 1.7vw, 1.55rem);
+}
+
+@media (max-width: 860px) {
+	.xp-nexus-body,
+	.xp-telemetry-grid2,
+	.xp-econ-grid {
+		grid-template-columns: 1fr;
+	}
+}
