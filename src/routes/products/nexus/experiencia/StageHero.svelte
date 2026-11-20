@@ -484,6 +484,9 @@
 			if (!t0) t0 = now;
 			const el = (now - t0) / 1000;
 			const playIntro = intro && !reduced && el < INTRO_END;
+			// La escala de la pantalla (Retina = 2×) aplica a la intro y al globo.
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			if (playIntro && el <= 9.2) ctx.clearRect(0, 0, W, H);
 			if (!playIntro || el > 9.2) drawGlobe(now);
 			if (playIntro) drawIntro(el, 1 - fade(el, 9.2, INTRO_END));
 		}
