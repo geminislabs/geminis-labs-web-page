@@ -157,7 +157,7 @@
 
 		function frame(now) {
 			raf = requestAnimationFrame(frame);
-			if (!net) return;
+			if (!net || !onScreen) return;
 			if (!layer) buildLayer();
 			const t = reduced ? CYCLE * 0.9 : now % CYCLE;
 			const p = t / CYCLE;
@@ -328,6 +328,9 @@
 		}
 
 		resize();
+		let onScreen = true;
+		const io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
+		io.observe(host);
 		const ro = new ResizeObserver(resize);
 		ro.observe(host);
 		loadH3()
@@ -342,6 +345,7 @@
 			.catch(() => {});
 		raf = requestAnimationFrame(frame);
 		return () => {
+			io.disconnect();
 			alive = false;
 			cancelAnimationFrame(raf);
 			ro.disconnect();

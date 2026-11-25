@@ -1,19 +1,19 @@
 <script>
 	import { onMount } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
-	import ExperienceWorld from './ExperienceWorld.svelte';
-	import ShaderBackground from './ShaderBackground.svelte';
+	import ExperienceWorld from '$lib/components/experiencia/ExperienceWorld.svelte';
+	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import AnimatedText from './AnimatedText.svelte';
 	import WarpCarousel from './WarpCarousel.svelte';
-	import PeakChart from './PeakChart.svelte';
+	import PeakChart from '$lib/components/experiencia/PeakChart.svelte';
 	import StageHero from './StageHero.svelte';
 	import Audience from './Audience.svelte';
-	import NexusSketch from './NexusSketch.svelte';
-	import DayRing from './DayRing.svelte';
+	import NexusSketch from '$lib/components/experiencia/NexusSketch.svelte';
+	import DayRing from '$lib/components/experiencia/DayRing.svelte';
 	import MiniVisual from './MiniVisual.svelte';
 	import PhoneWall from './PhoneWall.svelte';
 	import HorizonVisual from './HorizonVisual.svelte';
-	import FlowDiagram from './FlowDiagram.svelte';
+	import FlowDiagram from '$lib/components/experiencia/FlowDiagram.svelte';
 	import CityModel3D from './CityModel3D.svelte';
 	import {
 		SCENES,

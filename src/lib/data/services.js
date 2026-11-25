@@ -10,7 +10,7 @@
  * van en `chips`, que es el nivel al que un comprador técnico baja después.
  *
  * `imagen: true` marca las capacidades que tienen ilustración propia en
- * `static/img/capacidades/<slug>.webp`. Las que no la tienen caen a la figura
+ * `static/img/capacidades/<slug>.webp` (retiradas). Las que no la tienen caen a la figura
  * dibujada, así que el panal funciona con el juego incompleto y las
  * ilustraciones pueden entrar de una en una.
  *
@@ -32,7 +32,7 @@ export const services = [
 		title: 'Consultoría & Estrategia',
 		promise:
 			'Te decimos qué está mal, qué construir primero y cuánto va a costar, antes de que gastes.',
-		chips: ['Diagnóstico', 'Arquitectura', 'Roadmap', 'CTO as a Service', 'Due diligence técnica'],
+		chips: ['Diagnóstico', 'Arquitectura', 'Roadmap', 'CTO por horas', 'Due diligence técnica'],
 		detail: {
 			intro:
 				'Muchas organizaciones no necesitan que alguien escriba código todavía. Necesitan que alguien mire lo que ya tienen y diga qué está mal, qué se puede salvar y en qué orden conviene moverse. Ese trabajo se cobra aparte y se entrega aparte: es tuyo, contrates lo que sigue con nosotros o no.',

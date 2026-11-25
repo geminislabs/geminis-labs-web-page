@@ -8,7 +8,9 @@
 	import { onMount } from 'svelte';
 	import { prepareNetwork, pointAt, endpointKey, routePoint, bucketCells } from './roadNetwork.js';
 
-	let { sceneId = 'hero', beat = 0, reduced = false, lite = false } = $props();
+	/** contained: ocupa su contenedor (no la ventana) y se pausa fuera de pantalla. */
+	let { sceneId = 'hero', beat = 0, reduced = false, lite = false, contained = false } = $props();
+	let onScreen = true;
 
 	const ROADS_URL = '/img/products/nexus/experiencia/queretaro-vias.json';
 	const OVERVIEW = { x: 1040, y: 1040, zoom: 1.12 };
@@ -380,7 +382,8 @@
 	function drawDrill(t) {
 		if (drillStart < 0) return;
 		const el = t - drillStart;
-		const lvl = reduced ? 4 : Math.min(4, Math.floor(el / DRILL_STEP));
+		// El reloj del cuadro puede ir unos ms detrás de drillStart: nunca un nivel negativo.
+		const lvl = reduced ? 4 : Math.max(0, Math.min(4, Math.floor(el / DRILL_STEP)));
 		ctx.save();
 		ctx.lineJoin = 'round';
 		for (let k = 0; k <= lvl; k++) {
@@ -416,8 +419,15 @@
 		ctx.restore();
 	}
 
+	let lastBeat = 0;
 	function applyScene() {
 		if (!world) return;
+		// Escena H3 en bucle: al volver al inicio, la malla vuelve a aparecer en onda.
+		if (sceneId === 'h3' && beat === 0 && lastBeat > 0 && sceneId === prevScene) {
+			sceneT0 = performance.now();
+			if (hexGlow) hexGlow.fill(0);
+		}
+		lastBeat = beat;
 		if (sceneId !== prevScene) {
 			if (sceneId === 'queretaro' && (prevScene === 'pregunta' || !revealed)) {
 				revealed = false;
@@ -471,8 +481,9 @@
 	// ── Bucle de dibujo ──────────────────────────────────────────────────
 	function resize() {
 		dpr = Math.min(window.devicePixelRatio || 1, lite ? 1 : 1.5);
-		W = window.innerWidth;
-		H = window.innerHeight;
+		const box = contained ? canvas.parentElement.getBoundingClientRect() : null;
+		W = box ? box.width : window.innerWidth;
+		H = box ? box.height : window.innerHeight;
 		canvas.width = Math.round(W * dpr);
 		canvas.height = Math.round(H * dpr);
 		roadsLayer.width = canvas.width;
@@ -595,6 +606,10 @@
 
 	function frame(t) {
 		raf = requestAnimationFrame(frame);
+		if (!onScreen || W < 2 || H < 2) {
+			lastT = 0;
+			return;
+		}
 		const dt = Math.min(0.05, lastT ? (t - lastT) / 1000 : 0.016);
 		lastT = t;
 
@@ -760,6 +775,14 @@
 		roadsCtx = roadsLayer.getContext('2d');
 		resize();
 		window.addEventListener('resize', resize);
+		let io = null;
+		let ro = null;
+		if (contained) {
+			io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
+			io.observe(canvas);
+			ro = new ResizeObserver(resize);
+			ro.observe(canvas.parentElement);
+		}
 		const onVisibility = () => {
 			if (document.hidden) {
 				cancelAnimationFrame(raf);
@@ -802,11 +825,18 @@
 			cancelAnimationFrame(raf);
 			window.removeEventListener('resize', resize);
 			document.removeEventListener('visibilitychange', onVisibility);
+			io?.disconnect();
+			ro?.disconnect();
 		};
 	});
 </script>
 
-<canvas bind:this={canvas} class="xp-world" class:tilt={sceneId === 'pregunta'} aria-hidden="true"
+<canvas
+	bind:this={canvas}
+	class="xp-world"
+	class:contained
+	class:tilt={sceneId === 'pregunta'}
+	aria-hidden="true"
 ></canvas>
 
 <style>
@@ -819,6 +849,11 @@
 		z-index: 0;
 		transform-origin: 50% 65%;
 		transition: transform 1.8s cubic-bezier(0.6, 0, 0.2, 1);
+	}
+	.xp-world.contained {
+		position: absolute;
+		width: 100%;
+		height: 100%;
 	}
 	/* Escena 01: la ciudad vista en perspectiva, como desde un avión. */
 	.xp-world.tilt {

@@ -10,7 +10,16 @@
 	 */
 	import { onMount } from 'svelte';
 
-	let { preset = null, reduced = false, lite = false } = $props();
+	/** contained: ocupa su contenedor (no la ventana) y se pausa fuera de pantalla. */
+	let {
+		preset = null,
+		reduced = false,
+		lite = false,
+		contained = false,
+		/** Lienzo expuesto para que otro efecto lo use como fuente (p. ej. HeroGlitch). */
+		element = $bindable(null)
+	} = $props();
+	let onScreen = true;
 
 	const MODES = { silk: 0, aurora: 1, swirl: 2, fold: 3, smoke: 4, stage: 5 };
 
@@ -120,7 +129,10 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 	}
 
 	function setup() {
+		element = canvas;
 		gl = canvas.getContext('webgl', {
+			// Otro lienzo puede copiar el cuadro con drawImage.
+			preserveDrawingBuffer: contained,
 			antialias: false,
 			alpha: false,
 			powerPreference: 'high-performance'
@@ -159,8 +171,9 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 	function resize() {
 		if (!canvas) return;
 		const scale = lite ? 0.5 : Math.min(window.devicePixelRatio || 1, 1) * 0.75;
-		canvas.width = Math.round(window.innerWidth * scale);
-		canvas.height = Math.round(window.innerHeight * scale);
+		const box = contained ? canvas.parentElement.getBoundingClientRect() : null;
+		canvas.width = Math.max(1, Math.round((box ? box.width : window.innerWidth) * scale));
+		canvas.height = Math.max(1, Math.round((box ? box.height : window.innerHeight) * scale));
 		gl?.viewport(0, 0, canvas.width, canvas.height);
 	}
 
@@ -179,7 +192,7 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 
 	function frame(t) {
 		raf = requestAnimationFrame(frame);
-		if (!current) return;
+		if (!current || !onScreen) return;
 		gl.uniform2f(uniforms.uRes, canvas.width, canvas.height);
 		gl.uniform1f(uniforms.uTime, reduced ? 12 : ((t - start) / 1000) * (current.speed ?? 1));
 		gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -211,6 +224,14 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 		if (!setup()) return;
 		resize();
 		window.addEventListener('resize', resize);
+		let io = null;
+		let ro = null;
+		if (contained) {
+			io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
+			io.observe(canvas);
+			ro = new ResizeObserver(resize);
+			ro.observe(canvas.parentElement);
+		}
 		start = performance.now();
 		raf = requestAnimationFrame(frame);
 		if (preset) {
@@ -222,11 +243,14 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 			cancelAnimationFrame(raf);
 			clearTimeout(swapTimer);
 			window.removeEventListener('resize', resize);
+			io?.disconnect();
+			ro?.disconnect();
 		};
 	});
 </script>
 
-<canvas bind:this={canvas} class="xp-shader" class:visible aria-hidden="true"></canvas>
+<canvas bind:this={canvas} class="xp-shader" class:visible class:contained aria-hidden="true"
+></canvas>
 
 <style>
 	.xp-shader {
@@ -239,6 +263,11 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 		opacity: 0;
 		transition: opacity 0.7s ease;
 		pointer-events: none;
+	}
+	.xp-shader.contained {
+		position: absolute;
+		width: 100%;
+		height: 100%;
 	}
 	.xp-shader.visible {
 		opacity: 1;

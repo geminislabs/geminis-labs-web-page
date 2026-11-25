@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Servicios: página reorganizada.** Después del hero, «Tres formas de trabajar con nosotros» (diagnóstico, CTO por horas y proyecto completo); las seis capacidades completas a la vista con un índice fijo que marca la que se está leyendo (en celular, una fila de chips), cada una con su color, que también tiñe el fondo de la sección mientras se lee; «Cómo trabajamos» con lo que recibes en cada etapa; Nexus, Orion y Signum como prueba en el cierre; preguntas frecuentes (sin precios ni tiempos de compromiso, con NDA) y el formulario de diagnóstico (la sección de preguntas ocupa la pantalla y ofrece «Escríbenos»). Se retiran la franja de proceso y el panal; «CTO as a Service» pasa a «CTO por horas». El diagrama del CTO es un núcleo vivo con órbitas desde el que salen consejos hacia cada frente; en «Cómo trabajamos» la cámara se acerca a cada etapa de la imagen; el despiece del cierre flota, y el diagnóstico final lleva la aurora del cierre de la página principal. Las secciones alternan tonos y dos llevan fondos animados de la experiencia: la seda en «Tres formas de trabajar» y la luz de escenario en «Cómo trabajamos». En el pie de página, «CTO as a Service» pasa a «CTO por horas»
+- **Servicios: hero cinematográfico.** La fotografía y el árbol de imágenes se sustituyen por una arquitectura holográfica en 3D (Three.js con bloom, cargado solo en esa página) que se ensambla sola sobre una mesa de luz: dispositivos, conectividad, nube, datos e IA y aplicaciones, unidos por líneas con pulsos de luz. La cámara entra, orbita despacio y sigue al mouse; la capa bajo el cursor se levanta y se ilumina su etiqueta. El texto pasa a la esquina superior izquierda
+- **Inicio: nube verde en el hero.** La aurora del cierre de la experiencia, solo en verdes, a todo lo ancho, a la altura del título y los botones. Se dibuja dentro del lienzo del video en modo «aclarar»: el rostro queda delante y el mosaico del mouse también la desplaza. El video del rostro va al 80% y se queda quieto 2 s en su último cuadro antes de volver a empezar
+- **Inicio: «Nuestros productos».** Los tres productos a la vista, sin pestañas: un bloque por producto con su tema, logotipo, frase, pasos, etiqueta «En operación», dos llamadas a la acción y un visual vivo de cómo funciona (Nexus, el mapa con la geocerca de celdas H3; Orion, la ubicación por señal celular; Signum, el QR que muestra la ficha de emergencia; datos de ejemplo rotulados). El detalle de contratación queda en la página de cada producto
+- **Inicio: servicios en bento.** Consultoría y estrategia (con «Empezar por un diagnóstico»), CTO por horas, integración tecnológica y desarrollo a la medida, con Nexus, Orion y Signum como prueba; sustituye a la ilustración de la cadena con pines
+- **Inicio: contacto como cierre.** La foto de fondo se sustituye por la aurora verde y dorada del cierre de la experiencia; arriba del título, el logo con su halo y «Construido en Querétaro». La dirección pasa de Ciudad de México a Querétaro, Querétaro
+- **Inicio: la pregunta.** Antes de «¿Por qué existimos?», una banda a pantalla completa con Querétaro de noche visto en perspectiva, humo cálido y estelas sobre las vías reales; la pregunta «¿Qué descubrimos cuando dejamos de mirar puntos y empezamos a entender movimientos?» aparece palabra por palabra al llegar
+- **Inicio: «Tecnologías que convergen».** El video de archivo se sustituye por un diagrama vivo de cómo fluye un evento a través de las cuatro capas (señales, infraestructura, inteligencia y experiencia), con nombres genéricos: sin marcas, protocolos ni componentes internos. Las cuatro capas pasan a una fila
+- **Inicio: «El futuro que estamos construyendo».** El video del mapa se sustituye por la red vial real de Querétaro con estelas de la experiencia, a pantalla completa y con los textos en un marco centrado de 1300 px para pantallas grandes; se monta al acercarse y se pausa fuera de pantalla
+- **Nexus: «Cómo funciona».** Después del hero, a pantalla completa: el mapa de Nexus sobre calles reales de Querétaro con la geocerca de celdas H3 y la cadena Vehículo → Evento → Contexto → Decisión, que se enciende al ritmo de la animación
+- **Nexus: «Tu ciudad, con contexto geoespacial».** Animación en bucle mientras la sección está en pantalla: la malla de celdas H3 reales de Querétaro, el acercamiento r6 → r10 y las cuatro ventajas con su estado (listo, en validación); al terminar regresa al inicio con un fundido
+- **Nexus: «La app en tus manos».** Ocho capturas reales (seguimiento e informes) en un montón de teléfonos que avanza solo: el siguiente sale del montón y pasa al frente; hay una lista para elegir. Las capturas pasan de PNG (~11 MB) a WebP (~420 KB)
+- **Nexus: evidencia real en lugar de testimonios.** Los tres testimonios eran ilustrativos y Nexus aún no tiene clientes; la sección ahora muestra el informe real de un día de la unidad de pruebas (recorrido, tiempos, batería con su mínimo y estado, salud del equipo al 94.9%) y lo que permitirán los mismos datos. La franja «En producción · iOS, Android y Web · GPS, API y MQTT» pasa a fondo oscuro
+
+### Removed
+
+- **Imágenes y videos sin uso** tras el rediseño: fondos de las pestañas de productos y del contacto, la ilustración de servicios, la foto del hero de servicios, las imágenes del árbol y del panal de capacidades, la persona con gráficas de «Tecnologías» (imagen y video) y las capturas PNG de la galería de Nexus (ahora en WebP). Unos 17 MB menos
+
+### Fixed
+
+- **Menú: llegar exacto a cada sección.** En celular, los enlaces del menú a secciones de la página principal (por ejemplo «Futuro») se quedaban antes de llegar porque, mientras la página bajaba, se cargaban imágenes y componentes diferidos. Ahora el desplazamiento se corrige al terminar, también al llegar desde otra página con «/#sección», y el menú de celular usa el mismo manejo. Las secciones quedan debajo del menú fijo, sin cortar su título
+
 ## [1.18.2] — 2026-11-19
 
 ### Fixed

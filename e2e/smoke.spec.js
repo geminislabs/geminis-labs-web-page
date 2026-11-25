@@ -12,56 +12,61 @@ test.describe('smoke', () => {
 	});
 });
 
-// El motivo de existir del rail: antes, dos de cada tres productos quedaban
-// escondidos tras un selector y los visitantes no sabían que existían. Si algo
-// vuelve a esconderlos, esto tiene que fallar.
+// Antes, dos de cada tres productos quedaban escondidos tras un selector y los
+// visitantes no sabían que existían. Ahora cada producto tiene su propio bloque
+// a la vista; si algo vuelve a esconderlos, esto tiene que fallar.
 test.describe('descubribilidad de productos', () => {
+	const productos = [
+		{
+			id: 'nexus',
+			name: 'NEXUS',
+			hace: 'Dónde está, a dónde fue y cuándo salió de la zona.',
+			href: '/products/nexus'
+		},
+		{
+			id: 'orion',
+			name: 'ORION',
+			hace: 'Ubica un dispositivo por señal celular, sin GPS a bordo.',
+			href: 'https://orion.geminislabs.com/'
+		},
+		{
+			id: 'signum',
+			name: 'SIGNUM',
+			hace: 'Un QR que habla por ti cuando tú no puedes.',
+			href: 'https://signum.geminislabs.com/'
+		}
+	];
+
 	test('los tres productos se ven sin interactuar', async ({ page }) => {
 		await page.goto('/');
-		const rail = page.getByRole('tablist', { name: 'Productos' });
-		for (const name of ['NEXUS', 'ORION', 'SIGNUM']) {
-			await expect(rail.getByRole('tab', { name: new RegExp(name, 'i') })).toBeVisible();
+		for (const p of productos) {
+			await expect(page.getByRole('heading', { name: p.name, exact: true })).toBeVisible();
 		}
 	});
 
 	test('cada producto declara qué hace, no solo su nombre', async ({ page }) => {
 		await page.goto('/');
-		const rail = page.getByRole('tablist', { name: 'Productos' });
-		await expect(rail).toContainText('Rastreo GPS en tiempo real');
-		await expect(rail).toContainText('API de geolocalización sin GPS');
-		await expect(rail).toContainText('Identidad médica de emergencia');
-	});
-
-	test('cada panel enlaza a su destino', async ({ page }) => {
-		await page.goto('/');
-		const destinos = {
-			nexus: '/products/nexus',
-			orion: 'https://orion.geminislabs.com/',
-			signum: 'https://signum.geminislabs.com/'
-		};
-		for (const [id, href] of Object.entries(destinos)) {
-			await page.click(`#tab-${id}`);
-			await expect(page.locator(`#tab-${id}`)).toHaveAttribute('aria-selected', 'true');
-			const panel = page.locator(`#panel-${id}`);
-			await expect(panel).toBeVisible();
-			await expect(panel.locator('a.nx-cta')).toHaveAttribute('href', href);
+		for (const p of productos) {
+			await expect(page.locator(`article[data-product="${p.id}"]`)).toContainText(p.hace);
 		}
 	});
 
-	// Regresión concreta: el ternario binario anterior nunca alcanzaba el tercer
-	// producto, así que Signum era inaccesible por teclado.
+	test('cada bloque enlaza a su destino', async ({ page }) => {
+		await page.goto('/');
+		for (const p of productos) {
+			const cta = page.locator(`article[data-product="${p.id}"] a.ps-cta`);
+			await expect(cta).toHaveAttribute('href', p.href);
+		}
+	});
+
+	// Regresión concreta: con el selector anterior Signum era inaccesible por
+	// teclado. Los tres enlaces deben poder recibir el foco.
 	test('se llega a los tres productos con el teclado', async ({ page }) => {
 		await page.goto('/');
-		const nexus = page.locator('#tab-nexus');
-		await nexus.click();
-		await expect(nexus).toHaveAttribute('aria-selected', 'true');
-		await nexus.focus();
-		await page.keyboard.press('ArrowRight');
-		await expect(page.locator('#tab-orion')).toHaveAttribute('aria-selected', 'true');
-		await page.keyboard.press('ArrowRight');
-		await expect(page.locator('#tab-signum')).toHaveAttribute('aria-selected', 'true');
-		// y cicla de vuelta al primero
-		await page.keyboard.press('ArrowRight');
-		await expect(page.locator('#tab-nexus')).toHaveAttribute('aria-selected', 'true');
+		for (const p of productos) {
+			const cta = page.locator(`article[data-product="${p.id}"] a.ps-cta`);
+			await cta.focus();
+			await expect(cta).toBeFocused();
+		}
 	});
 });
