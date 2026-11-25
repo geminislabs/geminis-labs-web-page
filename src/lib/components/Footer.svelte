@@ -27,7 +27,7 @@
 				<ul class="footer-links">
 					<li><a href="/servicios">Capacidades</a></li>
 					<li><a href="/servicios#diagnostico">Diagnóstico tecnológico</a></li>
-					<li><a href="/servicios#doors">CTO as a Service</a></li>
+					<li><a href="/servicios#doors">CTO por horas</a></li>
 				</ul>
 			</div>
 

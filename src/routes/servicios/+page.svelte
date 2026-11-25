@@ -3,7 +3,9 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import { services, diagnosticoSituaciones, diagnosticoFrentes } from '$lib/data/services.js';
 	import { onMount } from 'svelte';
+	import { fade, scale } from 'svelte/transition';
 	import HoloForge from '$lib/components/HoloForge.svelte';
+	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import { cargarRecaptcha, enviarContacto, validarContacto } from '$lib/contacto.js';
 
 	// ── El suelo de las puertas ───────────────────────────────────────────
@@ -53,10 +55,15 @@
 			consejoVisible = false;
 			setTimeout(() => (consejoVisible = true), 900);
 		}, 3200);
-		const tLab = setInterval(() => (etapaActiva = (etapaActiva + 1) % focos.length), 2400);
+		let tLab = 0;
+		const pasoLab = () => {
+			etapaActiva = etapaActiva >= focos.length - 1 ? -1 : etapaActiva + 1;
+			tLab = setTimeout(pasoLab, etapaActiva === -1 ? 3200 : 2600);
+		};
+		tLab = setTimeout(pasoLab, 3200);
 		return () => {
 			clearInterval(tCto);
-			clearInterval(tLab);
+			clearTimeout(tLab);
 		};
 	});
 
@@ -160,7 +167,8 @@
 	let consejoVisible = false;
 	$: consejo = consejos[consejoN % consejos.length];
 
-	// ── Cómo trabajamos: la luz recorre la imagen etapa por etapa ─────────
+	// ── Cómo trabajamos: la cámara recorre la imagen etapa por etapa ──────
+	// Empieza en la vista completa (-1), se acerca a cada etapa y vuelve.
 	// Posición (en % de la imagen) de lo que ilustra cada etapa.
 	const focos = [
 		{ x: 13, y: 58 },
@@ -169,19 +177,44 @@
 		{ x: 62, y: 34 },
 		{ x: 84, y: 40 }
 	];
-	let etapaActiva = 0;
+	let etapaActiva = -1;
 
 	// ── Capacidades: un solo panel de detalle, a lo ancho ─────────────────
 	let capAbierta = null;
 	function verDetalle(slug) {
-		capAbierta = capAbierta === slug ? null : slug;
-		if (capAbierta) {
-			requestAnimationFrame(() =>
-				document
-					.getElementById('sv-cap-panel')
-					?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-			);
-		}
+		capAbierta = slug;
+	}
+	// Mientras la ventana está abierta, la página de atrás no se desplaza.
+	$: if (typeof document !== 'undefined') document.body.style.overflow = capAbierta ? 'hidden' : '';
+	// ── Cierre: aurora de fondo (se monta al acercarse) ───────────────────
+	const AURORA = {
+		key: 'servicios-cierre',
+		mode: 'aurora',
+		colors: ['#030a07', '#1f7a4a', '#c9a74a', '#eaffe0'],
+		intensity: 0.6
+	};
+	let auroraCerca = false;
+	function cercano(nodo, cb) {
+		const io = new IntersectionObserver(
+			(e) => {
+				if (e[0].isIntersecting) {
+					cb();
+					io.disconnect();
+				}
+			},
+			{ rootMargin: '600px' }
+		);
+		io.observe(nodo);
+		return { destroy: () => io.disconnect() };
+	}
+	// Si se sale de la página con la ventana abierta, la página siguiente debe poder desplazarse.
+	onMount(() => () => (document.body.style.overflow = ''));
+
+	function enfocar(nodo) {
+		nodo.focus();
+	}
+	function teclaModal(e) {
+		if (e.key === 'Escape' && capAbierta) capAbierta = null;
 	}
 
 	// Los seis apartados del documento del diagnóstico. Van en un array y no
@@ -279,6 +312,8 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet" />
 </svelte:head>
+
+<svelte:window on:keydown={teclaModal} />
 
 <Navbar />
 
@@ -508,37 +543,14 @@
 						<button
 							type="button"
 							class="sv-cap-ver"
-							aria-expanded={capAbierta === cap.slug}
-							aria-controls="sv-cap-panel"
+							aria-haspopup="dialog"
 							on:click={() => verDetalle(cap.slug)}
 						>
-							{capAbierta === cap.slug ? 'Ocultar detalle técnico' : 'Ver detalle técnico'}
+							Ver detalle técnico →
 						</button>
 					</article>
 				{/each}
 			</div>
-			{#if capAbierta}
-				{@const cap = services.find((c) => c.slug === capAbierta)}
-				<div class="sv-cap-panel" id="sv-cap-panel">
-					<header class="sv-cap-panel-head">
-						<p class="sv-cap-num">{cap.num}</p>
-						<h3 class="sv-cap-title">{cap.title} · detalle técnico</h3>
-						<button type="button" class="sv-cap-cerrar" on:click={() => (capAbierta = null)}
-							>Cerrar ✕</button
-						>
-					</header>
-					<div class="sv-cap-panel-grid">
-						{#each cap.detail.groups as grupo (grupo.title)}
-							<section>
-								<p class="sv-cap-grupo">{grupo.title}</p>
-								<ul class="sv-cap-lista">
-									{#each grupo.items as item (item)}<li>{item}</li>{/each}
-								</ul>
-							</section>
-						{/each}
-					</div>
-				</div>
-			{/if}
 		</div>
 	</section>
 
@@ -569,12 +581,11 @@
 				<!-- El lienzo existe solo para que el velo de bordes se ciña a la imagen:
 				     sobre la `figure` entera taparía también las fases de abajo. -->
 				<div class="sv-lab-lienzo">
-					<span
-						class="sv-lab-luz"
-						aria-hidden="true"
-						style="--x: {focos[etapaActiva].x}%; --y: {focos[etapaActiva].y}%"
-					></span>
 					<img
+						class:sv-lab-zoom={etapaActiva >= 0}
+						style={etapaActiva >= 0
+							? `--x: ${focos[etapaActiva].x}%; --y: ${focos[etapaActiva].y}%`
+							: ''}
 						src="/img/servicios-lab.webp"
 						alt="El recorrido completo de un producto: el boceto de una idea, la electrónica de un prototipo, el dispositivo terminado, la nube que recibe sus datos y los tableros donde se consultan."
 						width="1672"
@@ -677,6 +688,11 @@
 		redirige a este ancla.
 	-->
 	<section class="sv-diag" id="diagnostico" aria-labelledby="sv-diag-title">
+		<!-- La misma aurora del cierre de la página principal: el sitio termina igual. -->
+		<div class="sv-diag-aurora" aria-hidden="true" use:cercano={() => (auroraCerca = true)}>
+			{#if auroraCerca}<ShaderBackground preset={AURORA} contained />{/if}
+		</div>
+		<div class="sv-diag-fade" aria-hidden="true"></div>
 		<div class="sv-container">
 			<header class="sv-head">
 				<p class="sv-overline">Diagnóstico tecnológico</p>
@@ -786,6 +802,53 @@
 		</div>
 	</section>
 </main>
+
+<!-- Detalle técnico de una capacidad: ventana al frente, como las tarjetas
+	     «Más información» de las páginas de producto. Esc o clic afuera la cierran. -->
+{#if capAbierta}
+	{@const cap = services.find((c) => c.slug === capAbierta)}
+	<div
+		class="sv-modal"
+		role="presentation"
+		on:click|self={() => (capAbierta = null)}
+		transition:fade={{ duration: 220 }}
+	>
+		<div
+			class="sv-modal-card"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="sv-modal-title"
+			transition:scale={{ start: 0.94, duration: 320 }}
+		>
+			<button
+				type="button"
+				class="sv-modal-cerrar"
+				aria-label="Cerrar"
+				use:enfocar
+				on:click={() => (capAbierta = null)}>✕</button
+			>
+			<p class="sv-cap-num">{cap.num}</p>
+			<h3 class="sv-modal-title" id="sv-modal-title">{cap.title}</h3>
+			<p class="sv-modal-promise">{cap.promise}</p>
+			<p class="sv-modal-intro">{cap.detail.intro}</p>
+			<div class="sv-cap-panel-grid">
+				{#each cap.detail.groups as grupo (grupo.title)}
+					<div class="sv-cap-col">
+						<p class="sv-cap-grupo">{grupo.title}</p>
+						<ul class="sv-cap-lista">
+							{#each grupo.items as item (item)}<li>{item}</li>{/each}
+						</ul>
+					</div>
+				{/each}
+			</div>
+			<div class="sv-modal-pie">
+				<a href="#diagnostico" class="sv-btn sv-btn--primary" on:click={() => (capAbierta = null)}
+					>{cap.entrada}</a
+				>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <Footer />
 
@@ -1510,7 +1573,7 @@
 		background: var(--sv-accent);
 	}
 
-	/* ── Diagrama del CTO as a Service ─────────────────── */
+	/* ── Diagrama del CTO por horas ─────────────────────── */
 	/* El origen y las hojas son de la caja; el nodo es de quien la atiende, así
 	   que se lleva el acento. */
 	/* Un pulso baja por cada rama, escalonado: la decisión entra por arriba y
@@ -1562,6 +1625,7 @@
 	   una máscara por elemento se multiplican solas al componerse. */
 	.sv-lab-lienzo {
 		position: relative;
+		overflow: hidden;
 		-webkit-mask-image: linear-gradient(
 			180deg,
 			transparent 0%,
@@ -1575,6 +1639,11 @@
 		display: block;
 		width: 100%;
 		height: auto;
+		transform-origin: 50% 50%;
+		transition:
+			transform 1.6s cubic-bezier(0.65, 0, 0.35, 1),
+			transform-origin 1.6s cubic-bezier(0.65, 0, 0.35, 1),
+			filter 1.6s ease;
 		-webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
 		mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
 	}
@@ -1660,9 +1729,30 @@
 	/* ── Diagnóstico ───────────────────────────────────── */
 
 	.sv-diag {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
 		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
 		border-top: 1px solid var(--sv-rule);
-		background: var(--sv-bg-2);
+		background: #071a22;
+	}
+	.sv-diag-aurora,
+	.sv-diag-fade {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+	.sv-diag-fade {
+		background:
+			linear-gradient(
+				180deg,
+				#071a22 0%,
+				rgba(7, 26, 34, 0) 26%,
+				rgba(7, 26, 34, 0) 70%,
+				#071a22 100%
+			),
+			radial-gradient(ellipse 60% 55% at 50% 60%, rgba(3, 10, 7, 0.5), transparent 75%);
 	}
 
 	/* La calificación y el formulario van EN PARALELO, no uno tras otro: quien ya
@@ -2351,41 +2441,6 @@
 		text-decoration: underline;
 		text-underline-offset: 3px;
 	}
-	.sv-cap-panel {
-		margin-top: 1rem;
-		padding: clamp(1.4rem, 3vw, 2.2rem);
-		border: 1px solid rgba(127, 227, 245, 0.35);
-		border-radius: var(--gl-r-md);
-		background:
-			radial-gradient(ellipse 60% 80% at 0% 0%, rgba(127, 227, 245, 0.1), transparent 70%),
-			var(--sv-bg-2);
-		animation: sv-panel-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-	}
-	@keyframes sv-panel-in {
-		from {
-			opacity: 0;
-			transform: translateY(-8px);
-		}
-	}
-	.sv-cap-panel-head {
-		display: flex;
-		align-items: baseline;
-		gap: 0.8rem;
-		margin-bottom: 1.2rem;
-	}
-	.sv-cap-panel-head .sv-cap-title {
-		flex: 1;
-	}
-	.sv-cap-cerrar {
-		padding: 0.35rem 0.8rem;
-		border: 1px solid var(--sv-rule);
-		border-radius: 999px;
-		background: none;
-		font: inherit;
-		font-size: 0.8rem;
-		color: var(--sv-text-muted);
-		cursor: pointer;
-	}
 	.sv-cap-panel-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -2414,27 +2469,11 @@
 		background: var(--sv-accent);
 	}
 
-	/* ── Cómo trabajamos: la luz recorre la imagen ────── */
-	.sv-lab-luz {
-		position: absolute;
-		z-index: 1;
-		left: var(--x);
-		top: var(--y);
-		width: 26%;
-		aspect-ratio: 1;
-		translate: -50% -50%;
-		border-radius: 50%;
-		background: radial-gradient(
-			circle,
-			rgba(127, 245, 255, 0.45),
-			rgba(0, 255, 198, 0.12) 45%,
-			transparent 70%
-		);
-		mix-blend-mode: screen;
-		pointer-events: none;
-		transition:
-			left 1.2s cubic-bezier(0.65, 0, 0.35, 1),
-			top 1.2s cubic-bezier(0.65, 0, 0.35, 1);
+	/* ── Cómo trabajamos: la cámara se acerca a cada etapa ── */
+	.sv-lab-lienzo img.sv-lab-zoom {
+		transform-origin: var(--x) var(--y);
+		transform: scale(1.55);
+		filter: brightness(1.08) saturate(1.1);
 	}
 	.sv-flow-step {
 		transition:
@@ -2463,8 +2502,74 @@
 		.sv-close-figura img {
 			animation: none;
 		}
-		.sv-lab-luz {
+		.sv-lab-lienzo img {
 			transition: none;
 		}
+	}
+
+	/* ── Ventana de detalle técnico ───────────────────── */
+	.sv-modal {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		display: grid;
+		place-items: center;
+		padding: clamp(1rem, 4vw, 3rem);
+		background: rgba(2, 10, 14, 0.62);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+	}
+	.sv-modal-card {
+		position: relative;
+		width: min(1040px, 100%);
+		max-height: min(86vh, 900px);
+		overflow-y: auto;
+		padding: clamp(1.6rem, 3.5vw, 2.8rem);
+		border: 1px solid rgba(127, 227, 245, 0.35);
+		border-radius: 24px;
+		background:
+			radial-gradient(ellipse 60% 50% at 0% 0%, rgba(127, 227, 245, 0.12), transparent 70%),
+			var(--sv-bg-2);
+		box-shadow:
+			0 40px 120px rgba(0, 0, 0, 0.6),
+			0 0 0 1px rgba(127, 227, 245, 0.08);
+	}
+	.sv-modal-cerrar {
+		position: sticky;
+		top: 0;
+		float: right;
+		width: 40px;
+		height: 40px;
+		border: 1px solid var(--sv-rule);
+		border-radius: 50%;
+		background: rgba(7, 26, 34, 0.9);
+		font-size: 1rem;
+		color: var(--sv-text, #f4f1e8);
+		cursor: pointer;
+	}
+	.sv-modal-cerrar:hover {
+		border-color: rgba(127, 227, 245, 0.6);
+	}
+	.sv-modal-title {
+		margin: 0.3rem 0 0.6rem;
+		font-size: clamp(1.6rem, 3vw, 2.3rem);
+		color: var(--sv-text, #f4f1e8);
+	}
+	.sv-modal-promise {
+		margin: 0 0 0.6rem;
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: var(--sv-accent);
+	}
+	.sv-modal-intro {
+		max-width: 70ch;
+		margin: 0 0 1.8rem;
+		line-height: 1.65;
+		color: var(--sv-text-muted);
+	}
+	.sv-modal-pie {
+		margin-top: 2rem;
+		padding-top: 1.4rem;
+		border-top: 1px solid var(--sv-rule);
 	}
 </style>
