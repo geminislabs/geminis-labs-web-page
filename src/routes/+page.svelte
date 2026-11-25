@@ -49,6 +49,13 @@
 	let futuroNear = false;
 	let tcFlowNear = false;
 	let contactNear = false;
+	/** Nube del hero: la aurora del cierre, solo en verdes. */
+	const HERO_NUBE = {
+		key: 'hero-nube',
+		mode: 'aurora',
+		colors: ['#000000', '#0a4a30', '#1f8a55', '#7dffc0'],
+		intensity: 0.75
+	};
 	/** Aurora verde y dorada del cierre de la experiencia. */
 	const CONTACT_AURORA = {
 		key: 'contacto',
@@ -630,6 +637,12 @@
 	<div class="hero-video-bottom-fade" aria-hidden="true"></div>
 	<div class="hero-scanlines" aria-hidden="true"></div>
 	<div class="hero-right-glow" aria-hidden="true"></div>
+
+	<!-- Nube verde (aurora del cierre, solo en verdes) que sube desde abajo, a todo lo ancho.
+	     Se mezcla en modo «pantalla»: aparece donde el video es negro y parece estar detrás del rostro. -->
+	<div class="hero-nube" aria-hidden="true">
+		<ShaderBackground preset={HERO_NUBE} contained lite={isMobile} />
+	</div>
 
 	{#if showHeroParticles}
 		<HeroParticles />
@@ -2868,6 +2881,25 @@
 		50% {
 			opacity: 1;
 		}
+	}
+
+	.hero-nube {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 62%;
+		z-index: 3;
+		pointer-events: none;
+		mix-blend-mode: screen;
+		-webkit-mask-image: linear-gradient(
+			to top,
+			transparent 0%,
+			#000 14%,
+			#000 34%,
+			transparent 100%
+		);
+		mask-image: linear-gradient(to top, transparent 0%, #000 14%, #000 34%, transparent 100%);
 	}
 
 	.hero-video-bottom-fade {
