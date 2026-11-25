@@ -179,6 +179,32 @@
 	];
 	let etapaActiva = -1;
 
+	// ── Capacidades: un color por capacidad ───────────────────────────────
+	const CAP_COLOR = {
+		'consultoria-estrategia': '56, 232, 255',
+		'software-cloud': '96, 150, 255',
+		'ai-data': '176, 128, 255',
+		'iot-hardware': '62, 224, 128',
+		'industria-automatizacion': '255, 182, 72',
+		'soluciones-integrales': '0, 214, 190'
+	};
+
+	// ── Fondos animados de la presentación, uno por sección ───────────────
+	const SEDA = {
+		key: 'servicios-seda',
+		mode: 'silk',
+		colors: ['#04121a', '#0a2a4a', '#1d6fa3', '#9ad8ff'],
+		intensity: 0.45
+	};
+	const ESCENARIO = {
+		key: 'servicios-escenario',
+		mode: 'stage',
+		colors: ['#02070a', '#9cc8ff', '#7dffc0', '#6a8cb0'],
+		intensity: 0.55
+	};
+	let puertasCerca = false;
+	let labCerca = false;
+
 	// ── Capacidades: índice que sigue a la lectura ────────────────────────
 	let capActiva = 0;
 	/** Marca como activa la capacidad que cruza la franja central de la ventana. */
@@ -342,6 +368,9 @@
 
 	<!-- ── TRES FORMAS DE TRABAJAR CON NOSOTROS ──────────── -->
 	<section class="sv-doors" id="doors">
+		<div class="sv-fondo" aria-hidden="true" use:cercano={() => (puertasCerca = true)}>
+			{#if puertasCerca}<ShaderBackground preset={SEDA} contained />{/if}
+		</div>
 		<!-- La superficie sobre la que se apoyan las dos puertas. Decorativa: lo que
 		     dice ya está en el texto, así que queda fuera del árbol de accesibilidad. -->
 		<svg
@@ -514,6 +543,15 @@
 	<!-- Seis capacidades a la vista, con la promesa en lenguaje de negocio. El
 	     detalle técnico (los ~170 ítems) queda plegado para quien lo quiera. -->
 	<section class="sv-caps" id="capacidades" aria-labelledby="sv-caps-title">
+		<!-- El fondo toma el color de la capacidad que se está leyendo. -->
+		{#each services as cap, i (cap.slug)}
+			<span
+				class="sv-caps-tinte"
+				class:on={capActiva === i}
+				style="--cap: {CAP_COLOR[cap.slug]}"
+				aria-hidden="true"
+			></span>
+		{/each}
 		<div class="sv-container">
 			<header class="sv-head">
 				<p class="sv-overline">Qué hacemos</p>
@@ -532,6 +570,7 @@
 							<li>
 								<a
 									href="#cap-{cap.slug}"
+									style="--cap: {CAP_COLOR[cap.slug]}"
 									class:is-activa={capActiva === i}
 									aria-current={capActiva === i ? 'true' : undefined}
 								>
@@ -547,6 +586,7 @@
 						<article
 							class="sv-ledger-item"
 							id="cap-{cap.slug}"
+							style="--cap: {CAP_COLOR[cap.slug]}; --celda: rgb({CAP_COLOR[cap.slug]})"
 							class:is-activa={capActiva === i}
 							use:espiar={i}
 						>
@@ -581,6 +621,9 @@
 
 	<!-- ── INNOVATION LAB ────────────────────────────────── -->
 	<section class="sv-lab" id="como-trabajamos">
+		<div class="sv-fondo" aria-hidden="true" use:cercano={() => (labCerca = true)}>
+			{#if labCerca}<ShaderBackground preset={ESCENARIO} contained />{/if}
+		</div>
 		<div class="sv-container sv-lab-inner">
 			<div class="sv-lab-copy">
 				<p class="sv-overline">Cómo trabajamos</p>
@@ -1282,8 +1325,9 @@
 	.sv-doors {
 		position: relative;
 		isolation: isolate;
+		overflow: hidden;
 		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
-		background: var(--sv-bg-2);
+		background: #04121a;
 		border-top: 1px solid var(--sv-rule);
 	}
 
@@ -1572,7 +1616,11 @@
 	/* ── Innovation Lab ────────────────────────────────── */
 
 	.sv-lab {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
 		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
+		background: #02070a;
 	}
 
 	/*
@@ -1907,7 +1955,7 @@
 		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
 		border-top: 1px solid var(--sv-rule);
 		background:
-			radial-gradient(ellipse at 50% 100%, rgba(8, 131, 160, 0.22), transparent 62%), var(--sv-bg);
+			radial-gradient(ellipse at 50% 100%, rgba(8, 131, 160, 0.22), transparent 62%), #04121a;
 	}
 
 	/* Dos columnas: el texto ocupaba la mitad izquierda y la derecha quedaba
@@ -2066,7 +2114,42 @@
 
 	/* ── Capacidades en bento ─────────────────────────── */
 	.sv-caps {
+		position: relative;
+		isolation: isolate;
+		/* clip y no hidden: hidden crea un contenedor de scroll y rompe el índice fijo. */
+		overflow: clip;
 		padding: clamp(3.5rem, 7vw, 6rem) 0;
+		background: #03080b;
+	}
+	/* Seis capas de color; solo se ve la de la capacidad activa (fundido). */
+	.sv-caps-tinte {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		background:
+			radial-gradient(ellipse 55% 45% at 72% 40%, rgba(var(--cap), 0.16), transparent 70%),
+			radial-gradient(ellipse 40% 50% at 8% 80%, rgba(var(--cap), 0.08), transparent 70%);
+		opacity: 0;
+		transition: opacity 1.2s ease;
+	}
+	.sv-caps-tinte.on {
+		opacity: 1;
+	}
+	/* Fondo animado de la presentación, detrás del contenido de una sección. */
+	.sv-fondo {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		-webkit-mask-image: linear-gradient(
+			180deg,
+			transparent 0%,
+			#000 18%,
+			#000 82%,
+			transparent 100%
+		);
+		mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
 	}
 	.sv-cap-num {
 		margin: 0;
@@ -2136,6 +2219,7 @@
 	/* ── Preguntas frecuentes ─────────────────────────── */
 	.sv-faq {
 		padding: clamp(3.5rem, 7vw, 6rem) 0 clamp(2rem, 4vw, 3rem);
+		background: #03080b;
 	}
 	.sv-faq-inner {
 		display: grid;
@@ -2569,6 +2653,40 @@
 		.sv-ledger-figura,
 		.sv-ledger-index a::before {
 			transition: none;
+		}
+	}
+
+	/* ── Capacidades: cada una con su color ───────────── */
+	.sv-ledger-index a::before {
+		background: rgb(var(--cap));
+		box-shadow: 0 0 12px rgb(var(--cap));
+	}
+	.sv-ledger-n,
+	.sv-ledger-item .sv-cap-num {
+		color: rgb(var(--cap));
+	}
+	.sv-ledger-promise,
+	.sv-ledger-cta {
+		color: rgb(var(--cap));
+	}
+	.sv-ledger-item {
+		background:
+			radial-gradient(ellipse 70% 60% at 100% 0%, rgba(var(--cap), 0.1), transparent 70%),
+			rgba(8, 20, 28, 0.82);
+	}
+	.sv-ledger-item.is-activa {
+		border-color: rgba(var(--cap), 0.45);
+		box-shadow: 0 0 60px rgba(var(--cap), 0.08);
+	}
+	.sv-ledger-item .sv-cap-lista li::before {
+		background: rgb(var(--cap));
+	}
+	.sv-ledger-figura {
+		filter: drop-shadow(0 0 16px rgba(var(--cap), 0.35));
+	}
+	@media (max-width: 900px) {
+		.sv-ledger-index a.is-activa {
+			box-shadow: inset 0 0 0 1px rgb(var(--cap));
 		}
 	}
 </style>
