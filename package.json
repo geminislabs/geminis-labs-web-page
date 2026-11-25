@@ -74,7 +74,7 @@
 		"@opentelemetry/sdk-metrics": "^3.1.1",
 		"@opentelemetry/sdk-trace": "^3.1.1",
 		"@opentelemetry/semantic-conventions": "^1.45.0",
-		"@stripe/stripe-js": "^9.16.0",
+		"@stripe/stripe-js": "^10.3.0",
 		"pixi.js": "^7.4.3",
 		"three": "0.170.0"
 	},
