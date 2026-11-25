@@ -37,6 +37,14 @@
 	let tick = $state(0);
 
 	const at = (k) => (active + k + ITEMS.length) % ITEMS.length;
+	/** Lugar de cada teléfono en el montón: 0 al frente, ±1 detrás a los lados, el resto oculto. */
+	function slot(i) {
+		const d = (i - active + ITEMS.length) % ITEMS.length;
+		if (d === 0) return 'front';
+		if (d === 1) return 'right';
+		if (d === ITEMS.length - 1) return 'left';
+		return 'hidden';
+	}
 
 	function pick(i) {
 		active = i;
@@ -89,22 +97,18 @@
 
 	<div class="as-stage" aria-live="polite">
 		<div class="as-glow" aria-hidden="true"></div>
-		<figure class="as-phone as-back as-left" aria-hidden="true">
-			<img src="{BASE}/{ITEMS[at(-1)].img}.webp" alt="" loading="lazy" />
-		</figure>
-		<figure class="as-phone as-back as-right" aria-hidden="true">
-			<img src="{BASE}/{ITEMS[at(1)].img}.webp" alt="" loading="lazy" />
-		</figure>
-		<figure class="as-phone as-front">
+		<div class="as-deck">
 			{#each ITEMS as it, i (it.img)}
-				<img
-					src="{BASE}/{it.img}.webp"
-					alt="Nexus — {it.t}"
-					class:on={active === i}
-					loading="lazy"
-				/>
+				{@const sl = slot(i)}
+				<figure
+					class="as-phone as-{sl}"
+					class:entering={sl === 'front'}
+					aria-hidden={sl !== 'front'}
+				>
+					<img src="{BASE}/{it.img}.webp" alt={sl === 'front' ? `Nexus — ${it.t}` : ''} />
+				</figure>
 			{/each}
-		</figure>
+		</div>
 		<p class="as-caption">
 			<strong>{ITEMS[active].t}</strong>
 			<span>{ITEMS[active].d}</span>
@@ -210,7 +214,15 @@
 		);
 		filter: blur(30px);
 	}
+	.as-deck {
+		position: relative;
+		z-index: 2;
+		width: min(290px, 70vw);
+		aspect-ratio: 9 / 19.5;
+	}
 	.as-phone {
+		position: absolute;
+		inset: 0;
 		margin: 0;
 		overflow: hidden;
 		border: 8px solid #0b1220;
@@ -219,6 +231,10 @@
 		box-shadow:
 			0 30px 70px rgba(13, 27, 46, 0.35),
 			inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+		transition:
+			transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 0.6s ease,
+			filter 0.6s ease;
 	}
 	.as-phone img {
 		display: block;
@@ -228,40 +244,45 @@
 		object-position: top;
 	}
 	.as-front {
-		position: relative;
-		z-index: 2;
-		width: min(290px, 70vw);
-		aspect-ratio: 9 / 19.5;
-	}
-	.as-front img {
-		position: absolute;
-		inset: 0;
-		opacity: 0;
-		transform: scale(1.03);
-		transition:
-			opacity 0.6s ease,
-			transform 0.8s ease;
-	}
-	.as-front img.on {
-		opacity: 1;
+		z-index: 3;
 		transform: none;
 	}
-	.as-back {
-		position: absolute;
-		top: 50%;
-		z-index: 1;
-		width: min(220px, 52vw);
-		aspect-ratio: 9 / 19.5;
+	.as-right {
+		z-index: 2;
 		opacity: 0.55;
 		filter: saturate(0.8);
+		transform: translate(62%, -3%) rotate(8deg) scale(0.76);
 	}
 	.as-left {
-		left: 50%;
-		transform: translate(-118%, -54%) rotate(-8deg);
+		z-index: 2;
+		opacity: 0.55;
+		filter: saturate(0.8);
+		transform: translate(-62%, -3%) rotate(-8deg) scale(0.76);
 	}
-	.as-right {
-		left: 50%;
-		transform: translate(18%, -54%) rotate(8deg);
+	.as-hidden {
+		z-index: 1;
+		opacity: 0;
+		transform: translate(0, -2%) scale(0.7);
+		pointer-events: none;
+	}
+	/* El teléfono que pasa al frente sale del montón por un lado y luego se acomoda. */
+	.as-phone.entering {
+		animation: as-pull 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	@keyframes as-pull {
+		0% {
+			transform: translate(62%, -3%) rotate(8deg) scale(0.76);
+			opacity: 0.55;
+		}
+		45% {
+			transform: translate(118%, -9%) rotate(16deg) scale(0.86);
+			opacity: 1;
+			z-index: 3;
+		}
+		100% {
+			transform: none;
+			opacity: 1;
+		}
 	}
 	.as-caption {
 		position: relative;
@@ -289,8 +310,9 @@
 			order: -1;
 			min-height: 0;
 		}
-		.as-back {
-			display: none;
+		.as-left,
+		.as-right {
+			opacity: 0;
 		}
 	}
 	@media (max-width: 520px) {
@@ -299,9 +321,12 @@
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.as-front img,
+		.as-phone,
 		.as-list button {
 			transition: none;
+		}
+		.as-phone.entering {
+			animation: none;
 		}
 		.as-bar {
 			display: none;

@@ -4892,6 +4892,38 @@
 		}
 	}
 
+	/* Pantalla completa (≥640px): el mapa llena la ventana y los textos se quedan en
+	   un marco centrado de 1300px, así no se separan en pantallas gigantes. */
+	@media (min-width: 640px) {
+		.futuro-section {
+			height: 100vh;
+			min-height: 620px;
+			padding: 0;
+		}
+		.futuro-content {
+			max-width: none;
+			height: 100%;
+			padding: 0;
+		}
+		.futuro-video-container {
+			height: 100%;
+			aspect-ratio: auto;
+			border-radius: 0;
+			box-shadow: none;
+		}
+		.futuro-title-overlay {
+			left: max(2rem, calc((100% - 1300px) / 2));
+			right: 50%;
+			justify-content: center;
+			padding: 0;
+		}
+		.futuro-text-panel {
+			right: max(2rem, calc((100% - 1300px) / 2));
+			width: min(42%, 540px);
+			padding: 0 0 0 3rem;
+		}
+	}
+
 	/* Tablet */
 	@media (max-width: 1023px) {
 		.futuro-title {
