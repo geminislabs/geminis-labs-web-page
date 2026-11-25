@@ -1,43 +1,21 @@
 <script>
 	import { onMount } from 'svelte';
 
-	/**
-	 * Efecto de mosaico que se desplaza alrededor del mouse. `source` puede ser
-	 * un <video> o un <canvas> (por ejemplo, el shader de aurora del hero).
-	 */
-	let {
-		source = null,
-		opacity = 0.58,
-		tileW = 72,
-		tileH = 58,
-		radius = 420,
-		/** Desenfoque (px) de los cuadros desplazados; 0 = sin desenfoque. */
-		blur = 0,
-		/** Segunda fuente animada (lienzo) mezclada en modo pantalla sobre la primera. */
-		overlay = null,
-		overlayAlpha = 0.5
-	} = $props();
-
 	let canvas;
 
 	onMount(() => {
-		const videoEl = source || document.querySelector('video.hero-bg-video');
+		const videoEl = document.querySelector('video.hero-bg-video');
 		if (!videoEl) return;
-		const isVideo = videoEl instanceof HTMLVideoElement;
-		const isImage = videoEl instanceof HTMLImageElement;
 
 		const ctx = canvas.getContext('2d');
 		const buf = document.createElement('canvas');
 		const bctx = buf.getContext('2d');
 
-		const TILE_W = tileW;
-		const TILE_H = tileH;
-		const MAX_OX = 220 * (tileW / 72);
-		const MAX_OY = 170 * (tileH / 58);
-		const EFFECT_R = radius;
-		// Capa de los cuadros desplazados: se desenfoca de una sola vez.
-		const fx = document.createElement('canvas');
-		const fctx = fx.getContext('2d');
+		const TILE_W = 72;
+		const TILE_H = 58;
+		const MAX_OX = 220;
+		const MAX_OY = 170;
+		const EFFECT_R = 420;
 
 		let mouseX = -9999,
 			mouseY = -9999;
@@ -61,9 +39,7 @@
 						cy: r * TILE_H + TILE_H * 0.5,
 						// Fixed random offsets per tile — where to sample from
 						ox: (Math.random() - 0.5) * MAX_OX * 2,
-						oy: (Math.random() - 0.5) * MAX_OY * 2,
-						// Alcance propio de cada cuadro: el área del efecto no es un círculo.
-						k: 0.45 + Math.random() * 0.95
+						oy: (Math.random() - 0.5) * MAX_OY * 2
 					});
 				}
 			}
@@ -72,8 +48,8 @@
 		function resize() {
 			const rect = canvas.parentElement?.getBoundingClientRect();
 			if (!rect) return;
-			cw = canvas.width = fx.width = Math.round(rect.width);
-			ch = canvas.height = fx.height = Math.round(rect.height);
+			cw = canvas.width = Math.round(rect.width);
+			ch = canvas.height = Math.round(rect.height);
 			buildTiles(cw, ch);
 		}
 		resize();
@@ -97,14 +73,13 @@
 
 		function drawFrame() {
 			animId = requestAnimationFrame(drawFrame);
-			if (!videoEl || (isVideo && videoEl.readyState < 2) || !cw || !ch) return;
-			if (isImage && !videoEl.complete) return;
+			if (!videoEl || videoEl.readyState < 2 || !cw || !ch) return;
 
 			// Replicate object-fit:cover into the buffer
 			buf.width = cw;
 			buf.height = ch;
-			const vw = isVideo ? videoEl.videoWidth : isImage ? videoEl.naturalWidth : videoEl.width,
-				vh = isVideo ? videoEl.videoHeight : isImage ? videoEl.naturalHeight : videoEl.height;
+			const vw = videoEl.videoWidth,
+				vh = videoEl.videoHeight;
 			if (!vw || !vh) return;
 
 			const vr = vw / vh,
@@ -124,13 +99,6 @@
 				srcY = (vh - srcH) * 0.5;
 			}
 			bctx.drawImage(videoEl, srcX, srcY, srcW, srcH, 0, 0, cw, ch);
-			if (overlay && overlay.width && overlay.height) {
-				bctx.globalCompositeOperation = 'screen';
-				bctx.globalAlpha = overlayAlpha;
-				bctx.drawImage(overlay, 0, 0, cw, ch);
-				bctx.globalAlpha = 1;
-				bctx.globalCompositeOperation = 'source-over';
-			}
 
 			// Smooth ease in/out
 			glitchActive += (glitchTarget - glitchActive) * 0.12;
@@ -139,11 +107,6 @@
 
 			if (glitchActive < 0.015) {
 				ctx.drawImage(buf, 0, 0);
-				return;
-			}
-
-			if (blur > 0) {
-				drawBlurred();
 				return;
 			}
 
@@ -171,41 +134,6 @@
 			}
 		}
 
-		/**
-		 * Variante con desenfoque, como el original: cada cuadro cercano al cursor
-		 * se desplaza y se encoge dejando huecos negros nítidos; solo el contenido
-		 * de los cuadros se ve desenfocado.
-		 */
-		function drawBlurred() {
-			ctx.drawImage(buf, 0, 0);
-			// Copia desenfocada del fondo, de una sola pasada.
-			fctx.clearRect(0, 0, cw, ch);
-			fctx.filter = `blur(${blur}px)`;
-			fctx.drawImage(buf, 0, 0);
-			fctx.filter = 'none';
-			const maxGap = Math.max(4, TILE_W * 0.16);
-			for (const t of tiles) {
-				const dist = Math.hypot(t.cx - mouseX, t.cy - mouseY);
-				const str = Math.max(0, 1 - dist / (EFFECT_R * t.k)) * glitchActive;
-				if (str < 0.01) continue;
-				const srcTX = Math.max(0, Math.min(t.x + t.ox * str, cw - TILE_W));
-				const srcTY = Math.max(0, Math.min(t.y + t.oy * str, ch - TILE_H));
-				const gap = str * maxGap;
-				const dx = t.x + gap / 2;
-				const dy = t.y + gap / 2;
-				const dw = Math.max(1, TILE_W - gap);
-				const dh = Math.max(1, TILE_H - gap);
-				// Hueco negro que crece con la intensidad, como en el original.
-				ctx.fillStyle = '#000006';
-				ctx.fillRect(t.x, t.y, TILE_W, TILE_H);
-				ctx.drawImage(buf, srcTX, srcTY, TILE_W, TILE_H, dx, dy, dw, dh);
-				// El desenfoque entra en proporción a la intensidad.
-				ctx.globalAlpha = Math.min(1, str * 1.6);
-				ctx.drawImage(fx, srcTX, srcTY, TILE_W, TILE_H, dx, dy, dw, dh);
-				ctx.globalAlpha = 1;
-			}
-		}
-
 		drawFrame();
 
 		return () => {
@@ -217,7 +145,7 @@
 	});
 </script>
 
-<canvas bind:this={canvas} class="glitch-canvas" style="opacity:{opacity}"></canvas>
+<canvas bind:this={canvas} class="glitch-canvas"></canvas>
 
 <style>
 	.glitch-canvas {
@@ -227,6 +155,7 @@
 		height: 100%;
 		z-index: 1;
 		pointer-events: none;
+		opacity: 0.58;
 		filter: contrast(1.08) saturate(0.82);
 	}
 </style>

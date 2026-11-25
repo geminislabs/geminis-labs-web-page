@@ -1,20 +1,9 @@
 <script>
-	/** Fuentes del fondo del hero: cielo profundo + aurora del cierre de la experiencia. */
-	let heroBg = null;
-	let heroAurora = null;
-	const HERO_AURORA = {
-		key: 'hero-aurora',
-		mode: 'aurora',
-		colors: ['#030a07', '#1f7a4a', '#c9a74a', '#eaffe0'],
-		intensity: 0.85
-	};
-
 	import { onMount } from 'svelte';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
 	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
-	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import ExperienceWorld from '$lib/components/experiencia/ExperienceWorld.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
@@ -530,32 +519,23 @@
 
 <!-- Sección Hero -->
 <section id="inicio" class="hero-particle-section">
-	<!-- Fondo: el cielo profundo original (sin video) con la aurora animada encima, en
-	     transparencia. El mosaico del mouse se dibuja sobre la mezcla. -->
-	<img
-		bind:this={heroBg}
-		src="/img/deepspace.webp"
-		alt=""
-		class="hero-bg-source"
-		aria-hidden="true"
-	/>
-	<ShaderBackground preset={HERO_AURORA} contained lite={isMobile} bind:element={heroAurora} />
-	{#if heroBg && heroAurora}
-		<HeroGlitch
-			source={heroBg}
-			overlay={heroAurora}
-			overlayAlpha={0.55}
-			opacity={1}
-			tileW={40}
-			tileH={32}
-			radius={336}
-			blur={7}
-		/>
-	{/if}
+	<!-- Video original oculto — HeroGlitch lo dibuja en canvas con el efecto -->
+	<video
+		class="hero-bg-video"
+		src="/vid/cyberhuman-hero.mp4"
+		autoplay
+		muted
+		loop
+		playsinline
+		on:loadedmetadata={(e) => (e.currentTarget.playbackRate = 0.85)}
+	></video>
+	<HeroGlitch />
 
 	<!-- Capas de atmósfera visual -->
 	<div class="hero-vignette" aria-hidden="true"></div>
+	<div class="hero-video-fade" aria-hidden="true"></div>
 	<div class="hero-video-bottom-fade" aria-hidden="true"></div>
+	<div class="hero-scanlines" aria-hidden="true"></div>
 	<div class="hero-right-glow" aria-hidden="true"></div>
 
 	{#if showHeroParticles}
@@ -3281,7 +3261,36 @@
 		justify-content: center;
 	}
 
+	.hero-bg-video {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center center;
+		z-index: 0;
+		pointer-events: none;
+		opacity: 0; /* HeroGlitch canvas maneja el display */
+	}
+
 	/* Gradiente izquierda → legibilidad del texto */
+	.hero-video-fade {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 100%;
+		background: linear-gradient(
+			to right,
+			rgba(0, 0, 0, 0.82) 0%,
+			rgba(0, 0, 0, 0.55) 32%,
+			rgba(0, 0, 0, 0.18) 58%,
+			transparent 100%
+		);
+		z-index: 2;
+		pointer-events: none;
+	}
 
 	/* Viñeta radial para enfocar la atención */
 	.hero-vignette {
@@ -3297,6 +3306,19 @@
 	}
 
 	/* Scanlines — textura CRT sutil */
+	.hero-scanlines {
+		position: absolute;
+		inset: 0;
+		z-index: 4;
+		pointer-events: none;
+		background: repeating-linear-gradient(
+			0deg,
+			transparent 0px,
+			transparent 3px,
+			rgba(0, 0, 0, 0.06) 3px,
+			rgba(0, 0, 0, 0.06) 4px
+		);
+	}
 
 	/* Resplandor verde suave en el lado del logo */
 	.hero-right-glow {
@@ -3386,23 +3408,17 @@
 	}
 
 	/* ── Hero móvil: solo logo centrado ──────────────────────── */
-	/* Solo es la fuente del mosaico: el lienzo la dibuja encima. */
-	.hero-bg-source {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		opacity: 0;
-		pointer-events: none;
-	}
-
 	.hero-mobile-logo {
 		display: none; /* oculto en desktop */
 	}
 
 	@media (max-width: 600px) {
 		/* Ocultar todas las capas animadas y el canvas de título */
+		.hero-bg-video,
 		.hero-vignette,
+		.hero-video-fade,
 		.hero-video-bottom-fade,
+		.hero-scanlines,
 		.hero-right-glow,
 		.hero-text-overlay {
 			display: none !important;
