@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Hero de la página principal en celular.** Ya no carga ni muestra el video del rostro (ni su efecto de mosaico): queda el cielo, la nube verde fundida sin bordes y el logo. La página pesa menos en datos móviles
 - **Pantallas ultrawide.** En Nexus (hero, «Cómo funciona», «Tu ciudad, con contexto geoespacial») y en el hero de Servicios, el visual se acomodaba respecto a toda la ventana y se iba a la orilla derecha, lejos del texto. Ahora se acomoda dentro del mismo marco centrado que el texto; en pantallas normales no cambia nada
 
 ## [1.19.0] — 2026-11-25
