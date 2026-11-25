@@ -52,7 +52,7 @@
 
 		<div class="h3c-inner">
 			<p class="h3c-kicker">Indexación geoespacial H3</p>
-			<h2 class="h3c-title" id="h3c-title">Querétaro, con contexto geoespacial.</h2>
+			<h2 class="h3c-title" id="h3c-title">Tu ciudad, con contexto geoespacial.</h2>
 
 			{#key beat}
 				<div class="h3c-step">
