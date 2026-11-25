@@ -1,147 +1,10 @@
 <script>
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
-	import {
-		services,
-		processSteps,
-		diagnosticoSituaciones,
-		diagnosticoFrentes,
-		celdasPanal,
-		PANAL_ALTO
-	} from '$lib/data/services.js';
-	import { onMount, onDestroy } from 'svelte';
-	import Figura from '$lib/components/FiguraCapacidad.svelte';
+	import { services, diagnosticoSituaciones, diagnosticoFrentes } from '$lib/data/services.js';
+	import { onMount } from 'svelte';
 	import HoloForge from '$lib/components/HoloForge.svelte';
 	import { cargarRecaptcha, enviarContacto, validarContacto } from '$lib/contacto.js';
-
-	// ── Panal de capacidades ──────────────────────────────────────────────
-	const celdas = celdasPanal(services);
-
-	let activa = services[0].slug;
-	$: celdaActiva = celdas.find((c) => c.slug === activa);
-
-	/*
-	 * El cambio de capacidad se hace en DOS TIEMPOS: primero se desvanece lo que
-	 * hay, y solo cuando está invisible se sustituye por lo nuevo, que entra
-	 * apareciendo.
-	 *
-	 * No es solo suavidad. Las capacidades varían cientos de píxeles de alto, así
-	 * que el cambio desplaza todo lo que viene debajo; haciéndolo con el contenido
-	 * ya en opacidad cero, el salto de maquetación ocurre cuando no hay nada que
-	 * ver y deja de leerse como un tirón.
-	 */
-	const SALIDA_MS = 170;
-	let saliendo = false;
-	let relevo = 0;
-
-	const sinMovimiento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-	/** Cambia de capacidad con el relevo, sin tocar la ronda. */
-	function cambiar(slug) {
-		if (slug === activa) return;
-
-		// Con movimiento reducido el cambio es inmediato: el desvanecido es
-		// precisamente el movimiento que esa preferencia pide quitar.
-		if (sinMovimiento()) {
-			activa = slug;
-			return;
-		}
-
-		// Un solo relevo en vuelo: pulsar rápido varias celdas no debe encadenar
-		// desvanecidos ni dejar el panel apagado al terminar.
-		clearTimeout(relevo);
-		saliendo = true;
-		relevo = setTimeout(() => {
-			activa = slug;
-			saliendo = false;
-		}, SALIDA_MS);
-	}
-
-	/*
-	 * La ronda en reposo: el panal se explica solo hasta que alguien lo toca, y
-	 * entonces PARA PARA SIEMPRE.
-	 *
-	 * No es un carrusel. Un carrusel sigue girando mientras lees; aquí el gesto
-	 * del visitante ES la pausa, es permanente, y basta con entrar al módulo con
-	 * el puntero o con el foco — no hay que acertarle a un control. Eso cumple lo
-	 * que pide WCAG 2.2.2 para cualquier cosa que se auto-actualice.
-	 *
-	 * El intervalo cuenta desde que ARRANCA el relevo, así que los 620 ms que
-	 * tarda en desvanecerse y volver a aparecer salen del tiempo de lectura: de
-	 * los 4400, se leen unos 3800.
-	 */
-	const RONDA_MS = 4400;
-	let ronda = 0;
-
-	function detenerRonda() {
-		if (ronda) {
-			clearInterval(ronda);
-			ronda = 0;
-		}
-	}
-
-	function arrancarRonda() {
-		if (sinMovimiento()) return;
-		ronda = setInterval(() => {
-			const i = services.findIndex((s) => s.slug === activa);
-			cambiar(services[(i + 1) % services.length].slug);
-		}, RONDA_MS);
-	}
-
-	function elegir(slug) {
-		detenerRonda();
-		cambiar(slug);
-	}
-
-	/**
-	 * Detiene la ronda cuando el puntero o el foco entran en el módulo.
-	 *
-	 * Va como acción y no como `on:` porque el contenedor NO es interactivo: no
-	 * responde a nada, solo escucha para apagar una animación. Declararlo con
-	 * manejadores en la plantilla obliga a darle un rol ARIA que sería mentira, y
-	 * el rol de verdad —`tablist`— está donde tiene que estar, en las celdas.
-	 */
-	function alEngancharse(nodo) {
-		nodo.addEventListener('pointerenter', detenerRonda);
-		nodo.addEventListener('focusin', detenerRonda);
-		return {
-			destroy() {
-				nodo.removeEventListener('pointerenter', detenerRonda);
-				nodo.removeEventListener('focusin', detenerRonda);
-			}
-		};
-	}
-
-	onDestroy(() => {
-		clearTimeout(relevo);
-		detenerRonda();
-	});
-
-	/** El color de rampa de una celda, para teñir su banda de detalle. */
-	const colorDe = (slug) => celdas.find((c) => c.slug === slug)?.color;
-
-	/*
-	 * Flechas para moverse entre celdas, Inicio y Fin para los extremos: es lo que
-	 * un grupo de pestañas debe hacer, y sin esto el teclado tendría que tabular
-	 * seis veces para llegar a la última.
-	 */
-	function mover(evento) {
-		const saltos = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
-		const i = services.findIndex((s) => s.slug === activa);
-		let destino = null;
-
-		if (evento.key in saltos)
-			destino = (i + saltos[evento.key] + services.length) % services.length;
-		else if (evento.key === 'Home') destino = 0;
-		else if (evento.key === 'End') destino = services.length - 1;
-		if (destino === null) return;
-
-		evento.preventDefault();
-		elegir(services[destino].slug);
-		// El foco sigue a la selección: si se queda atrás, la siguiente flecha
-		// partiría desde donde el visitante ya no está.
-		document.getElementById(`hex-${services[destino].slug}`)?.focus();
-	}
 
 	// ── El suelo de las puertas ───────────────────────────────────────────
 	//
@@ -183,7 +46,6 @@
 
 	onMount(() => {
 		cargarRecaptcha();
-		arrancarRonda();
 	});
 
 	async function enviar(evento) {
@@ -207,6 +69,67 @@
 		acuse = r.mensaje;
 		if (r.ok) datos = { nombre: '', correo_electronico: '', telefono: '', mensaje: '' };
 	}
+
+	// Lo que recibes en cada etapa de un proyecto completo.
+	const etapas = [
+		{ paso: 'Idea', recibes: 'Viabilidad técnica' },
+		{ paso: 'PoC', recibes: 'Prueba que funciona' },
+		{ paso: 'MVP', recibes: 'Primera versión en uso' },
+		{ paso: 'Producto', recibes: 'Versión completa' },
+		{ paso: 'Producción', recibes: 'Operación y soporte' }
+	];
+
+	// Nuestros productos como prueba, con las capacidades que usó cada uno.
+	const pruebas = [
+		{
+			id: 'nexus',
+			name: 'Nexus',
+			mark: '/img/products/mark-nexus.webp',
+			usa: 'IoT · nube · geoespacial · apps',
+			href: '/products/nexus'
+		},
+		{
+			id: 'orion',
+			name: 'Orion',
+			mark: '/img/products/mark-orion.webp',
+			usa: 'API · datos · telecomunicaciones',
+			href: 'https://orion.geminislabs.com/'
+		},
+		{
+			id: 'signum',
+			name: 'Signum',
+			mark: '/img/products/mark-signum.webp',
+			usa: 'Web ligera · bilingüe · alta disponibilidad',
+			href: 'https://signum.geminislabs.com/'
+		}
+	];
+
+	const preguntas = [
+		{
+			q: '¿Cuánto cuesta?',
+			a: 'Depende del alcance. Cotizamos después de una primera conversación o de un diagnóstico, cuando ya entendemos el problema.'
+		},
+		{
+			q: '¿Cuánto tarda un proyecto?',
+			a: 'Depende de lo que haya que resolver. Al cerrar el diagnóstico o la evaluación de la idea te damos un plan por etapas, y cada etapa termina con algo que funciona.'
+		},
+		{
+			q: '¿Firman acuerdo de confidencialidad?',
+			a: 'Sí. Firmamos NDA antes de revisar información de tu empresa.'
+		},
+		{
+			q: '¿Tengo que contratar el proyecto completo?',
+			a: 'No. Puedes empezar por un diagnóstico o por CTO por horas, y decidir después si seguimos juntos.'
+		},
+		{
+			q: '¿Trabajan con lo que ya tenemos?',
+			a: 'Sí. Integramos con tus sistemas, equipos y proveedores actuales; no empezamos de cero si no hace falta.'
+		},
+		{
+			q: '¿Dónde están?',
+			a: 'En Querétaro. Trabajamos de forma remota y presencial según el proyecto.'
+		}
+	];
 
 	// Los seis apartados del documento del diagnóstico. Van en un array y no
 	// sueltos en el marcado para poder escalonar el recorrido de la señal: cada
@@ -333,188 +256,7 @@
 		</div>
 	</section>
 
-	<!-- ── RIEL DE PROCESO ───────────────────────────────── -->
-	<section class="sv-process-wrap" aria-labelledby="sv-process-title">
-		<div class="sv-container">
-			<h2 id="sv-process-title" class="sv-sr-only">Cómo trabajamos</h2>
-			<ol class="sv-process">
-				{#each processSteps as p, i (p.key)}
-					<li class="sv-process-step" style="--i: {i}">
-						<span class="sv-process-node" aria-hidden="true"></span>
-						<span class="sv-process-label">{p.label}</span>
-						<span class="sv-process-desc">{p.desc}</span>
-						{#if i < processSteps.length - 1}
-							<span class="sv-process-line" aria-hidden="true"></span>
-						{/if}
-					</li>
-				{/each}
-			</ol>
-		</div>
-	</section>
-
-	<!-- ── LAS SEIS CAPACIDADES ──────────────────────────── -->
-	<!-- ── PANAL DE CAPACIDADES ──────────────────────────── -->
-	<!--
-		Era una lista de seis filas idénticas: misma altura hasta el decimal, mismo
-		eje, mismo acento. Para distinguir una de otra había que LEERLA, así que el
-		ojo no podía muestrear y el bloque se leía como un solo ladrillo gris.
-
-		Ahora es una sola figura con seis estados, que es lo que el titular afirma.
-		La forma no es adorno: los hexágonos tesela­n, encajan sin dejar huecos, y
-		eso es literalmente lo que dice la capacidad del centro.
-	-->
-	<section class="sv-index" aria-labelledby="sv-index-title">
-		<!--
-			La ronda se detiene al entrar el puntero o el foco en la SECCIÓN entera, y
-			no solo en la fila del panal: la banda de detalle es HERMANA de esa fila, y
-			quien esté leyendo sus ciento setenta y un ítems ya está interactuando
-			aunque no haya tocado una celda. Con el teclado hace aún más falta, porque
-			tabular dentro y que el contenido cambie solo desorienta más que con el
-			ratón.
-		-->
-		<div class="sv-container" use:alEngancharse>
-			<header class="sv-head">
-				<p class="sv-overline">Qué hacemos</p>
-				<h2 id="sv-index-title" class="sv-title">Seis capacidades, una sola casa</h2>
-				<p class="sv-sub">
-					No vendemos horas de programador. Vendemos capacidad de ingeniería: entender el problema,
-					diseñar la tecnología y construir la solución.
-				</p>
-			</header>
-
-			<!-- La ronda se detiene al entrar el puntero o el foco en el módulo, panel
-			     incluido: si alguien está leyendo el detalle ya está interactuando
-			     aunque no haya tocado una celda. Con el teclado hace aún más falta,
-			     porque tabular dentro y que el contenido cambie solo desorienta. -->
-			<div class="sv-panal-layout" style="--celda-activa: {celdaActiva.color}">
-				<!--
-					Pestañas y no botones sueltos: seis controles que gobiernan un mismo
-					panel son exactamente eso, y el patrón trae la navegación por flechas
-					y el `tabindex` móvil que un puñado de `<button>` no tiene.
-				-->
-				<div class="sv-panal" role="tablist" aria-label="Capacidades" style="--alto: {PANAL_ALTO}">
-					{#each celdas as c (c.slug)}
-						<button
-							type="button"
-							role="tab"
-							id="hex-{c.slug}"
-							class="sv-hex"
-							class:is-activa={activa === c.slug}
-							class:sv-hex--centro={c.centro}
-							class:sv-hex--ilustrada={c.imagen}
-							style="--x: {c.x}; --y: {c.y}; --celda: {c.color}"
-							aria-selected={activa === c.slug}
-							aria-controls="panel-{c.slug}"
-							tabindex={activa === c.slug ? 0 : -1}
-							on:click={() => elegir(c.slug)}
-							on:keydown={mover}
-						>
-							{#if c.imagen}
-								<img
-									class="sv-hex-img"
-									src="/img/capacidades/{c.slug}.webp"
-									alt=""
-									width="440"
-									height="440"
-									loading="lazy"
-									decoding="async"
-								/>
-								<span class="sv-hex-velo" aria-hidden="true"></span>
-							{:else}
-								<span class="sv-hex-figura" aria-hidden="true">
-									<Figura slug={c.slug} />
-								</span>
-							{/if}
-							<span class="sv-hex-rotulo">
-								<span class="sv-hex-num" aria-hidden="true">{c.num}</span>
-								<span class="sv-hex-label">{c.corto}</span>
-							</span>
-						</button>
-					{/each}
-				</div>
-
-				<!--
-					Los SEIS paneles van en el DOM, cinco ocultos. Con `{#key}` el servidor
-					mandaba solo la capacidad activa, así que los 171 ítems que esta sección
-					absorbe de las seis páginas borradas no estaban en la página: un Ctrl+F
-					por «LoRaWAN» no lo encontraba salvo que IoT estuviera encendida.
-					`hidden` los saca del árbol de accesibilidad sin sacarlos del documento.
-				-->
-				{#each services as cap (cap.slug)}
-					<div
-						class="sv-panal-detalle"
-						id="panel-{cap.slug}"
-						role="tabpanel"
-						aria-labelledby="hex-{cap.slug}"
-						tabindex="0"
-						class:is-saliendo={saliendo}
-						hidden={activa !== cap.slug}
-					>
-						<p class="sv-detalle-num">{cap.num}</p>
-						<h3 class="sv-detalle-title">{cap.title}</h3>
-						<p class="sv-detalle-promise">{cap.promise}</p>
-						<p class="sv-detalle-intro">{cap.detail.intro}</p>
-						<!--
-							`entrada` ya venía escrita como texto de botón —«Empieza con un
-							diagnóstico»— y se pintaba como párrafo gris. El enlace que había
-							aquí decía «Ver <capacidad>» y llevaba a una página que ya no
-							existe; conservarlo apuntando al detalle de abajo sería un botón
-							que hace scroll a algo que ya se ve.
-						-->
-						<a class="sv-btn sv-btn--primary sv-detalle-cta" href="#diagnostico">{cap.entrada}</a>
-					</div>
-				{/each}
-			</div>
-
-			<!--
-				La banda del detalle absorbido va a ANCHO COMPLETO y debajo del panal, no
-				en la columna de al lado. Las capacidades varían de 15 a 38 ítems, y en una
-				columna de 637 px eso son 500 px de diferencia de alto que harían saltar al
-				panal bajo el cursor en el mismo clic que lo activó. A ancho completo deja
-				de ser un problema de altura y pasa a ser uno de número de columnas, que la
-				rejilla resuelve sola.
-			-->
-			{#each services as cap (cap.slug)}
-				<div
-					class="sv-banda"
-					class:is-saliendo={saliendo}
-					hidden={activa !== cap.slug}
-					style="--celda-activa: {colorDe(cap.slug)}"
-				>
-					{#if cap.detail.forma === 'cadena'}
-						<div class="sv-cadenas">
-							{#each cap.detail.groups as g (g.title)}
-								<div class="sv-cadena">
-									<p class="sv-cadena-caso">{g.title}</p>
-									<p class="sv-cadena-pasos">
-										{#each g.items as paso, i (paso)}<span class="sv-paso">{paso}</span
-											>{#if i < g.items.length - 1}<span class="sv-paso-flecha" aria-hidden="true"
-													>→</span
-												>{/if}{/each}
-									</p>
-								</div>
-							{/each}
-						</div>
-					{:else}
-						<div class="sv-grupos">
-							{#each cap.detail.groups as g (g.title)}
-								<section class="sv-grupo">
-									<h4 class="sv-grupo-title">{g.title}</h4>
-									<ul class="sv-grupo-items">
-										{#each g.items as item (item)}
-											<li>{item}</li>
-										{/each}
-									</ul>
-								</section>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	</section>
-
-	<!-- ── DOS PUERTAS DE ENTRADA ────────────────────────── -->
+	<!-- ── TRES FORMAS DE TRABAJAR CON NOSOTROS ──────────── -->
 	<section class="sv-doors" id="doors">
 		<!-- La superficie sobre la que se apoyan las dos puertas. Decorativa: lo que
 		     dice ya está en el texto, así que queda fuera del árbol de accesibilidad. -->
@@ -550,7 +292,11 @@
 		<div class="sv-container">
 			<header class="sv-head">
 				<p class="sv-overline">Por dónde empezar</p>
-				<h2 class="sv-title">No tienes que contratar el proyecto completo</h2>
+				<h2 class="sv-title">Tres formas de trabajar con nosotros</h2>
+				<p class="sv-sub">
+					No tienes que contratar el proyecto completo: puedes empezar por entender en qué estás
+					parado, sumar liderazgo técnico o llevar una idea hasta producción.
+				</p>
 			</header>
 			<div class="sv-door-grid">
 				<article class="sv-door">
@@ -590,7 +336,7 @@
 				</article>
 				<article class="sv-door">
 					<div class="sv-door-copy">
-						<h3 class="sv-door-title">CTO as a Service</h3>
+						<h3 class="sv-door-title">CTO por horas</h3>
 						<p class="sv-door-desc">
 							No necesitas un CTO de tiempo completo, necesitas que alguien te diga «no compres
 							eso», «ese proveedor te está vendiendo de más», «esta arquitectura no va a escalar» o
@@ -631,7 +377,7 @@
 							<path class="sv-cto-guia" d="M130 18 V34" />
 
 							<rect class="sv-cto-caja" x="88" y="34" width="84" height="30" rx="8" />
-							<text class="sv-cto-nodo" x="130" y="54" text-anchor="middle">CTOaaS</text>
+							<text class="sv-cto-nodo" x="130" y="54" text-anchor="middle">CTO</text>
 
 							<!-- Tronco y tres ramas hacia los frentes que se supervisan -->
 							<path class="sv-cto-guia" d="M130 64 V76" />
@@ -648,7 +394,7 @@
 							<circle class="sv-cto-punto" cx="220" cy="90" r="2.6" />
 
 							<text class="sv-cto-hoja" x="40" y="110" text-anchor="middle">Equipo</text>
-							<text class="sv-cto-hoja" x="130" y="110" text-anchor="middle">Vendors</text>
+							<text class="sv-cto-hoja" x="130" y="110" text-anchor="middle">Proveedores</text>
 							<text class="sv-cto-hoja" x="220" y="110" text-anchor="middle">Tecnología</text>
 						</svg>
 						<figcaption class="sv-cto-pie">
@@ -656,15 +402,74 @@
 						</figcaption>
 					</figure>
 				</article>
+				<article class="sv-door">
+					<div class="sv-door-copy">
+						<h3 class="sv-door-title">Proyecto completo</h3>
+						<p class="sv-door-desc">
+							De la idea a una solución operando: validamos que se puede construir, diseñamos la
+							arquitectura, construimos software, hardware e infraestructura, y lo mantenemos en
+							producción. Un solo equipo de principio a fin.
+						</p>
+						<a href="#como-trabajamos" class="sv-btn sv-btn--ghost">Ver cómo trabajamos</a>
+					</div>
+					<figure class="sv-entrega">
+						<div class="sv-entrega-hoja">
+							<p class="sv-entrega-titulo">El recorrido</p>
+							<ol class="sv-entrega-indice">
+								{#each ['Idea', 'Prueba de concepto', 'MVP', 'Producto', 'Producción'] as paso, i (paso)}
+									<li style="--i: {i}">{paso}</li>
+								{/each}
+							</ol>
+						</div>
+						<figcaption class="sv-entrega-pie">
+							Puedes detenerte en cualquier etapa con algo que funciona.
+						</figcaption>
+					</figure>
+				</article>
+			</div>
+		</div>
+	</section>
+
+	<!-- ── CAPACIDADES EN BENTO ──────────────────────────── -->
+	<!-- Seis capacidades a la vista, con la promesa en lenguaje de negocio. El
+	     detalle técnico (los ~170 ítems) queda plegado para quien lo quiera. -->
+	<section class="sv-caps" id="capacidades" aria-labelledby="sv-caps-title">
+		<div class="sv-container">
+			<header class="sv-head">
+				<p class="sv-overline">Qué hacemos</p>
+				<h2 id="sv-caps-title" class="sv-title">Seis capacidades, una sola casa</h2>
+				<p class="sv-sub">
+					No vendemos horas de programador. Vendemos capacidad de ingeniería: entender el problema,
+					diseñar la tecnología y construir la solución.
+				</p>
+			</header>
+			<div class="sv-caps-grid">
+				{#each services as cap, i (cap.slug)}
+					<article class="sv-cap" class:sv-cap--ancha={i === 0 || i === services.length - 1}>
+						<p class="sv-cap-num">{cap.num}</p>
+						<h3 class="sv-cap-title">{cap.title}</h3>
+						<p class="sv-cap-promise">{cap.promise}</p>
+						<ul class="sv-cap-chips">
+							{#each cap.chips.slice(0, 4) as chip (chip)}<li>{chip}</li>{/each}
+						</ul>
+						<details class="sv-cap-detalle">
+							<summary>Ver detalle técnico</summary>
+							{#each cap.detail.groups as g (g.title)}
+								<p class="sv-cap-grupo">{g.title}</p>
+								<p class="sv-cap-items">{g.items.join(' · ')}</p>
+							{/each}
+						</details>
+					</article>
+				{/each}
 			</div>
 		</div>
 	</section>
 
 	<!-- ── INNOVATION LAB ────────────────────────────────── -->
-	<section class="sv-lab">
+	<section class="sv-lab" id="como-trabajamos">
 		<div class="sv-container sv-lab-inner">
 			<div class="sv-lab-copy">
-				<p class="sv-overline">Innovation Lab</p>
+				<p class="sv-overline">Cómo trabajamos</p>
 				<h2 class="sv-title">¿Tienes una idea y no sabes si se puede construir?</h2>
 				<p class="sv-sub">
 					Lo averiguamos con un PoC antes de que comprometas presupuesto en algo que quizá no es
@@ -700,10 +505,13 @@
 				<!-- Las fases van SOBRE la imagen, apoyadas en su borde inferior: de
 				     paso tapan la franja donde el archivo se funde con la sección. -->
 				<ol class="sv-flow">
-					{#each ['Idea', 'PoC', 'MVP', 'Producto', 'Producción'] as paso, i (paso)}
+					{#each etapas as e, i (e.paso)}
 						<li class="sv-flow-step">
 							<span class="sv-flow-n" aria-hidden="true">{i + 1}</span>
-							{paso}
+							<span class="sv-flow-txt">
+								<strong>{e.paso}</strong>
+								<small>{e.recibes}</small>
+							</span>
 						</li>
 					{/each}
 				</ol>
@@ -719,12 +527,24 @@
 					Entendemos el problema, diseñamos la tecnología y construimos la solución.
 				</h2>
 				<p class="sv-sub sv-close-sub">
-					Nexus es la prueba: dispositivo, conectividad, streaming, geoproceso, alertas, panel, apps
-					e infraestructura, construidos e integrados por el mismo equipo.
+					Nuestros propios productos son la prueba: los diseñamos, construimos y operamos nosotros.
 				</p>
+				<ul class="sv-pruebas">
+					{#each pruebas as p (p.id)}
+						<li>
+							<a href={p.href} class="sv-prueba">
+								<img src={p.mark} alt="" loading="lazy" />
+								<span>
+									<strong>{p.name}</strong>
+									<small>{p.usa}</small>
+								</span>
+							</a>
+						</li>
+					{/each}
+				</ul>
 				<div class="sv-hero-actions sv-close-actions">
 					<a href="#diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
-					<a href="/products/nexus" class="sv-btn sv-btn--ghost">Ver Nexus</a>
+					<a href="/#productos" class="sv-btn sv-btn--ghost">Ver los productos</a>
 				</div>
 			</div>
 
@@ -747,6 +567,24 @@
 					decoding="async"
 				/>
 			</figure>
+		</div>
+	</section>
+
+	<!-- ── PREGUNTAS FRECUENTES ──────────────────────────── -->
+	<section class="sv-faq" aria-labelledby="sv-faq-title">
+		<div class="sv-container sv-faq-inner">
+			<header class="sv-head">
+				<p class="sv-overline">Preguntas frecuentes</p>
+				<h2 id="sv-faq-title" class="sv-title">Antes de hablar</h2>
+			</header>
+			<div class="sv-faq-list">
+				{#each preguntas as f (f.q)}
+					<details class="sv-faq-item">
+						<summary>{f.q}</summary>
+						<p>{f.a}</p>
+					</details>
+				{/each}
+			</div>
 		</div>
 	</section>
 
@@ -889,18 +727,6 @@
 		margin: 0 auto;
 	}
 
-	.sv-sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
-	}
-
 	.sv-overline {
 		font-family: var(--gl-font-label);
 		font-size: 0.72rem;
@@ -1012,14 +838,8 @@
 	   `--x`/`--y` señalan el punto del trazo con el que deben coincidir. */
 
 	@media (prefers-reduced-motion: reduce) {
-		.sv-process-line::after,
-		.sv-process-node::after {
-			display: none;
-		}
 		/* Los textos se quedan en su color de reposo, que es el que declara la
 		   regla: aquí basta con quitarles la animación. */
-		.sv-process-label,
-		.sv-process-desc,
 		.sv-entrega-indice li,
 		.sv-entrega-indice li::before {
 			animation: none;
@@ -1112,67 +932,9 @@
 
 	/* ── Riel de proceso ───────────────────────────────── */
 
-	.sv-process-wrap {
-		padding: clamp(1.5rem, 3vw, 2.25rem) 0;
-		border-top: 1px solid var(--sv-rule);
-		border-bottom: 1px solid var(--sv-rule);
-		background: var(--sv-bg-2);
-	}
-
-	.sv-process {
-		/*
-		 * Una SOLA partícula recorre el riel de principio a fin, tramo por tramo, y
-		 * cada nodo destella cuando llega. Es la misma señal del árbol y del
-		 * diagrama del CTOaaS, pero aquí cuenta algo: esto es un proceso ordenado,
-		 * y cuatro partículas corriendo a la vez lo leerían como cinco cosas
-		 * simultáneas, que es justo lo que no es.
-		 *
-		 * El ciclo se reparte en CINCO franjas para cuatro tramos: la quinta es la
-		 * pausa después de «operamos». Sin ella la partícula reaparecería en el
-		 * origen en el mismo instante en que llega al final, y el recorrido no se
-		 * leería como un recorrido sino como un bucle sin principio.
-		 */
-		--sv-riel-ciclo: 7s;
-		--sv-riel-franja: calc(var(--sv-riel-ciclo) / 5);
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: grid;
-		grid-template-columns: repeat(5, 1fr);
-		gap: 0;
-	}
-
-	.sv-process-step {
-		position: relative;
-		display: grid;
-		grid-template-rows: auto auto auto;
-		gap: 0.4rem;
-		padding-right: 1rem;
-	}
-
-	.sv-process-node {
-		position: relative;
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: var(--sv-accent);
-		margin-bottom: 0.35rem;
-	}
 	/* El destello de llegada. Va en un pseudoelemento y no en el nodo para que
 	   sea solo `transform` y `opacity`: animar el `box-shadow` del propio punto
 	   repintaría en cada fotograma. */
-	.sv-process-node::after {
-		content: '';
-		position: absolute;
-		inset: -2px;
-		border-radius: 50%;
-		background: radial-gradient(circle, rgba(127, 227, 245, 0.9) 0%, rgba(127, 227, 245, 0) 70%);
-		opacity: 0;
-		animation: svRielDestello var(--sv-riel-ciclo) linear infinite;
-		/* El nodo `i` se enciende cuando la partícula TERMINA el tramo `i − 1`, que
-		   es exactamente el arranque de la franja `i`. */
-		animation-delay: calc(var(--i) * var(--sv-riel-franja));
-	}
 
 	/*
 	 * La línea de 1px que une los nodos: gradiente de la escalera teal.
@@ -1180,34 +942,11 @@
 	 * La transparencia va en los colores y no en `opacity`, porque `opacity`
 	 * multiplica a los hijos y dejaría la partícula al 45% de su brillo.
 	 */
-	.sv-process-line {
-		position: absolute;
-		top: 3px;
-		left: 7px;
-		right: 0;
-		height: 1px;
-		background: linear-gradient(90deg, rgba(8, 131, 160, 0.5), rgba(127, 227, 245, 0.45));
-	}
 	/*
 	 * La partícula. Se desplaza con `left` y no con `transform` porque el recorrido
 	 * es el ancho del tramo, que lo fija la rejilla: un `translateX` en porcentaje
 	 * se mediría contra los 5 px de la propia partícula, no contra el tramo.
 	 */
-	.sv-process-line::after {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 0;
-		width: 5px;
-		height: 5px;
-		margin: -2.5px 0 0 -2.5px;
-		border-radius: 50%;
-		background: #ddfaff;
-		box-shadow: 0 0 9px 1px rgba(127, 227, 245, 0.9);
-		opacity: 0;
-		animation: svRielParticula var(--sv-riel-ciclo) linear infinite;
-		animation-delay: calc(var(--i) * var(--sv-riel-franja));
-	}
 
 	/*
 	 * Cada animación dura el ciclo ENTERO y solo se mueve durante su primer
@@ -1265,15 +1004,6 @@
 	 * reposo en el 30% y el vecino arranca en el 20%— para que haya un instante
 	 * con los dos vivos. Sin ese solape el riel parpadea; con él, avanza.
 	 */
-	.sv-process-label {
-		font-family: var(--gl-font-label);
-		font-size: 0.68rem;
-		letter-spacing: 0.2em;
-		text-transform: uppercase;
-		color: var(--sv-text);
-		animation: svRielRotulo var(--sv-riel-ciclo) linear infinite;
-		animation-delay: calc(var(--i) * var(--sv-riel-franja));
-	}
 
 	/* El reposo va como sombra transparente y no como `none`: entre `none` y una
 	   sombra con color no hay interpolación, y el resplandor aparecería de golpe. */
@@ -1303,15 +1033,6 @@
 		}
 	}
 
-	.sv-process-desc {
-		font-size: 0.82rem;
-		line-height: 1.45;
-		color: var(--sv-text-faint);
-		max-width: 22ch;
-		animation: svRielTexto var(--sv-riel-ciclo) linear infinite;
-		animation-delay: calc(var(--i) * var(--sv-riel-franja));
-	}
-
 	/* ── Panal de capacidades ──────────────────────────── */
 
 	/*
@@ -1320,26 +1041,9 @@
 	 * 12 px dentro: 52% de lienzo sin resolver y ningún hito con el que hacer
 	 * contrapeso. Ahora esa mitad es el panel.
 	 */
-	.sv-panal-layout {
-		display: grid;
-		grid-template-columns: minmax(0, 0.46fr) minmax(0, 0.54fr);
-		gap: clamp(1.5rem, 4vw, 3.5rem);
-		/* `start` y no `center`: con el detalle absorbido, las capacidades varían
-		   cientos de píxeles de alto, y centrado el panal se desplazaba hacia abajo
-		   bajo el cursor en el mismo clic que lo activaba. */
-		align-items: start;
-		margin-top: clamp(2rem, 4vw, 3rem);
-	}
 
 	/* La caja del panal: 100 de ancho por `--alto` (115.47) de alto, que es lo que
 	   ocupan seis hexágonos de vértice arriba dispuestos cinco alrededor de uno. */
-	.sv-panal {
-		position: relative;
-		width: 100%;
-		max-width: 32rem;
-		aspect-ratio: 100 / var(--alto);
-		margin-inline: auto;
-	}
 
 	/*
 	 * Cada celda se centra en su coordenada. El ancho es el del hexágono (40 de
@@ -1347,35 +1051,6 @@
 	 * si se toca una sin la otra, el panal deja de teselar y aparecen holguras
 	 * entre celdas vecinas.
 	 */
-	.sv-hex {
-		position: absolute;
-		left: calc(var(--x) * 1%);
-		top: calc(var(--y) / var(--alto) * 100%);
-		/*
-		 * 37 y no 40: las celdas encogen pero sus CENTROS no se mueven, así que la
-		 * retícula sigue siendo la del panal —cada vecina a un lado de distancia— y
-		 * el hueco sale de que cada pieza ya no llena del todo su sitio. Separarlas
-		 * moviendo los centros habría roto la adyacencia, y con ella el argumento de
-		 * la forma: los hexágonos teselan, encajan sin huecos, que es justo lo que
-		 * promete la celda del centro. La separación se queda leve por lo mismo.
-		 */
-		width: 37%;
-		aspect-ratio: 0.86603;
-		transform: translate(-50%, -50%);
-		display: grid;
-		place-items: center;
-		gap: 0;
-		padding: 0;
-		border: 0;
-		background: none;
-		color: inherit;
-		font: inherit;
-		cursor: pointer;
-		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-		transition:
-			transform 0.45s var(--gl-ease),
-			opacity 0.4s var(--gl-ease);
-	}
 
 	/*
 	 * Sin fondo ni contorno propios: las seis ilustraciones ya vienen recortadas
@@ -1383,27 +1058,6 @@
 	 * poner un hexágono detrás de otro. El `clip-path` se queda como garantía de
 	 * que el borde salga limpio aunque una ilustración llegue justo al filo.
 	 */
-
-	.sv-hex-img {
-		grid-area: 1 / 1;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		/*
-		 * En reposo la ilustración es atmósfera y el rótulo manda; encendida se
-		 * invierte. Ese par de estados es lo que hace legible el panal: antes el
-		 * texto peleaba contra la imagen en los dos, y perdía en los dos.
-		 */
-		opacity: 0.68;
-		transition: opacity 0.45s var(--gl-ease);
-	}
-	.sv-hex:hover .sv-hex-img,
-	.sv-hex:focus-visible .sv-hex-img {
-		opacity: 0.86;
-	}
-	.sv-hex.is-activa .sv-hex-img {
-		opacity: 1;
-	}
 
 	/* Velo al pie: sobre una ilustración a sangre, el rótulo y el ordinal se
 	   pierden contra lo que toque caer detrás. */
@@ -1414,81 +1068,16 @@
 	 * donde está el texto. Solo hace falta con la celda encendida, porque en
 	 * reposo la propia ilustración ya está al 28%.
 	 */
-	.sv-hex-velo {
-		grid-area: 1 / 1;
-		width: 100%;
-		height: 100%;
-		background: radial-gradient(
-			ellipse 62% 34% at 50% 52%,
-			rgba(4, 16, 22, 0.88),
-			rgba(4, 16, 22, 0.45) 58%,
-			transparent 78%
-		);
-		opacity: 0.5;
-		pointer-events: none;
-		transition: opacity 0.45s var(--gl-ease);
-	}
-	.sv-hex.is-activa .sv-hex-velo {
-		opacity: 1;
-	}
-
-	.sv-hex-figura {
-		grid-area: 1 / 1;
-		width: 66%;
-		aspect-ratio: 1;
-		opacity: 0.3;
-		transform: translateY(-6%);
-		transition: opacity 0.4s var(--gl-ease);
-	}
 
 	/*
 	 * El rótulo se retira en reposo y solo llega a tinta plena en la celda
 	 * encendida. Es el reparto inverso al de la ilustración, así que en cada
 	 * estado hay un protagonista y no dos disputándose el mismo sitio.
 	 */
-	.sv-hex-rotulo {
-		grid-area: 1 / 1;
-		align-self: center;
-		display: grid;
-		justify-items: center;
-		gap: 0.35rem;
-		padding-inline: 14%;
-		opacity: 0.74;
-		transition: opacity 0.45s var(--gl-ease);
-	}
-	.sv-hex:hover .sv-hex-rotulo,
-	.sv-hex:focus-visible .sv-hex-rotulo {
-		opacity: 0.9;
-	}
-	.sv-hex.is-activa .sv-hex-rotulo {
-		opacity: 1;
-	}
 
 	/* El ordinal encabeza el rótulo. Es el mismo motivo 01–06 del índice del
 	   diagnóstico: en las filas viejas estaba a 11 px y al 44%, donde dejaba de
 	   ser número y era textura. */
-	.sv-hex-num {
-		font-family: var(--gl-font-label);
-		font-size: 0.74rem;
-		letter-spacing: 0.18em;
-		color: var(--celda);
-		text-shadow: 0 1px 8px rgba(4, 16, 22, 0.95);
-	}
-
-	.sv-hex-label {
-		font-size: 1.02rem;
-		font-weight: 600;
-		line-height: 1.2;
-		color: var(--sv-text);
-		text-align: center;
-		text-wrap: balance;
-		text-shadow: 0 1px 10px rgba(4, 16, 22, 0.95);
-	}
-
-	.sv-hex:focus-visible {
-		outline: 2px solid var(--sv-accent);
-		outline-offset: -2px;
-	}
 
 	/*
 	 * La celda encendida crece y se adelanta. Al crecer invade a sus vecinas —un
@@ -1497,13 +1086,6 @@
 	 * Por eso necesita `z-index`: sin él, las celdas que van después en el
 	 * marcado se le pintarían encima.
 	 */
-	.sv-hex.is-activa {
-		z-index: 2;
-		transform: translate(-50%, -50%) scale(1.1);
-	}
-	.sv-hex.is-activa .sv-hex-figura {
-		opacity: 0.85;
-	}
 
 	/*
 	 * La del centro no es una hermana de las otras cinco: ES las otras cinco
@@ -1512,19 +1094,6 @@
 	 * contaba — que «Soluciones Integrales» es una capacidad más.
 	 */
 
-	.sv-panal-detalle {
-		display: grid;
-		gap: 0.9rem;
-		justify-items: start;
-		align-content: start;
-		padding-top: clamp(1rem, 3vw, 2.5rem);
-	}
-	.sv-panal-detalle:focus-visible {
-		outline: 2px solid var(--sv-accent);
-		outline-offset: 8px;
-		border-radius: var(--gl-r-sm);
-	}
-
 	/* Entra desplazándose desde el panal, no apareciendo de la nada: el texto
 	   viene de la celda que se acaba de encender. */
 	@keyframes svDetalleEntra {
@@ -1532,41 +1101,6 @@
 			opacity: 0;
 			transform: translateX(-0.75rem);
 		}
-	}
-
-	.sv-detalle-num {
-		font-family: var(--gl-font-label);
-		font-size: 0.64rem;
-		letter-spacing: 0.2em;
-		/* El mismo color de la celda encendida: el salto del panal al texto se lee
-		   como el mismo objeto y no como dos bloques distintos. */
-		color: var(--celda-activa, var(--sv-accent));
-		margin: 0;
-	}
-
-	.sv-detalle-title {
-		font-size: clamp(1.35rem, 2.4vw, 1.9rem);
-		font-weight: 600;
-		margin: 0;
-		text-wrap: balance;
-	}
-
-	.sv-detalle-promise {
-		color: var(--sv-text-muted);
-		line-height: 1.6;
-		max-width: 46ch;
-		margin: 0;
-	}
-
-	.sv-detalle-intro {
-		color: var(--sv-text-muted);
-		line-height: 1.65;
-		max-width: 46ch;
-		margin: 0;
-	}
-
-	.sv-detalle-cta {
-		margin-top: 0.4rem;
 	}
 
 	/*
@@ -1578,18 +1112,6 @@
 	 * Sin `fill-mode`: al terminar, el elemento vuelve a su opacidad normal y deja
 	 * la propiedad libre para que la transición de salida la tome la próxima vez.
 	 */
-	.sv-panal-detalle,
-	.sv-banda {
-		transition: opacity 0.2s var(--gl-ease);
-	}
-	.sv-panal-detalle:not([hidden]),
-	.sv-banda:not([hidden]) {
-		animation: svRelevo 0.45s var(--gl-ease);
-	}
-	.sv-panal-detalle.is-saliendo,
-	.sv-banda.is-saliendo {
-		opacity: 0;
-	}
 
 	@keyframes svRelevo {
 		from {
@@ -1600,39 +1122,15 @@
 
 	/* ── Banda de detalle ──────────────────────────────── */
 
-	.sv-banda {
-		margin-top: clamp(2rem, 4vw, 3rem);
-		padding-top: clamp(1.5rem, 3vw, 2rem);
-		border-top: 1px solid var(--sv-rule);
-	}
-
 	/*
 	 * Una columna por grupo. El número de grupos y el de ítems correlacionan —a
 	 * más grupos, más ítems—, así que el recuento de columnas absorbe él solo casi
 	 * todo el rango: 38 ítems en 5 columnas son 8 filas; 15 en 3 columnas, 5.
 	 */
-	.sv-grupos {
-		display: grid;
-		/* 11rem y no más: con 13 solo caben cuatro columnas, y la capacidad de cinco
-		   grupos dejaba el quinto solo en una segunda fila con tres huecos al lado.
-		   A 11 caben los cinco en una línea y ninguna capacidad deja celdas muertas. */
-		grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
-		gap: clamp(1.25rem, 2.5vw, 2rem);
-	}
 
 	/* El título del grupo toma el tono de la celda encendida, que ya se calcula.
 	   Un tono POR GRUPO rompería la regla de que el color es por posición, y se
 	   leería como una taxonomía que nadie quiso afirmar. */
-	.sv-grupo-title {
-		font-family: var(--gl-font-label);
-		font-size: 0.68rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--celda-activa, var(--sv-accent));
-		margin: 0 0 0.75rem;
-		padding-bottom: 0.5rem;
-		border-bottom: 1px solid var(--sv-rule);
-	}
 
 	/*
 	 * Los ítems van como lista y no como píldoras. Una píldora con borde promete
@@ -1640,46 +1138,12 @@
 	 * sección son puro ruido. Alineados a la izquierda bajo su título, la
 	 * proximidad ya agrupa sin gastar un píxel de tinta.
 	 */
-	.sv-grupo-items {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: grid;
-		gap: 0.32rem;
-		font-size: 0.88rem;
-		line-height: 1.4;
-		color: var(--sv-text-muted);
-	}
 
 	/*
 	 * La 06 no es una lista: sus ítems son PASOS ORDENADOS del dispositivo al
 	 * dashboard, y el orden es lo único que significan. Como nube desordenada se
 	 * perdería justo el argumento de esa capacidad.
 	 */
-	.sv-cadenas {
-		display: grid;
-		gap: clamp(1.25rem, 3vw, 2rem);
-	}
-
-	.sv-cadena-caso {
-		font-size: 0.95rem;
-		font-weight: 600;
-		color: var(--sv-text);
-		margin: 0 0 0.6rem;
-		max-width: 60ch;
-	}
-
-	.sv-cadena-pasos {
-		margin: 0;
-		font-size: 0.88rem;
-		line-height: 2;
-		color: var(--sv-text-muted);
-	}
-
-	.sv-paso-flecha {
-		color: var(--celda-activa, var(--sv-accent));
-		margin: 0 0.5rem;
-	}
 
 	/* ── Puertas de entrada ────────────────────────────── */
 
@@ -2448,18 +1912,6 @@
 				rgba(0, 12, 21, 0.88) 100%
 			);
 		}
-		.sv-process {
-			grid-template-columns: 1fr;
-			gap: 1rem;
-		}
-
-		.sv-process-line {
-			display: none;
-		}
-
-		.sv-process-desc {
-			max-width: none;
-		}
 
 		/*
 		 * El panal se apila sobre su detalle en vez de caer a otra interfaz: a este
@@ -2467,31 +1919,12 @@
 		 * cabe si se encoge. Degradar a una lista dejaría a la mitad del tráfico
 		 * sin el único cambio que arregla la sección.
 		 */
-		.sv-panal-layout {
-			grid-template-columns: 1fr;
-			gap: 2rem;
-		}
-		.sv-panal {
-			max-width: 22rem;
-		}
-		.sv-panal-detalle {
-			padding-top: 0;
-			justify-items: center;
-			text-align: center;
-		}
-		.sv-detalle-promise,
-		.sv-detalle-intro {
-			margin-inline: auto;
-		}
 
 		/*
 		 * La banda NO se centra. Centrar una promesa de una línea es tolerable;
 		 * centrar treinta y ocho etiquetas taxonómicas las vuelve ilegibles, porque
 		 * el ojo pierde el borde izquierdo con el que las recorre.
 		 */
-		.sv-banda {
-			text-align: left;
-		}
 
 		.sv-close-inner,
 		.sv-diag-grid {
@@ -2528,33 +1961,210 @@
 			display: none;
 		}
 
-		.sv-btn,
-		.sv-hex,
-		.sv-hex-figura,
-		.sv-hex-num,
-		.sv-hex-label {
+		.sv-btn {
 			transition: none;
 		}
 
 		/* La celda encendida se distingue por la ilustración a plena luz, no por
 		   crecer: el cambio de tamaño es movimiento y aquí sobra. */
-		.sv-hex.is-activa {
-			transform: translate(-50%, -50%);
-		}
 
 		/* Y el relevo entre capacidades es instantáneo: el JS ya se salta el
 		   desvanecido, aquí se quita lo que quedaría del lado del CSS. */
-		.sv-panal-detalle,
-		.sv-banda {
-			transition: none;
-		}
-		.sv-panal-detalle:not([hidden]),
-		.sv-banda:not([hidden]) {
-			animation: none;
-		}
 
 		.sv-btn--primary:hover {
 			transform: none;
+		}
+	}
+
+	/* ── Capacidades en bento ─────────────────────────── */
+	.sv-caps {
+		padding: clamp(3.5rem, 7vw, 6rem) 0;
+	}
+	.sv-caps-grid {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1rem;
+	}
+	.sv-cap {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		padding: 1.5rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-md);
+		background:
+			radial-gradient(ellipse 80% 60% at 100% 0%, rgba(127, 227, 245, 0.08), transparent 70%),
+			var(--sv-bg-2);
+		transition:
+			border-color 0.3s ease,
+			transform 0.3s ease;
+	}
+	.sv-cap:hover {
+		border-color: rgba(127, 227, 245, 0.35);
+		transform: translateY(-3px);
+	}
+	.sv-cap--ancha {
+		grid-column: span 2;
+	}
+	.sv-cap-num {
+		margin: 0;
+		font-family: var(--gl-font-label);
+		font-size: 0.8rem;
+		color: var(--sv-accent);
+	}
+	.sv-cap-title {
+		margin: 0;
+		font-size: 1.25rem;
+		color: var(--sv-text, #f4f1e8);
+	}
+	.sv-cap-promise {
+		margin: 0;
+		font-size: 0.95rem;
+		line-height: 1.55;
+		color: var(--sv-text-muted);
+	}
+	.sv-cap-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		margin: 0.2rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.sv-cap-chips li {
+		padding: 0.25rem 0.65rem;
+		border-radius: 999px;
+		background: rgba(127, 227, 245, 0.08);
+		font-size: 0.78rem;
+		color: var(--sv-text-muted);
+	}
+	.sv-cap-detalle {
+		margin-top: auto;
+		padding-top: 0.6rem;
+		border-top: 1px solid var(--sv-rule);
+	}
+	.sv-cap-detalle summary {
+		cursor: pointer;
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--sv-accent);
+	}
+	.sv-cap-grupo {
+		margin: 0.8rem 0 0.2rem;
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sv-text, #f4f1e8);
+	}
+	.sv-cap-items {
+		margin: 0;
+		font-size: 0.82rem;
+		line-height: 1.6;
+		color: var(--sv-text-muted);
+	}
+
+	/* ── Etapas: lo que recibes ───────────────────────── */
+	.sv-flow-txt {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+	.sv-flow-txt small {
+		font-size: 0.74rem;
+		font-weight: 500;
+		color: var(--sv-text-muted);
+	}
+
+	/* ── Prueba: nuestros productos ───────────────────── */
+	.sv-pruebas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin: 1.4rem 0 1.6rem;
+		padding: 0;
+		list-style: none;
+	}
+	.sv-prueba {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.6rem 0.9rem 0.6rem 0.6rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: 14px;
+		background: rgba(7, 26, 34, 0.7);
+		text-decoration: none;
+		transition: border-color 0.3s ease;
+	}
+	.sv-prueba:hover {
+		border-color: rgba(127, 227, 245, 0.45);
+	}
+	.sv-prueba img {
+		width: 34px;
+		height: 34px;
+		object-fit: contain;
+	}
+	.sv-prueba strong {
+		display: block;
+		font-size: 0.95rem;
+		color: var(--sv-text, #f4f1e8);
+	}
+	.sv-prueba small {
+		font-size: 0.75rem;
+		color: var(--sv-text-muted);
+	}
+
+	/* ── Preguntas frecuentes ─────────────────────────── */
+	.sv-faq {
+		padding: clamp(3.5rem, 7vw, 6rem) 0 clamp(2rem, 4vw, 3rem);
+	}
+	.sv-faq-inner {
+		display: grid;
+		grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
+		gap: clamp(1.5rem, 4vw, 4rem);
+		align-items: start;
+	}
+	.sv-faq-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+	.sv-faq-item {
+		padding: 1rem 1.2rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-sm);
+		background: var(--sv-bg-2);
+	}
+	.sv-faq-item summary {
+		cursor: pointer;
+		font-weight: 600;
+		color: var(--sv-text, #f4f1e8);
+	}
+	.sv-faq-item p {
+		margin: 0.6rem 0 0;
+		line-height: 1.6;
+		color: var(--sv-text-muted);
+	}
+
+	@media (max-width: 960px) {
+		.sv-caps-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.sv-faq-inner {
+			grid-template-columns: 1fr;
+		}
+	}
+	@media (max-width: 600px) {
+		.sv-caps-grid {
+			grid-template-columns: 1fr;
+		}
+		.sv-cap--ancha {
+			grid-column: auto;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.sv-cap {
+			transition: none;
 		}
 	}
 </style>
