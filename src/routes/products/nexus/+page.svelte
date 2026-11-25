@@ -1,5 +1,7 @@
 <script>
 	import DayEvidence from '$lib/components/experiencia/DayEvidence.svelte';
+	import HowItWorks from '$lib/components/experiencia/HowItWorks.svelte';
+	import H3Context from '$lib/components/experiencia/H3Context.svelte';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import { onMount, tick } from 'svelte';
@@ -576,6 +578,9 @@
 			</div>
 		</section>
 
+		<!-- CÓMO FUNCIONA -->
+		<HowItWorks />
+
 		<!-- AUDIENCE INTRO -->
 		<div class="nx-aud-intro" id="audiencias">
 			<p class="nx-aud-intro-eyebrow">TU PERFIL</p>
@@ -994,6 +999,9 @@
 				</div>
 			</div>
 		</section>
+
+		<!-- CONTEXTO GEOESPACIAL H3 -->
+		<H3Context />
 
 		<!-- FAQ -->
 		<section class="nx-faq" id="preguntas">

@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Inicio: «El futuro que estamos construyendo».** El video del mapa se sustituye por la red vial real de Querétaro con estelas de la experiencia; se monta al acercarse y se pausa fuera de pantalla
+- **Nexus: «Cómo funciona».** Después del hero, el mapa de Nexus sobre calles reales de Querétaro con la geocerca de celdas H3 y la cadena Vehículo → Evento → Contexto → Decisión, que se enciende al ritmo de la animación
+- **Nexus: contexto geoespacial H3.** Sección con scroll fijo: la malla de celdas H3 reales de Querétaro, el acercamiento r6 → r10 y las cuatro ventajas, con su estado (listo, en validación)
 - **Nexus: evidencia real en lugar de testimonios.** Los tres testimonios eran ilustrativos y Nexus aún no tiene clientes; la sección ahora muestra el informe real de un día de la unidad de pruebas (recorrido, tiempos, batería con su mínimo y estado, salud del equipo al 94.9%) y lo que permitirán los mismos datos. La franja «En producción · iOS, Android y Web · GPS, API y MQTT» pasa a fondo oscuro
 
 ## [1.18.2] — 2026-11-19

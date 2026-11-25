@@ -382,7 +382,8 @@
 	function drawDrill(t) {
 		if (drillStart < 0) return;
 		const el = t - drillStart;
-		const lvl = reduced ? 4 : Math.min(4, Math.floor(el / DRILL_STEP));
+		// El reloj del cuadro puede ir unos ms detrás de drillStart: nunca un nivel negativo.
+		const lvl = reduced ? 4 : Math.max(0, Math.min(4, Math.floor(el / DRILL_STEP)));
 		ctx.save();
 		ctx.lineJoin = 'round';
 		for (let k = 0; k <= lvl; k++) {

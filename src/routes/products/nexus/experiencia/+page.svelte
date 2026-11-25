@@ -8,7 +8,7 @@
 	import PeakChart from '$lib/components/experiencia/PeakChart.svelte';
 	import StageHero from './StageHero.svelte';
 	import Audience from './Audience.svelte';
-	import NexusSketch from './NexusSketch.svelte';
+	import NexusSketch from '$lib/components/experiencia/NexusSketch.svelte';
 	import DayRing from '$lib/components/experiencia/DayRing.svelte';
 	import MiniVisual from './MiniVisual.svelte';
 	import PhoneWall from './PhoneWall.svelte';
