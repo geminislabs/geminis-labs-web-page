@@ -8,7 +8,8 @@
 	import FlowDiagram from '$lib/components/experiencia/FlowDiagram.svelte';
 	import QuestionBand from '$lib/components/experiencia/QuestionBand.svelte';
 	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
-	import ProductVisual from '$lib/components/ProductVisual.svelte';
+	import ProductShowcase from '$lib/components/ProductShowcase.svelte';
+	import ServicesBento from '$lib/components/ServicesBento.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
 		cargarRecaptcha,
@@ -16,8 +17,6 @@
 		enviarContacto,
 		validarContacto
 	} from '$lib/contacto.js';
-	import { products, neighborProduct } from '$lib/data/products.js';
-	import { processSteps, scenePins } from '$lib/data/services.js';
 
 	// Variables para efectos parallax
 	let scrollY = 0;
@@ -25,41 +24,6 @@
 
 	// Variable para detectar si estamos en móvil
 	let isMobile = false;
-
-	// Selector de producto. La navegación por flechas cicla sobre el catálogo:
-	// con un ternario binario el tercer producto era inalcanzable por teclado.
-	let activeProduct = products[0].id;
-	function onProductTabKey(e) {
-		if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
-		e.preventDefault();
-		if (e.key === 'Home') activeProduct = products[0].id;
-		else if (e.key === 'End') activeProduct = products[products.length - 1].id;
-		else activeProduct = neighborProduct(activeProduct, e.key === 'ArrowRight' ? 1 : -1);
-		e.currentTarget.parentElement?.querySelector('#tab-' + activeProduct)?.focus();
-	}
-
-	// Parallax del fondo de la tarjeta (solo se mueve la capa de fondo, no la tarjeta)
-	function onNxMove(e) {
-		const card = e.currentTarget;
-		const r = card.getBoundingClientRect();
-		card.style.setProperty('--nx-mx', (e.clientX - r.left) / r.width - 0.5);
-		card.style.setProperty('--nx-my', (e.clientY - r.top) / r.height - 0.5);
-	}
-	function onNxLeave(e) {
-		e.currentTarget.style.setProperty('--nx-mx', 0);
-		e.currentTarget.style.setProperty('--nx-my', 0);
-	}
-
-	// Partículas del fondo de Orion (fluyen de la esquina inferior izquierda hacia el logo,
-	// cruzando también por detrás del texto de la izquierda)
-	const orionParticles = Array.from({ length: 50 }, () => ({
-		sx: -(120 + Math.random() * 1080), // desplazamiento inicial a la izquierda (px)
-		sy: -40 + Math.random() * 640, // desplazamiento inicial vertical (px)
-		d: +(Math.random() * 9).toFixed(2),
-		dur: +(4.5 + Math.random() * 5.5).toFixed(2),
-		s: +(1.6 + Math.random() * 2.8).toFixed(1),
-		o: +(0.28 + Math.random() * 0.42).toFixed(2)
-	}));
 
 	// Video de fondo del título: pausado, reproduce en hover, rebobina en reversa al salir
 	let titleVideo;
@@ -85,7 +49,6 @@
 	let futuroNear = false;
 	let tcFlowNear = false;
 	let contactNear = false;
-	let productsNear = false;
 	/** Aurora verde y dorada del cierre de la experiencia. */
 	const CONTACT_AURORA = {
 		key: 'contacto',
@@ -883,244 +846,20 @@
 </section>
 
 <!-- Sección Productos -->
-<section id="productos" class="nexus-section" use:_near={() => (productsNear = true)}>
+<section id="productos" class="nexus-section">
 	<div class="nexus-head">
 		<h2 class="landing-section-title">Nuestros Productos</h2>
 		<p class="nx-kicker">Tres productos · tres públicos · tres formas de comprarlos</p>
 	</div>
 
-	<!-- Rail de cámaras: las tres marcas visibles siempre, sin depender de hover.
-	     Cada celda comparte la misma materia de fondo; solo cambia la temperatura
-	     de la luz, así que ninguna paleta compite con las otras. -->
-	<div class="nx-rail" role="tablist" aria-label="Productos">
-		{#each products as p, i (p.id)}
-			<button
-				type="button"
-				role="tab"
-				id="tab-{p.id}"
-				class="nx-cell"
-				class:is-active={activeProduct === p.id}
-				data-product={p.id}
-				aria-selected={activeProduct === p.id}
-				aria-controls="panel-{p.id}"
-				tabindex={activeProduct === p.id ? 0 : -1}
-				on:click={() => (activeProduct = p.id)}
-				on:keydown={onProductTabKey}
-			>
-				<span class="nx-cell-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-				<span class="nx-cell-stage" aria-hidden="true">
-					<img src={p.mark} alt="" class="nx-cell-mark" loading="lazy" decoding="async" />
-					<span class="nx-cell-shadow"></span>
-				</span>
-				<span class="nx-cell-text">
-					<span class="nx-cell-name">{p.name}</span>
-					<span class="nx-cell-desc">{p.rail}</span>
-					<span class="nx-cell-for">{p.audience}</span>
-				</span>
-				{#if p.badge}
-					<span class="nx-cell-badge">{p.badge}</span>
-				{/if}
-			</button>
-		{/each}
-	</div>
-
-	<div class="nx-card-shell" use:_reveal>
-		<article
-			class="nx-card"
-			data-product={activeProduct}
-			on:mousemove={onNxMove}
-			on:mouseleave={onNxLeave}
-		>
-			<div class="nx-bg" aria-hidden="true"></div>
-			<div class="nx-slides">
-				{#each products as p (p.id)}
-					<div
-						class="nx-slide"
-						data-product={p.id}
-						class:is-active={activeProduct === p.id}
-						id="panel-{p.id}"
-						role="tabpanel"
-						aria-labelledby="tab-{p.id}"
-						aria-hidden={activeProduct !== p.id}
-					>
-						{#if p.id === 'orion'}
-							<div class="nx-orion-fx" aria-hidden="true">
-								{#each orionParticles as pt (`${pt.sx}-${pt.sy}-${pt.d}`)}
-									<span
-										style="--sx:{pt.sx}px; --sy:{pt.sy}px; --d:{pt.d}s; --dur:{pt.dur}s; --s:{pt.s}px; --o:{pt.o};"
-									></span>
-								{/each}
-							</div>
-						{/if}
-
-						<div class="nx-content">
-							<p class="nx-eyebrow">{p.kind}</p>
-							<h3 class="nx-title">{p.name}</h3>
-							<p class="nx-subtitle">{p.oneLiner}</p>
-							<p class="nx-problem">{p.problem}</p>
-
-							<ol class="nx-steps">
-								{#each p.howItWorks as step, si (step)}
-									<li class="nx-step">
-										<span class="nx-step-n" aria-hidden="true">{si + 1}</span>
-										<span class="nx-step-text">{step}</span>
-									</li>
-								{/each}
-							</ol>
-
-							<!-- Banda de contratación. Es un slot fijo en los tres productos y solo
-							     varía cuántas píldoras lleva: así SaaS y white-label ocupan el mismo
-							     lugar jerárquico que "compra única" en vez de perderse entre chips. -->
-							<div class="nx-models">
-								{#if p.id === 'signum'}
-									<!-- Trazo de electrocardiograma que se dibuja detrás de la banda.
-									     Decorativo: no aporta información, así que queda fuera del
-									     árbol de accesibilidad y se apaga con reduced-motion. -->
-									<svg
-										class="nx-ecg"
-										viewBox="0 0 600 100"
-										preserveAspectRatio="none"
-										aria-hidden="true"
-										focusable="false"
-									>
-										<path
-											d="M0 50 H120 l14 0 8 -26 10 52 9 -40 8 30 7 -16 h14 H300 l14 0 8 -26 10 52 9 -40 8 30 7 -16 h14 H600"
-										/>
-									</svg>
-								{/if}
-								<h4 class="nx-models-title">Cómo se contrata</h4>
-								<ul class="nx-models-list" data-count={p.models.length}>
-									{#each p.models as m (m.key)}
-										<li class="nx-model">
-											<span class="nx-model-axis">{m.axis}</span>
-											<span class="nx-model-label">{m.label}</span>
-											<span class="nx-model-line">{m.line}</span>
-											<span class="nx-model-tech">{m.tech}</span>
-										</li>
-									{/each}
-								</ul>
-							</div>
-
-							<p class="nx-evidence">{p.proof}</p>
-
-							<div class="nx-actions">
-								<a
-									class="nx-cta"
-									href={p.href}
-									tabindex={activeProduct === p.id ? 0 : -1}
-									target={p.external ? '_blank' : null}
-									rel={p.external ? 'noopener noreferrer' : null}
-								>
-									{p.primaryCta}
-									<span class="nx-cta-arrow" aria-hidden="true">→</span>
-								</a>
-								{#if p.secondaryCta}
-									<a
-										class="nx-cta-secondary"
-										href={p.secondaryCta.href}
-										tabindex={activeProduct === p.id ? 0 : -1}
-									>
-										{p.secondaryCta.label}
-									</a>
-								{/if}
-							</div>
-						</div>
-
-						<!-- Escenario decorativo: el nombre ya lo da el h3, así que el logo no
-						     necesita ser un enlace focusable dentro de un subárbol aria-hidden. -->
-						<div class="nx-stage" aria-hidden="true">
-							<span class="nx-halo"></span>
-							<ProductVisual id={p.id} active={activeProduct === p.id && productsNear} />
-							<span class="nx-stage-state">En operación</span>
-						</div>
-					</div>
-				{/each}
-			</div>
-		</article>
-	</div>
+	<ProductShowcase />
 </section>
 
 <!-- Sección Servicios. Va DESPUÉS de Productos a propósito: los productos son
      la prueba de lo que esta sección afirma, y el "también" del titular necesita
      que el visitante ya los haya visto para tener antecedente. -->
-<section id="servicios" class="sv-teaser">
-	<div class="sv-teaser-grid">
-		<div class="sv-teaser-copy">
-			<p class="sv-teaser-overline">Ingeniería y consultoría</p>
-			<h2 class="landing-section-title sv-teaser-title">
-				También construimos la tecnología de otros
-			</h2>
-			<p class="sv-teaser-lead">
-				Tomamos un problema de negocio desde que todavía es una idea y lo llevamos hasta una
-				solución operando: estrategia, arquitectura, software, hardware e infraestructura.
-				<strong>Un solo equipo, de la estrategia a producción.</strong>
-			</p>
-			<p class="sv-teaser-proof">
-				Nexus, Orion y Signum los diseñamos, construimos y operamos nosotros. La consultoría es ese
-				mismo equipo, aplicado a tu problema.
-			</p>
-
-			<div class="sv-teaser-actions">
-				<a href="/servicios" class="sv-teaser-cta">
-					Ver las seis capacidades
-					<span class="sv-teaser-arrow" aria-hidden="true">→</span>
-				</a>
-				<a href="/servicios#diagnostico" class="sv-teaser-cta-secondary">
-					Empezar por un diagnóstico
-				</a>
-			</div>
-		</div>
-
-		<!-- La cadena completa, ilustrada. Las etiquetas se posicionan en % sobre
-		     la imagen para que escalen con ella; por debajo de 1000px se apagan y
-		     el mismo contenido se lee como lista. -->
-		<figure class="sv-scene">
-			<div class="sv-scene-frame">
-				<img
-					src="/img/servicios-cadena.webp"
-					alt="Del dispositivo en campo a la aplicación: camión y sensores en carretera y cultivo, antena, servidores y nube, y paneles de datos en laptop, tablet y teléfono."
-					width="1400"
-					height="933"
-					class="sv-scene-img"
-					loading="lazy"
-					decoding="async"
-				/>
-				{#each scenePins as pin, pi (pin.title)}
-					<span
-						class="sv-pin"
-						style="--x: {pin.x}%; --y: {pin.y}%; --ly: {pin.labelY}%; --d: {pi * 0.62}s;"
-						aria-hidden="true"
-					>
-						<span class="sv-pin-ring"></span>
-						<span class="sv-pin-line"></span>
-						<span class="sv-pin-label">
-							<span class="sv-pin-title">{pin.title}</span>
-							<span class="sv-pin-desc">{pin.desc}</span>
-						</span>
-					</span>
-				{/each}
-			</div>
-			<figcaption class="sv-scene-legend">
-				<ul>
-					{#each scenePins as pin (pin.title)}
-						<li><strong>{pin.title}</strong> — {pin.desc}</li>
-					{/each}
-				</ul>
-			</figcaption>
-		</figure>
-
-		<ol class="sv-flowline">
-			{#each processSteps as step, i (step.key)}
-				<li class="sv-flowline-step">
-					<span class="sv-flowline-label">{step.label}</span>
-					<span class="sv-flowline-short">{step.short}</span>
-					{#if i < processSteps.length - 1}
-						<span class="sv-flowline-sep" aria-hidden="true">→</span>
-					{/if}
-				</li>
-			{/each}
-		</ol>
-	</div>
+<section id="servicios" class="sv-bento-section">
+	<ServicesBento />
 </section>
 
 <!-- La pregunta (pantalla 1 de la experiencia) -->
@@ -1903,17 +1642,6 @@
 		color: #ffffff;
 		font-weight: 700;
 	}
-	@media (prefers-reduced-motion: reduce) {
-		.sv-pin-line::after,
-		.sv-pin-ring::after,
-		.sv-teaser::after {
-			animation: none;
-		}
-		.sv-pin-line::after,
-		.sv-pin-ring::after {
-			display: none;
-		}
-	}
 
 	@media (prefers-reduced-motion: reduce) {
 		.lab-bulb {
@@ -2123,36 +1851,8 @@
 	   mismo gesto de rejilla que "Tecnologías que convergen" tenía encima: por
 	   eso se leía vacía aunque el texto estuviera. La ilustración anotada carga
 	   ahora ese peso y la rejilla de seis capacidades se fue a /servicios. */
-	.sv-teaser {
-		background: linear-gradient(180deg, #001725 0%, #00121e 48%, #000c15 100%);
-		color: var(--sv-text);
-		padding: clamp(3.5rem, 7vw, 6rem) 0;
-		position: relative;
-		overflow: hidden;
-		/* El `section { min-height: 100vh; display: flex; align-items: center }`
-		   sin scope de login-page.css estiraba esta banda a pantalla completa y
-		   centraba el contenido, dejando un hueco enorme arriba y abajo. */
-		min-height: 0;
-		display: block;
-		border-top: 1px solid rgba(127, 227, 245, 0.18);
-	}
-	.sv-teaser::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		background: radial-gradient(120% 80% at 8% 0%, rgba(8, 131, 160, 0.26), transparent 58%);
-	}
 	/* Segunda luz, muy tenue, que deriva despacio por detrás de la escena: da
 	   profundidad sin que se lea como una animación. */
-	.sv-teaser::after {
-		content: '';
-		position: absolute;
-		inset: -20% -10%;
-		pointer-events: none;
-		background: radial-gradient(38% 42% at 62% 46%, rgba(127, 227, 245, 0.09), transparent 70%);
-		animation: svDeriva 26s ease-in-out infinite alternate;
-	}
 	@keyframes svDeriva {
 		from {
 			transform: translate3d(-3%, 2%, 0) scale(1);
@@ -2161,220 +1861,23 @@
 			transform: translate3d(4%, -3%, 0) scale(1.12);
 		}
 	}
-	.sv-teaser-grid {
-		position: relative;
-		z-index: 1;
-		display: grid;
-		grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
-		gap: clamp(2rem, 3vw, 3rem) clamp(2rem, 4vw, 3.5rem);
-		align-items: center;
-		/* Alineado con `.container` (1200px + 2rem) por la izquierda; por la
-		   derecha la escena sangra hasta casi el borde. */
-		padding-left: max(2rem, calc((100% - 1200px) / 2 + 2rem));
-		padding-right: 0;
-	}
-	.sv-flowline {
-		grid-column: 1 / -1;
-	}
 	/* El texto va por encima de la escena, que se le mete por debajo. */
-	.sv-teaser-copy {
-		position: relative;
-		z-index: 2;
-	}
-	.sv-teaser-overline {
-		font-family: var(--gl-font-label);
-		font-size: 0.72rem;
-		letter-spacing: 0.24em;
-		text-transform: uppercase;
-		color: var(--sv-accent);
-		margin: 0 0 0.9rem;
-	}
-	.sv-teaser-title {
-		color: var(--sv-text);
-		background: none;
-		-webkit-text-fill-color: currentColor;
-		text-align: left;
-		max-width: 16ch;
-		margin: 0 0 1.1rem;
-	}
-	.sv-teaser-lead {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: clamp(0.98rem, 1.15vw, 1.08rem);
-		line-height: 1.65;
-		color: var(--sv-text-muted);
-		max-width: 46ch;
-		margin: 0;
-	}
-	.sv-teaser-lead strong {
-		color: var(--sv-text);
-		font-weight: 600;
-	}
 	/* Prueba sin adjetivos ni cifras: un inventario verificable de lo que ya
 	   existe. Funciona aquí porque los productos acaban de pasar por pantalla. */
-	.sv-teaser-proof {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.88rem;
-		line-height: 1.6;
-		color: var(--sv-text-faint);
-		max-width: 46ch;
-		margin: 1rem 0 0;
-		padding-left: 0.9rem;
-		border-left: 2px solid rgba(127, 227, 245, 0.35);
-	}
 
 	/* Riel de proceso: es una secuencia real, por eso lleva flechas. */
-	.sv-flowline {
-		list-style: none;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: flex-start;
-		gap: 0.75rem 1.25rem;
-		padding: 1.5rem 0 0;
-		margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
-		border-top: 1px solid var(--sv-rule);
-	}
-	.sv-flowline-step {
-		display: grid;
-		grid-template-columns: auto auto;
-		grid-template-areas: 'label sep' 'short sep';
-		align-items: center;
-		gap: 0 0.5rem;
-	}
-	.sv-flowline-label {
-		grid-area: label;
-		font-family: var(--gl-font-label);
-		font-size: 0.66rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--sv-accent);
-	}
-	.sv-flowline-short {
-		grid-area: short;
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.76rem;
-		color: var(--sv-text-faint);
-	}
-	.sv-flowline-sep {
-		grid-area: sep;
-		color: rgba(127, 227, 245, 0.4);
-		font-size: 0.9rem;
-		padding: 0 0.25rem;
-	}
-
-	.sv-teaser-actions {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.9rem 1.5rem;
-		margin-top: clamp(1.75rem, 3vw, 2.25rem);
-	}
-	.sv-teaser-cta {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.45rem;
-		min-height: 44px;
-		padding: 0.7rem 1.5rem;
-		border-radius: var(--gl-r-sm);
-		background: var(--sv-accent);
-		color: var(--sv-accent-ink);
-		border: 1px solid var(--sv-accent);
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.95rem;
-		font-weight: 600;
-		text-decoration: none;
-		transition:
-			transform var(--gl-dur) var(--gl-ease),
-			background var(--gl-dur) var(--gl-ease);
-	}
-	.sv-teaser-cta:hover {
-		transform: translateY(-2px);
-		background: #a4ecf9;
-	}
-	.sv-teaser-cta:focus-visible {
-		outline: 2px solid var(--sv-accent);
-		outline-offset: 3px;
-	}
-	.sv-teaser-arrow {
-		transition: transform var(--gl-dur) var(--gl-ease);
-	}
-	.sv-teaser-cta:hover .sv-teaser-arrow {
-		transform: translateX(4px);
-	}
-	.sv-teaser-cta-secondary {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.9rem;
-		font-weight: 500;
-		color: var(--sv-text-muted);
-		text-decoration: none;
-		border-bottom: 1px solid var(--sv-rule);
-		padding-bottom: 1px;
-		transition:
-			color var(--gl-dur) var(--gl-ease),
-			border-color var(--gl-dur) var(--gl-ease);
-	}
-	.sv-teaser-cta-secondary:hover {
-		color: var(--sv-text);
-		border-bottom-color: var(--sv-accent);
-	}
-	.sv-teaser-cta-secondary:focus-visible {
-		outline: 2px solid var(--sv-accent);
-		outline-offset: 3px;
-	}
 
 	/* ── La escena y sus etiquetas ─────────────────────── */
-	.sv-scene {
-		/* Se solapa con la columna de texto: la ilustración entra por debajo y su
-		   borde izquierdo, ya difuminado por la máscara, muere sobre el fondo. */
-		margin: 0 0 0 clamp(-7rem, -5vw, -2rem);
-		padding-top: 14%;
-	}
-	.sv-scene-frame {
-		position: relative;
-	}
 	/* La ilustración lleva canal alfa: su fondo se eliminó del archivo, derivando
 	   la transparencia de la luminancia contra un modelo del propio degradado de
 	   fondo. Por eso no necesita máscara ni que la sección le iguale el color:
 	   simplemente no hay rectángulo. */
-	.sv-scene-img {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
 	/* El pin cubre todo el marco en vez de ser un punto de tamaño cero: los
 	   porcentajes se resuelven contra la altura del contenedor, y con un
 	   contenedor de altura 0 se resolvían contra 0. */
-	.sv-pin {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-	}
 	/* El anillo abre la guía arriba, junto al rótulo; la línea baja de ahí hasta
 	   el punto de la ilustración y se desvanece al llegar, sin marcarlo con un
 	   punto. */
-	.sv-pin-ring {
-		position: absolute;
-		left: var(--x);
-		top: var(--ly);
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		border: 1.5px solid var(--sv-accent);
-		transform: translate(-50%, -50%);
-	}
-	.sv-pin-line {
-		position: absolute;
-		left: var(--x);
-		top: var(--ly);
-		height: calc(var(--y) - var(--ly));
-		width: 1px;
-		transform: translateX(-50%);
-		background: linear-gradient(
-			180deg,
-			var(--sv-accent) 0%,
-			rgba(127, 227, 245, 0.5) 55%,
-			rgba(127, 227, 245, 0) 100%
-		);
-	}
 	/* El rótulo cuelga a la derecha de la línea, alineado a la izquierda: la guía
 	   queda siempre al costado del texto y nunca lo cruza. */
 	/* Un pulso de señal baja por cada guía, del rótulo al dibujo. No es adorno:
@@ -2382,17 +1885,6 @@
 	   panel— y repite el ritmo de las trazas de la propia ilustración. Los
 	   retardos van escalonados para que se lea como una cadena, no como cinco
 	   cosas parpadeando a la vez. */
-	.sv-pin-line::after {
-		content: '';
-		position: absolute;
-		left: -1px;
-		width: 3px;
-		height: 26%;
-		border-radius: 2px;
-		background: linear-gradient(180deg, transparent, var(--sv-accent), transparent);
-		animation: svFlujo 3.6s linear infinite;
-		animation-delay: var(--d);
-	}
 	@keyframes svFlujo {
 		0% {
 			top: -26%;
@@ -2410,15 +1902,6 @@
 		}
 	}
 	/* Latido del anillo, en fase con el pulso que sale de él. */
-	.sv-pin-ring::after {
-		content: '';
-		position: absolute;
-		inset: -3px;
-		border-radius: 50%;
-		border: 1px solid var(--sv-accent);
-		animation: svLatido 3.6s ease-out infinite;
-		animation-delay: var(--d);
-	}
 	@keyframes svLatido {
 		0% {
 			transform: scale(0.5);
@@ -2434,85 +1917,12 @@
 		}
 	}
 
-	.sv-pin-label {
-		position: absolute;
-		left: calc(var(--x) + 0.85rem);
-		top: calc(var(--ly) - 0.5rem);
-		width: max-content;
-		max-width: min(8rem, 14%);
-		overflow-wrap: anywhere;
-		text-align: left;
-	}
-	.sv-pin-title {
-		display: block;
-		font-family: var(--gl-font-label);
-		font-size: 0.56rem;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--sv-accent);
-		margin-bottom: 0.25rem;
-	}
-	.sv-pin-desc {
-		display: block;
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.75rem;
-		line-height: 1.4;
-		color: rgba(244, 241, 232, 0.72);
-	}
 	/* En pantallas anchas la leyenda es redundante: las etiquetas ya están sobre
 	   la imagen. Se conserva para lectores de pantalla y para el móvil. */
-	.sv-scene-legend {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
-	}
 
 	@media (max-width: 1280px) {
-		.sv-teaser-grid {
-			grid-template-columns: 1fr;
-		}
-		.sv-teaser-title {
-			max-width: 20ch;
-		}
 		/* Etiquetas fuera: sobre una imagen pequeña se pisan y no se leen. El
 		   mismo contenido pasa a leerse como lista debajo. */
-		.sv-pin {
-			display: none;
-		}
-		.sv-scene-legend {
-			position: static;
-			width: auto;
-			height: auto;
-			margin: 1.25rem 0 0;
-			clip: auto;
-			white-space: normal;
-			overflow: visible;
-		}
-		.sv-scene-legend ul {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-			display: grid;
-			gap: 0.6rem;
-		}
-		.sv-scene-legend li {
-			font-family: 'Inter', system-ui, sans-serif;
-			font-size: 0.85rem;
-			line-height: 1.5;
-			color: var(--sv-text-faint);
-			padding-left: 0.9rem;
-			border-left: 2px solid rgba(127, 227, 245, 0.3);
-		}
-		.sv-scene-legend strong {
-			color: var(--sv-text);
-			font-weight: 600;
-		}
 	}
 
 	/* --- scroll-reveal (solo opacity/transform) ---
@@ -3566,6 +2976,14 @@
 	}
 
 	/* ── NEXUS PRODUCT SECTION ──────────────────────────────────── */
+	/* Servicios en bento: mismo fondo claro que los productos, para leerse como continuación. */
+	.sv-bento-section {
+		display: block;
+		min-height: 0;
+		padding: clamp(3rem, 6vw, 5.5rem) 0;
+		background: #eceff2;
+	}
+
 	.nexus-section {
 		display: flex;
 		flex-direction: column;
@@ -3606,401 +3024,41 @@
 	   misma materia de fondo en las tres, y solo cambia la temperatura del
 	   foco (--lite) — el ojo lee "la misma sala iluminada distinto", no
 	   "fondos de colores". Profundidad con degradado + viñeta, sin fotos. */
-	.nx-rail {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: clamp(0.5rem, 1vw, 0.75rem);
-		/* Alineado al píxel con .nx-card-shell: rail y tarjeta comparten borde
-		   izquierdo y derecho, así se leen como un solo objeto. */
-		width: 100%;
-		max-width: calc(1280px + 4rem);
-		margin: 0 auto;
-		padding: 0 2rem;
-		box-sizing: border-box;
-	}
-	.nx-cell {
-		position: relative;
-		isolation: isolate;
-		display: grid;
-		grid-template-rows: auto 1fr auto;
-		justify-items: center;
-		gap: 0.75rem;
-		appearance: none;
-		cursor: pointer;
-		overflow: hidden;
-		padding: 1.5rem 1.25rem 1.35rem;
-		border-radius: 16px;
-		border: 1px solid rgba(244, 241, 232, 0.1);
-		text-align: center;
-		background:
-			radial-gradient(
-				125% 85% at 50% -12%,
-				rgba(var(--lite), var(--lite-a, 0.085)) 0%,
-				rgba(var(--lite), 0.025) 38%,
-				transparent 66%
-			),
-			radial-gradient(90% 55% at 50% 112%, rgba(var(--lite), 0.035) 0%, transparent 60%),
-			linear-gradient(178deg, #1e2225 0%, #16191b 100%);
-		box-shadow:
-			inset 0 0 90px 26px rgba(0, 0, 0, 0.52),
-			inset 0 1px 0 rgba(255, 255, 255, 0.075),
-			inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-			0 18px 40px -26px rgba(0, 0, 0, 0.85);
-		transition:
-			border-color 0.28s ease,
-			box-shadow 0.28s ease,
-			transform 0.28s ease;
-	}
 	/* Grano: sin él, un degradado tenue sobre casi-negro produce banding
 	   visible en pantallas de 8 bits y la cámara se ve barata. */
-	.nx-cell::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		pointer-events: none;
-		background-image: url('/img/noise.webp');
-		background-size: 180px 180px;
-		opacity: 0.055;
-		mix-blend-mode: overlay;
-	}
-	.nx-cell > * {
-		position: relative;
-		z-index: 2;
-	}
 
 	/* Temperatura de luz por producto. Orion no tiene croma en su marca, así
 	   que compensa con intensidad: su cámara es la más luminosa de las tres. */
-	.nx-cell[data-product='nexus'] {
-		--lite: 168, 216, 150;
-		--accent: #5fd158;
-	}
-	.nx-cell[data-product='orion'] {
-		--lite: 196, 214, 232;
-		--lite-a: 0.115;
-		--accent: #c8d2dc;
-	}
-	.nx-cell[data-product='signum'] {
-		--lite: 232, 186, 180;
-		--accent: #e8565a;
-	}
 
-	.nx-cell-num {
-		font-family: 'Audiowide', system-ui, sans-serif;
-		font-size: 0.65rem;
-		letter-spacing: 0.2em;
-		color: rgba(244, 241, 232, 0.3);
-		justify-self: end;
-	}
-	.nx-cell-stage {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-	}
 	/* Normalización por masa óptica, no por caja: los tres logos tienen
 	   ratios distintos (0.96 / 0.83 / 0.69) y alinearlos por ancho los
 	   descuadra. Se controla la altura y la marca densa encoge. */
-	.nx-cell-mark {
-		width: auto;
-		object-fit: contain;
-		filter: saturate(0.55) brightness(0.88);
-		transition: filter 0.28s ease;
-	}
-	.nx-cell[data-product='nexus'] .nx-cell-mark {
-		height: clamp(56px, 6vw, 84px);
-	}
-	.nx-cell[data-product='orion'] .nx-cell-mark {
-		height: clamp(70px, 7.5vw, 106px);
-	}
-	.nx-cell[data-product='signum'] .nx-cell-mark {
-		height: clamp(66px, 7vw, 98px);
-	}
-	.nx-cell-shadow {
-		position: absolute;
-		bottom: -6px;
-		left: 50%;
-		width: 46%;
-		height: 18px;
-		transform: translateX(-50%);
-		background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55) 0%, transparent 72%);
-		filter: blur(9px);
-		pointer-events: none;
-	}
-	.nx-cell-text {
-		display: grid;
-		gap: 0.3rem;
-	}
-	.nx-cell-name {
-		font-family: 'Dune Rise', system-ui, sans-serif;
-		font-size: clamp(0.82rem, 1vw, 1rem);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: rgba(244, 241, 232, 0.72);
-		transition: color 0.28s ease;
-	}
-	.nx-cell-desc {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.78rem;
-		line-height: 1.35;
-		color: rgba(244, 241, 232, 0.58);
-	}
 	/* El "para quién". El rail es lo único que un visitante lee de los tres
 	   productos a la vez, así que sin esto la comparación se queda en qué hace
 	   cada uno y no en cuál es el suyo. */
-	.nx-cell-for {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.7rem;
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		line-height: 1.3;
-		color: rgba(244, 241, 232, 0.42);
-	}
-	.nx-cell-badge {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		padding: 0.24rem 0.6rem;
-		border-radius: 999px;
-		border: 1px solid rgba(214, 47, 50, 0.45);
-		background: rgba(181, 18, 27, 0.12);
-		color: #e8565a;
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.62rem;
-		font-weight: 600;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-	}
-	.nx-cell-badge::before {
-		content: '';
-		width: 5px;
-		height: 5px;
-		border-radius: 50%;
-		background: #d62f32;
-	}
 
 	/* Estados. Se atenúa la croma de las marcas inactivas lo justo para que el
 	   verde de Nexus y el rojo de Signum no vibren entre sí, sin apagarlas. */
-	.nx-cell:hover,
-	.nx-cell:focus-visible {
-		transform: translateY(-3px);
-		border-color: rgba(244, 241, 232, 0.26);
-	}
-	.nx-cell:hover .nx-cell-mark,
-	.nx-cell:focus-visible .nx-cell-mark {
-		filter: none;
-	}
-	.nx-cell:hover .nx-cell-name {
-		color: #f4f1e8;
-	}
-	.nx-cell:focus-visible {
-		outline: 2px solid #0883a0;
-		outline-offset: 3px;
-	}
-	.nx-cell.is-active {
-		border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-		box-shadow:
-			inset 0 0 90px 26px rgba(0, 0, 0, 0.42),
-			inset 0 1px 0 rgba(255, 255, 255, 0.11),
-			0 20px 44px -24px rgba(0, 0, 0, 0.9);
-	}
-	.nx-cell.is-active .nx-cell-mark {
-		filter: none;
-	}
-	.nx-cell.is-active .nx-cell-name {
-		color: #ffffff;
-	}
 	/* Barra de acento inferior */
-	.nx-cell.is-active::after {
-		content: '';
-		position: absolute;
-		inset: auto 0 0 0;
-		z-index: 3;
-		height: 3px;
-		background: var(--accent);
-	}
 
 	/* Shell: centra la tarjeta + reveal de scroll */
 	/* La tarjeta de "El futuro que estamos construyendo" queda fija en 1280px
 	   (su aspect-ratio 16/9 deriva el ancho de una altura acotada), así que
 	   aquí se replica ese ancho útil: 1280 + 2rem de padding a cada lado.
 	   Antes llegaba a 2400px y en monitores grandes se desparramaba. */
-	.nx-card-shell {
-		width: 100%;
-		max-width: calc(1280px + 4rem);
-		margin: 0 auto;
-		padding: 0 2rem;
-		box-sizing: border-box;
-	}
 	/* Tarjeta-marco (el fondo cambia según el producto) */
-	.nx-card {
-		position: relative;
-		z-index: 1;
-		overflow: hidden;
-		width: 100%;
-		/* El min-height es solo un suelo de seguridad: la altura real la fija el
-		   panel más alto (Nexus). Si se queda por encima del contenido, anula
-		   cualquier ahorro de padding. */
-		min-height: min(60vh, 660px);
-		padding: clamp(1.5rem, 3vw, 3rem);
-		border: 1px solid rgba(244, 241, 232, 0.55);
-		border-radius: clamp(20px, 2vw, 32px);
-		transition:
-			background 0.4s ease,
-			box-shadow 0.4s ease;
-	}
 	/* Capa de fondo (parallax con el mouse) — sobredimensionada para no revelar bordes */
-	.nx-bg {
-		position: absolute;
-		inset: -14%;
-		z-index: 0;
-		pointer-events: none;
-		transition: transform 0.18s ease-out;
-	}
 	/* Tema Nexus (grafito-teal + verde) */
-	.nx-card[data-product='nexus'] {
-		background: #0f1518;
-		box-shadow:
-			inset 0 1px 0 rgba(255, 255, 255, 0.1),
-			inset 0 0 60px rgba(244, 241, 232, 0.04),
-			0 30px 80px -40px rgba(0, 0, 0, 0.6),
-			0 0 40px -10px rgba(63, 174, 58, 0.1);
-	}
-	.nx-card[data-product='nexus'] .nx-bg {
-		background:
-			linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
-			url('/img/nexus-card-bg-2.webp') center / cover no-repeat,
-			#0f1518;
-		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
-	}
 	/* Tema Orion (negro mate + plata) */
-	.nx-card[data-product='orion'] {
-		background: #08090a;
-		border-color: rgba(244, 241, 232, 0.28);
-		box-shadow:
-			inset 0 1px 0 rgba(255, 255, 255, 0.1),
-			inset 0 0 60px rgba(244, 241, 232, 0.03),
-			0 30px 80px -40px rgba(0, 0, 0, 0.7),
-			0 0 40px -10px rgba(214, 222, 230, 0.12);
-	}
-	.nx-card[data-product='orion'] .nx-bg {
-		background:
-			linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-			url('/img/orion-card-bg-2.webp') center / cover no-repeat,
-			#08090a;
-		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
-	}
 	/* Tema Signum (negro cálido + acero y rojo).
 	   Los tres negros se separan por matiz, no por luminancia: grafito-cian en
 	   Nexus, neutro puro en Orion, cálido-rojo aquí. El fondo se genera con CSS
 	   —misma receta de cámara del rail, a escala— para no bloquear el lanzamiento
 	   a la espera de una fotografía. */
-	.nx-card[data-product='signum'] {
-		background: #130d0e;
-		border-color: rgba(226, 214, 214, 0.24);
-		box-shadow:
-			inset 0 1px 0 rgba(255, 255, 255, 0.1),
-			inset 0 0 60px rgba(242, 242, 242, 0.03),
-			0 30px 80px -40px rgba(0, 0, 0, 0.7),
-			0 0 40px -10px rgba(181, 18, 27, 0.18);
-	}
-	.nx-card[data-product='signum'] .nx-bg {
-		background:
-			linear-gradient(rgba(9, 5, 6, 0.5), rgba(9, 5, 6, 0.5)),
-			url('/img/signum-card-bg.webp') center / cover no-repeat,
-			#130d0e;
-		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
-	}
 	/* Ruido (noise.png) sobre el fondo */
-	.nx-card::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		border-radius: inherit;
-		pointer-events: none;
-		background-image: url('/img/noise.webp');
-		background-size: 180px 180px;
-		opacity: 0.09;
-		mix-blend-mode: overlay;
-	}
 	/* Pila de paneles: ambos en la misma celda → altura estable, crossfade */
-	.nx-slides {
-		position: relative;
-		z-index: 3;
-		display: grid;
-	}
-	.nx-slide {
-		grid-area: 1 / 1;
-		display: grid;
-		/* El escenario se llevaba el 42% del ancho para un logotipo que no lo
-		   necesita. Cediendo ancho al contenido, los chips rompen en menos
-		   filas y la tarjeta baja de alto. */
-		grid-template-columns: 1.15fr 0.85fr;
-		gap: clamp(1.5rem, 3vw, 3.5rem);
-		align-items: center;
-		opacity: 0;
-		visibility: hidden;
-		transform: translateY(8px);
-		pointer-events: none;
-		transition:
-			opacity 0.28s ease,
-			transform 0.28s ease,
-			visibility 0s linear 0.28s;
-	}
-	.nx-slide.is-active {
-		opacity: 1;
-		visibility: visible;
-		transform: none;
-		pointer-events: auto;
-		transition:
-			opacity 0.28s ease,
-			transform 0.28s ease,
-			visibility 0s;
-	}
-	.nx-content,
-	.nx-stage {
-		position: relative;
-		z-index: 1;
-	}
 
 	/* Acentos Orion (plata) */
-	.nx-slide[data-product='orion'] .nx-eyebrow {
-		color: rgba(205, 213, 221, 0.85);
-	}
-	.nx-slide[data-product='orion'] .nx-title {
-		background: linear-gradient(120deg, #ffffff 0%, #dfe5ea 45%, #aeb8c2 100%);
-		-webkit-background-clip: text;
-		background-clip: text;
-		-webkit-text-fill-color: transparent;
-	}
-	.nx-slide[data-product='orion'] .nx-step-n {
-		color: #cdd5dd;
-	}
-	.nx-slide[data-product='orion'] .nx-model {
-		border-color: rgba(205, 213, 221, 0.26);
-	}
-	.nx-slide[data-product='orion'] .nx-model:hover {
-		border-color: rgba(205, 213, 221, 0.8);
-	}
-	.nx-slide[data-product='orion'] .nx-cta-secondary:hover {
-		border-bottom-color: #d7dde4;
-	}
-	.nx-slide[data-product='orion'] .nx-cta {
-		color: #d7dde4;
-	}
-	.nx-slide[data-product='orion'] .nx-cta:focus-visible {
-		outline-color: #d7dde4;
-	}
-	.nx-slide[data-product='orion'] .nx-halo {
-		background: radial-gradient(
-			circle,
-			rgba(232, 237, 242, 0.22) 0%,
-			rgba(180, 190, 200, 0.08) 42%,
-			transparent 72%
-		);
-	}
 
 	/* Acentos Signum (acero + rojo).
 	   El rojo de marca #b5121b da 2.7:1 sobre este fondo, así que solo se usa
@@ -4008,84 +3066,14 @@
 	   token que Signum ya usa en su propio sistema. */
 	/* A opacidad .9 sobre el fondo rojo daba 4.49:1, justo por debajo de AA.
 	   A plena opacidad sube a 5.27:1. */
-	.nx-slide[data-product='signum'] .nx-eyebrow {
-		color: #e8565a;
-	}
-	.nx-slide[data-product='signum'] .nx-title {
-		background: linear-gradient(
-			115deg,
-			#f2f2f2 0%,
-			#c0c0c0 24%,
-			#ffffff 40%,
-			#8a8a8a 52%,
-			#dadada 70%,
-			#e8565a 100%
-		);
-		-webkit-background-clip: text;
-		background-clip: text;
-		-webkit-text-fill-color: transparent;
-	}
 	/* Rojo para características, acero para casos de uso: reproduce en la UI la
 	   construcción bimaterial del logotipo. */
 	/* Fondo más opaco que el resto para que el trazo del ECG pase por detrás
 	   del chip y no cruce el texto. */
-	.nx-slide[data-product='signum'] .nx-step-n {
-		color: #e8565a;
-	}
-	.nx-slide[data-product='signum'] .nx-model {
-		border-color: rgba(232, 86, 90, 0.3);
-	}
-	.nx-slide[data-product='signum'] .nx-model:hover {
-		border-color: rgba(232, 86, 90, 0.8);
-	}
-	.nx-slide[data-product='signum'] .nx-cta-secondary:hover {
-		border-bottom-color: #e8565a;
-	}
-	.nx-slide[data-product='signum'] .nx-cta {
-		background: #b5121b;
-		border-color: #b5121b;
-		color: #fbfaf7;
-	}
 	/* El hover oscurece en vez de aclarar: #d62f32 con texto blanco da 4.9:1 y
 	   aclarar más rompería AA. */
-	.nx-slide[data-product='signum'] .nx-cta:hover {
-		background: #d62f32;
-		border-color: #d62f32;
-		box-shadow: 0 8px 16px rgba(181, 18, 27, 0.35);
-	}
-	.nx-slide[data-product='signum'] .nx-cta:focus-visible {
-		outline-color: #e8565a;
-	}
-	.nx-slide[data-product='signum'] .nx-halo {
-		background: radial-gradient(
-			circle,
-			rgba(214, 47, 50, 0.2) 0%,
-			rgba(192, 192, 192, 0.09) 38%,
-			transparent 72%
-		);
-	}
 
 	/* Partículas de Orion: fluyen de la esquina inferior izquierda hacia el logo */
-	.nx-orion-fx {
-		position: absolute;
-		inset: 0;
-		z-index: 0;
-		pointer-events: none;
-		overflow: hidden;
-	}
-	.nx-orion-fx span {
-		position: absolute;
-		left: 74%;
-		top: 48%;
-		width: var(--s, 3px);
-		height: var(--s, 3px);
-		border-radius: 50%;
-		background: rgba(224, 231, 238, 0.95);
-		box-shadow: 0 0 6px rgba(210, 220, 230, 0.5);
-		opacity: 0;
-		animation: orionDrift var(--dur, 6s) linear var(--d, 0s) infinite;
-		will-change: transform, opacity;
-	}
 	@keyframes orionDrift {
 		0% {
 			transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(0.5);
@@ -4104,209 +3092,22 @@
 	}
 
 	/* Left content */
-	.nx-content {
-		display: flex;
-		flex-direction: column;
-		min-width: 0;
-		position: relative;
-		z-index: 2;
-	}
-	.nx-slide[data-product='orion'] .nx-content::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		z-index: -1;
-		background: linear-gradient(
-			to right,
-			rgba(0, 0, 0, 0.32) 0%,
-			rgba(0, 0, 0, 0.12) 45%,
-			transparent 100%
-		);
-		border-radius: inherit;
-		pointer-events: none;
-	}
-	.nx-eyebrow {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.72rem;
-		font-weight: 600;
-		color: rgba(95, 209, 88, 0.85);
-		text-transform: uppercase;
-		letter-spacing: 0.28em;
-		margin: 0 0 0.75rem;
-	}
-	.nx-title {
-		font-family: 'Dune Rise', system-ui, sans-serif;
-		font-size: clamp(2.6rem, 5vw, 4.4rem);
-		letter-spacing: 0.04em;
-		line-height: 1;
-		margin: 0 0 1.25rem;
-		background: linear-gradient(120deg, #f4f1e8 0%, #cfe9c6 45%, #5fd158 100%);
-		-webkit-background-clip: text;
-		background-clip: text;
-		-webkit-text-fill-color: transparent;
-		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-	}
 	/* El oneLiner: responde "¿qué es?" antes de que el visitante decida seguir
 	   leyendo. Sustituye al subtítulo de 45 palabras que nadie leía. */
-	.nx-subtitle {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: clamp(1.05rem, 1.35vw, 1.32rem);
-		font-weight: 500;
-		color: rgba(244, 241, 232, 0.92);
-		line-height: 1.45;
-		max-width: 30ch;
-		margin: 0;
-	}
 	/* El problema: deja que el visitante se autoseleccione. Va deliberadamente
 	   más callado que el oneLiner — es la segunda pregunta, no la primera. */
-	.nx-problem {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: clamp(0.92rem, 1.05vw, 1rem);
-		color: rgba(244, 241, 232, 0.6);
-		line-height: 1.5;
-		max-width: 44ch;
-		margin: 0.65rem 0 0;
-	}
 
 	/* Los tres pasos: "¿y yo qué tengo que hacer?". Es una secuencia real, así
 	   que va numerada; los doce chips que había antes no lo eran. */
-	.nx-steps {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 1.35rem;
-		list-style: none;
-		padding: 1.25rem 0 0;
-		margin: 1.25rem 0 0;
-		border-top: 1px solid rgba(244, 241, 232, 0.1);
-	}
-	.nx-step {
-		display: inline-flex;
-		align-items: baseline;
-		gap: 0.5rem;
-		min-width: 0;
-	}
-	.nx-step-n {
-		font-family: 'Audiowide', system-ui, sans-serif;
-		font-size: 0.68rem;
-		line-height: 1;
-		color: #3fae3a;
-		flex: none;
-	}
-	.nx-step-text {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.88rem;
-		color: rgba(244, 241, 232, 0.78);
-	}
 
 	/* Banda de contratación */
-	.nx-models {
-		position: relative;
-		margin-top: clamp(1.25rem, 2.4vw, 1.75rem);
-	}
-	.nx-models-title {
-		font-family: 'Audiowide', system-ui, sans-serif;
-		font-weight: 700;
-		font-size: 0.72rem;
-		text-transform: uppercase;
-		letter-spacing: 0.18em;
-		color: rgba(244, 241, 232, 0.5);
-		margin: 0 0 0.7rem;
-	}
 	/* Auto-fit con mínimo: Nexus reparte tres columnas, Orion dos y Signum una
 	   sin que ninguna quede huérfana estirándose sobre espacio muerto. */
-	.nx-models-list {
-		position: relative;
-		z-index: 1;
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
-		gap: 0.6rem;
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-	.nx-model {
-		cursor: default;
-		display: flex;
-		flex-direction: column;
-		gap: 0.18rem;
-		padding: 0.75rem 0.85rem;
-		border: 1px solid rgba(63, 174, 58, 0.3);
-		border-radius: 10px;
-		background: rgba(255, 255, 255, 0.035);
-		transition:
-			border-color 0.25s ease,
-			transform 0.25s ease;
-	}
-	.nx-model:hover {
-		border-color: rgba(95, 209, 88, 0.75);
-		transform: translateY(-2px);
-	}
-	.nx-model-axis {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.66rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.14em;
-		color: rgba(244, 241, 232, 0.5);
-	}
-	.nx-model-label {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.98rem;
-		font-weight: 700;
-		color: #eef2e9;
-	}
-	.nx-model-line {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.84rem;
-		line-height: 1.45;
-		color: rgba(244, 241, 232, 0.72);
-	}
 	/* El acrónimo técnico vive aquí y solo aquí: el gancho comercial es
 	   `.nx-model-label`. Las tres modalidades de Nexus son SaaS, así que
 	   etiquetar solo a Connect como tal se leería impreciso. */
-	.nx-model-tech {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.72rem;
-		line-height: 1.4;
-		color: rgba(244, 241, 232, 0.42);
-		margin-top: 0.15rem;
-	}
 
-	.nx-evidence {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.8rem;
-		color: rgba(244, 241, 232, 0.5);
-		margin: 1rem 0 0;
-	}
-
-	.nx-actions {
-		margin-top: clamp(1.5rem, 3vw, 2.25rem);
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.75rem 1.25rem;
-	}
 	/* Ruta al público B2B sin robarle protagonismo al CTA principal. */
-	.nx-cta-secondary {
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.87rem;
-		font-weight: 500;
-		color: rgba(244, 241, 232, 0.72);
-		text-decoration: none;
-		border-bottom: 1px solid rgba(244, 241, 232, 0.3);
-		padding-bottom: 1px;
-		transition:
-			color 0.25s ease,
-			border-color 0.25s ease;
-	}
-	.nx-cta-secondary:hover {
-		color: #eef2e9;
-		border-bottom-color: #5fd158;
-	}
-	.nx-cta-secondary:focus-visible {
-		outline: 2px solid #5fd158;
-		outline-offset: 3px;
-	}
 
 	/* Electrocardiograma de Signum: se dibuja de izquierda a derecha detrás de
 	   la banda de contratación y se desvanece. Anima stroke-dashoffset sobre un único trazo,
@@ -4314,30 +3115,6 @@
 	/* Altura fija y centrada: si se estira a todo el alto del bloque, el
 	   preserveAspectRatio="none" deforma los picos y deja de leerse como un
 	   trazo de monitor. */
-	.nx-ecg {
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: 50%;
-		z-index: 0;
-		width: 100%;
-		height: 88px;
-		transform: translateY(-50%);
-		overflow: visible;
-		pointer-events: none;
-	}
-	.nx-ecg path {
-		fill: none;
-		stroke: #e8565a;
-		stroke-width: 1.4;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-		vector-effect: non-scaling-stroke;
-		filter: drop-shadow(0 0 6px rgba(232, 86, 90, 0.55));
-		stroke-dasharray: 1400;
-		stroke-dashoffset: 1400;
-		animation: sgEcg 6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-	}
 	/* Los chips van por encima del trazo */
 	@keyframes sgEcg {
 		0% {
@@ -4362,94 +3139,8 @@
 	}
 
 	/* CTA */
-	.nx-cta {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		align-self: flex-start;
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.95rem;
-		font-weight: 600;
-		/* Verde #5fd158 con texto blanco daba 1.95:1 — fallo de AA en el
-		   elemento de conversión de la sección. Con tinta oscura da 8.7:1
-		   conservando el mismo verde de marca. */
-		color: #06210a;
-		text-decoration: none;
-		border-radius: 8px;
-		padding: 0.7rem 1.4rem;
-		background: #5fd158;
-		border: 1px solid #5fd158;
-		transition: all 0.25s ease;
-		cursor: pointer;
-	}
-	.nx-cta:hover {
-		background: #6fe668;
-		border-color: #6fe668;
-		transform: translateY(-2px);
-		box-shadow: 0 8px 16px rgba(95, 209, 88, 0.28);
-	}
-	.nx-cta:focus-visible {
-		outline: 2px solid #5fd158;
-		outline-offset: 3px;
-	}
-	.nx-cta-arrow {
-		display: inline-block;
-		transition: transform 0.25s ease;
-	}
-	.nx-cta:hover .nx-cta-arrow {
-		transform: translateX(4px);
-	}
-	.nx-slide[data-product='orion'] .nx-cta {
-		background: #d7dde4;
-		color: #08090a;
-		border-color: #d7dde4;
-	}
-	.nx-slide[data-product='orion'] .nx-cta:hover {
-		background: #ffffff;
-		border-color: #ffffff;
-		box-shadow: 0 8px 16px rgba(200, 210, 220, 0.28);
-	}
 
 	/* Right stage */
-	.nx-stage {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 100%;
-	}
-	.nx-halo {
-		position: absolute;
-		z-index: 2;
-		width: 67%;
-		aspect-ratio: 1;
-		border-radius: 50%;
-		background: radial-gradient(
-			circle,
-			rgba(63, 174, 58, 0.18) 0%,
-			rgba(0, 166, 192, 0.06) 40%,
-			transparent 70%
-		);
-		filter: blur(10px);
-		animation: nexusHaloPulse 7s ease-in-out infinite;
-		pointer-events: none;
-	}
-
-	.nx-stage-state {
-		position: absolute;
-		top: 0.4rem;
-		right: 0.4rem;
-		z-index: 3;
-		padding: 0.3rem 0.7rem;
-		border-radius: 999px;
-		background: rgba(0, 0, 0, 0.45);
-		box-shadow: inset 0 0 0 1px rgba(0, 255, 136, 0.4);
-		font-size: 0.68rem;
-		font-weight: 700;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: #00ff88;
-	}
 
 	@keyframes nexusHaloPulse {
 		0%,
@@ -4468,19 +3159,6 @@
 			align-items: flex-start;
 			padding: 4rem 0;
 		}
-		.nx-card {
-			min-height: auto;
-		}
-		.nx-slide {
-			grid-template-columns: 1fr;
-		}
-		.nx-stage {
-			order: -1;
-			min-height: auto;
-		}
-		.nx-cell {
-			padding: 1.15rem 0.9rem 1.1rem;
-		}
 	}
 
 	/* Mobile */
@@ -4488,89 +3166,13 @@
 		.nexus-section {
 			padding: 3.5rem 0;
 		}
-		.nx-card {
-			padding: clamp(1.25rem, 5vw, 2rem);
-			border-radius: 18px;
-		}
-		.nx-card-shell {
-			padding: 0 3vw;
-		}
-		.nx-subtitle {
-			max-width: 100%;
-		}
-		.nx-models-list {
-			grid-template-columns: 1fr;
-		}
 
 		/* Las tres celdas siguen en fila y siempre visibles: un carril con
 		   scroll volvería a esconder productos, que es lo que resolvemos.
 		   Cabe recortando el descriptor y colapsando el badge a un punto. */
-		.nx-rail {
-			padding: 0 3vw;
-			gap: 0.4rem;
-		}
-		.nx-cell {
-			padding: 0.9rem 0.5rem 0.85rem;
-			gap: 0.5rem;
-			border-radius: 12px;
-		}
-		.nx-cell-num,
-		.nx-cell-desc {
-			display: none;
-		}
-		.nx-cell-name {
-			font-size: 0.7rem;
-			letter-spacing: 0.06em;
-		}
-		.nx-cell-badge {
-			position: absolute;
-			top: 0.5rem;
-			right: 0.5rem;
-			padding: 0;
-			width: 7px;
-			height: 7px;
-			border: none;
-			background: #d62f32;
-			font-size: 0;
-			gap: 0;
-		}
-		.nx-cell-badge::before {
-			display: none;
-		}
 	}
 
 	/* Reduced motion */
-	@media (prefers-reduced-motion: reduce) {
-		.nx-halo {
-			animation: none;
-		}
-		.nx-card,
-		.nx-model,
-		.nx-cta-arrow,
-		.nx-slide,
-		.nx-cell,
-		.nx-cell-mark,
-		.nx-cell-name {
-			transition: none;
-		}
-		.nx-cell:hover,
-		.nx-cell:focus-visible {
-			transform: none;
-		}
-		.nx-orion-fx span {
-			animation: none;
-			opacity: 0;
-		}
-		.nx-ecg path {
-			animation: none;
-			stroke-dashoffset: 0;
-			opacity: 0.28;
-		}
-		.nx-bg {
-			transform: none !important;
-			transition: none;
-		}
-	}
 
 	/* ── Futuro Section ─────────────────────────────────────── */
 	.futuro-section {
