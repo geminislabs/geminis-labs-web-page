@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.1] — 2026-11-25
+
 ### Fixed
 
 - **Hero de la página principal en celular.** Ya no carga ni muestra el video del rostro (ni su efecto de mosaico): queda el cielo, la nube verde fundida sin bordes y el logo. La página pesa menos en datos móviles
