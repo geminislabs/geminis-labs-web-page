@@ -47,7 +47,7 @@
 		"happy-dom": "^21.0.4",
 		"husky": "^9.1.7",
 		"jsdom": "^30.1.1",
-		"lint-staged": "^17.6.0",
+		"lint-staged": "^17.6.1",
 		"playwright": "^1.65.0",
 		"prettier": "^3.9.10",
 		"prettier-plugin-svelte": "^4.1.1",
