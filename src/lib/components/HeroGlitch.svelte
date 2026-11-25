@@ -158,23 +158,42 @@
 		}
 
 		/**
-		 * Variante con desenfoque: el fondo queda nítido y solo los cuadros cercanos
-		 * al cursor se desplazan y se desenfocan, sin bordes ni separaciones.
+		 * Variante con desenfoque, como el original: cada cuadro cercano al cursor
+		 * se desplaza y se encoge dejando huecos negros nítidos; solo el contenido
+		 * de los cuadros se ve desenfocado.
 		 */
 		function drawBlurred() {
 			ctx.drawImage(buf, 0, 0);
+			// Copia desenfocada del fondo, de una sola pasada.
 			fctx.clearRect(0, 0, cw, ch);
+			fctx.filter = `blur(${blur}px)`;
+			fctx.drawImage(buf, 0, 0);
+			fctx.filter = 'none';
+			const maxGap = Math.max(4, TILE_W * 0.16);
 			for (const t of tiles) {
 				const dist = Math.hypot(t.cx - mouseX, t.cy - mouseY);
 				const str = Math.max(0, 1 - dist / EFFECT_R) * glitchActive;
 				if (str < 0.02) continue;
 				const srcTX = Math.max(0, Math.min(t.x + t.ox * str, cw - TILE_W));
 				const srcTY = Math.max(0, Math.min(t.y + t.oy * str, ch - TILE_H));
-				fctx.drawImage(buf, srcTX, srcTY, TILE_W, TILE_H, t.x, t.y, TILE_W, TILE_H);
+				const gap = Math.min(maxGap, str * maxGap * 1.6);
+				// Hacia el borde del área los cuadros se funden con el fondo: sin contorno.
+				ctx.globalAlpha = Math.min(1, str * 3);
+				ctx.fillStyle = '#000006';
+				ctx.fillRect(t.x, t.y, TILE_W, TILE_H);
+				ctx.drawImage(
+					fx,
+					srcTX,
+					srcTY,
+					TILE_W,
+					TILE_H,
+					t.x + gap / 2,
+					t.y + gap / 2,
+					Math.max(1, TILE_W - gap),
+					Math.max(1, TILE_H - gap)
+				);
 			}
-			ctx.filter = `blur(${blur}px)`;
-			ctx.drawImage(fx, 0, 0);
-			ctx.filter = 'none';
+			ctx.globalAlpha = 1;
 		}
 
 		drawFrame();
