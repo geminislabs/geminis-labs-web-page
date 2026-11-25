@@ -46,6 +46,18 @@
 
 	onMount(() => {
 		cargarRecaptcha();
+		const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (quieto) return;
+		const tCto = setInterval(() => {
+			consejoN += 1;
+			consejoVisible = false;
+			setTimeout(() => (consejoVisible = true), 900);
+		}, 3200);
+		const tLab = setInterval(() => (etapaActiva = (etapaActiva + 1) % focos.length), 2400);
+		return () => {
+			clearInterval(tCto);
+			clearInterval(tLab);
+		};
 	});
 
 	async function enviar(evento) {
@@ -130,6 +142,47 @@
 			a: 'En Querétaro. Trabajamos de forma remota y presencial según el proyecto.'
 		}
 	];
+
+	// ── CTO por horas: frentes y consejos ────────────────────────────────
+	const frentes = [
+		{ id: 'equipo', label: 'Equipo', x: 14, y: 22 },
+		{ id: 'prov', label: 'Proveedores', x: 50, y: 10 },
+		{ id: 'tec', label: 'Tecnología', x: 86, y: 22 }
+	];
+	const consejos = [
+		{ to: 'prov', t: 'Ese proveedor te está cobrando de más' },
+		{ to: 'tec', t: 'Esta arquitectura no va a escalar' },
+		{ to: 'equipo', t: 'Contratemos primero a alguien senior' },
+		{ to: 'tec', t: 'Antes de meter IA, arreglemos los datos' },
+		{ to: 'prov', t: 'No compres eso todavía' }
+	];
+	let consejoN = 0;
+	let consejoVisible = false;
+	$: consejo = consejos[consejoN % consejos.length];
+
+	// ── Cómo trabajamos: la luz recorre la imagen etapa por etapa ─────────
+	// Posición (en % de la imagen) de lo que ilustra cada etapa.
+	const focos = [
+		{ x: 13, y: 58 },
+		{ x: 31, y: 52 },
+		{ x: 46, y: 44 },
+		{ x: 62, y: 34 },
+		{ x: 84, y: 40 }
+	];
+	let etapaActiva = 0;
+
+	// ── Capacidades: un solo panel de detalle, a lo ancho ─────────────────
+	let capAbierta = null;
+	function verDetalle(slug) {
+		capAbierta = capAbierta === slug ? null : slug;
+		if (capAbierta) {
+			requestAnimationFrame(() =>
+				document
+					.getElementById('sv-cap-panel')
+					?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+			);
+		}
+	}
 
 	// Los seis apartados del documento del diagnóstico. Van en un array y no
 	// sueltos en el marcado para poder escalonar el recorrido de la señal: cada
@@ -354,51 +407,47 @@
 					     hereda la paleta de la sección y puede animarse con el mismo pulso
 					     que el resto. Es decorativo —lo que dice ya está en la lista de
 					     arriba— así que queda fuera del árbol de accesibilidad. -->
+					<!-- El CTO como núcleo vivo: los tres frentes orbitan y, de vez en cuando,
+					     sale del núcleo la frase que evita perder dinero en ese frente. -->
 					<figure class="sv-cto" aria-hidden="true">
-						<svg viewBox="0 0 260 122" role="presentation" focusable="false">
-							<defs>
-								<!-- En coordenadas de usuario, no de caja delimitadora: una línea
-								     recta tiene caja de área cero y ahí un degradado en
-								     objectBoundingBox queda indefinido y no llega a pintarse. -->
-								<linearGradient
-									id="svCtoLinea"
-									gradientUnits="userSpaceOnUse"
-									x1="0"
-									y1="0"
-									x2="0"
-									y2="122"
+						<div class="sv-cto-escena">
+							<svg class="sv-cto-lineas" viewBox="0 0 300 200" preserveAspectRatio="none">
+								{#each frentes as f (f.id)}
+									<line
+										x1="150"
+										y1="118"
+										x2={f.x * 3}
+										y2={f.y * 2}
+										class:on={consejo.to === f.id}
+									/>
+								{/each}
+							</svg>
+							<span class="sv-cto-anillo"></span>
+							<span class="sv-cto-anillo sv-cto-anillo--2"></span>
+							<span class="sv-cto-nucleo">CTO</span>
+							{#each frentes as f (f.id)}
+								<span
+									class="sv-cto-frente"
+									class:on={consejo.to === f.id && consejoVisible}
+									style="--x: {f.x}%; --y: {f.y}%"
 								>
-									<stop offset="0%" stop-color="var(--gl-teal-400)" />
-									<stop offset="100%" stop-color="var(--sv-accent)" />
-								</linearGradient>
-							</defs>
-
-							<text class="sv-cto-origen" x="130" y="10" text-anchor="middle">TU EMPRESA</text>
-							<path class="sv-cto-guia" d="M130 18 V34" />
-
-							<rect class="sv-cto-caja" x="88" y="34" width="84" height="30" rx="8" />
-							<text class="sv-cto-nodo" x="130" y="54" text-anchor="middle">CTO</text>
-
-							<!-- Tronco y tres ramas hacia los frentes que se supervisan -->
-							<path class="sv-cto-guia" d="M130 64 V76" />
-							<path class="sv-cto-guia" d="M40 76 H220" />
-							<path class="sv-cto-guia" d="M40 76 V90" />
-							<path class="sv-cto-guia" d="M130 76 V90" />
-							<path class="sv-cto-guia" d="M220 76 V90" />
-							<path class="sv-cto-pulso" d="M40 76 V90" style="--d: 0s" />
-							<path class="sv-cto-pulso" d="M130 76 V90" style="--d: 0.32s" />
-							<path class="sv-cto-pulso" d="M220 76 V90" style="--d: 0.64s" />
-
-							<circle class="sv-cto-punto" cx="40" cy="90" r="2.6" />
-							<circle class="sv-cto-punto" cx="130" cy="90" r="2.6" />
-							<circle class="sv-cto-punto" cx="220" cy="90" r="2.6" />
-
-							<text class="sv-cto-hoja" x="40" y="110" text-anchor="middle">Equipo</text>
-							<text class="sv-cto-hoja" x="130" y="110" text-anchor="middle">Proveedores</text>
-							<text class="sv-cto-hoja" x="220" y="110" text-anchor="middle">Tecnología</text>
-						</svg>
+									{f.label}
+								</span>
+							{/each}
+							{#key consejoN}
+								<span
+									class="sv-cto-consejo"
+									style="--tx: {frentes.find((f) => f.id === consejo.to).x}%; --ty: {frentes.find(
+										(f) => f.id === consejo.to
+									).y}%"
+								>
+									«{consejo.t}»
+								</span>
+							{/key}
+						</div>
 						<figcaption class="sv-cto-pie">
-							Una sola cabeza técnica sobre los tres frentes donde se pierde el dinero.
+							Tu empresa, con una sola cabeza técnica sobre los tres frentes donde se pierde el
+							dinero.
 						</figcaption>
 					</figure>
 				</article>
@@ -445,23 +494,51 @@
 			</header>
 			<div class="sv-caps-grid">
 				{#each services as cap, i (cap.slug)}
-					<article class="sv-cap" class:sv-cap--ancha={i === 0 || i === services.length - 1}>
+					<article
+						class="sv-cap"
+						class:sv-cap--ancha={i === 0 || i === services.length - 1}
+						class:is-abierta={capAbierta === cap.slug}
+					>
 						<p class="sv-cap-num">{cap.num}</p>
 						<h3 class="sv-cap-title">{cap.title}</h3>
 						<p class="sv-cap-promise">{cap.promise}</p>
 						<ul class="sv-cap-chips">
 							{#each cap.chips.slice(0, 4) as chip (chip)}<li>{chip}</li>{/each}
 						</ul>
-						<details class="sv-cap-detalle">
-							<summary>Ver detalle técnico</summary>
-							{#each cap.detail.groups as g (g.title)}
-								<p class="sv-cap-grupo">{g.title}</p>
-								<p class="sv-cap-items">{g.items.join(' · ')}</p>
-							{/each}
-						</details>
+						<button
+							type="button"
+							class="sv-cap-ver"
+							aria-expanded={capAbierta === cap.slug}
+							aria-controls="sv-cap-panel"
+							on:click={() => verDetalle(cap.slug)}
+						>
+							{capAbierta === cap.slug ? 'Ocultar detalle técnico' : 'Ver detalle técnico'}
+						</button>
 					</article>
 				{/each}
 			</div>
+			{#if capAbierta}
+				{@const cap = services.find((c) => c.slug === capAbierta)}
+				<div class="sv-cap-panel" id="sv-cap-panel">
+					<header class="sv-cap-panel-head">
+						<p class="sv-cap-num">{cap.num}</p>
+						<h3 class="sv-cap-title">{cap.title} · detalle técnico</h3>
+						<button type="button" class="sv-cap-cerrar" on:click={() => (capAbierta = null)}
+							>Cerrar ✕</button
+						>
+					</header>
+					<div class="sv-cap-panel-grid">
+						{#each cap.detail.groups as grupo (grupo.title)}
+							<section>
+								<p class="sv-cap-grupo">{grupo.title}</p>
+								<ul class="sv-cap-lista">
+									{#each grupo.items as item (item)}<li>{item}</li>{/each}
+								</ul>
+							</section>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
 	</section>
 
@@ -492,6 +569,11 @@
 				<!-- El lienzo existe solo para que el velo de bordes se ciña a la imagen:
 				     sobre la `figure` entera taparía también las fases de abajo. -->
 				<div class="sv-lab-lienzo">
+					<span
+						class="sv-lab-luz"
+						aria-hidden="true"
+						style="--x: {focos[etapaActiva].x}%; --y: {focos[etapaActiva].y}%"
+					></span>
 					<img
 						src="/img/servicios-lab.webp"
 						alt="El recorrido completo de un producto: el boceto de una idea, la electrónica de un prototipo, el dispositivo terminado, la nube que recibe sus datos y los tableros donde se consultan."
@@ -506,7 +588,7 @@
 				     paso tapan la franja donde el archivo se funde con la sección. -->
 				<ol class="sv-flow">
 					{#each etapas as e, i (e.paso)}
-						<li class="sv-flow-step">
+						<li class="sv-flow-step" class:is-on={etapaActiva === i}>
 							<span class="sv-flow-n" aria-hidden="true">{i + 1}</span>
 							<span class="sv-flow-txt">
 								<strong>{e.paso}</strong>
@@ -1429,62 +1511,10 @@
 	}
 
 	/* ── Diagrama del CTO as a Service ─────────────────── */
-	.sv-cto {
-		margin: 0.5rem 0 0;
-		padding: 1.1rem 0.75rem 0.75rem;
-		border: 1px solid var(--sv-rule);
-		border-radius: var(--gl-r-md);
-		background:
-			radial-gradient(70% 90% at 50% 38%, rgba(127, 227, 245, 0.07), transparent 70%),
-			rgba(127, 227, 245, 0.02);
-		width: 100%;
-	}
-	.sv-cto svg {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
 	/* El origen y las hojas son de la caja; el nodo es de quien la atiende, así
 	   que se lleva el acento. */
-	.sv-cto-origen,
-	.sv-cto-hoja {
-		font-family: var(--gl-font-label);
-		font-size: 9px;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		fill: var(--sv-text-muted);
-	}
-	.sv-cto-nodo {
-		font-family: var(--gl-font-label);
-		font-size: 12px;
-		letter-spacing: 0.08em;
-		fill: var(--sv-accent);
-	}
-	.sv-cto-caja {
-		fill: rgba(127, 227, 245, 0.06);
-		stroke: var(--sv-accent);
-		stroke-width: 1;
-	}
-	.sv-cto-guia {
-		fill: none;
-		stroke: url(#svCtoLinea);
-		stroke-width: 1.1;
-		opacity: 0.55;
-	}
-	.sv-cto-punto {
-		fill: var(--sv-accent);
-	}
 	/* Un pulso baja por cada rama, escalonado: la decisión entra por arriba y
 	   sale hacia los tres frentes. Es el mismo gesto que el de la landing. */
-	.sv-cto-pulso {
-		fill: none;
-		stroke: var(--sv-accent);
-		stroke-width: 1.6;
-		stroke-linecap: round;
-		stroke-dasharray: 5 23;
-		animation: svCtoBajar 2.8s linear infinite;
-		animation-delay: var(--d);
-	}
 	@keyframes svCtoBajar {
 		from {
 			stroke-dashoffset: 28;
@@ -1492,13 +1522,6 @@
 		to {
 			stroke-dashoffset: 0;
 		}
-	}
-	.sv-cto-pie {
-		margin: 0.75rem 0 0;
-		font-size: 0.78rem;
-		line-height: 1.5;
-		color: var(--sv-text-faint);
-		text-align: center;
 	}
 
 	.sv-door .sv-btn {
@@ -1957,9 +1980,6 @@
 		/* Solo el pulso se oculta. La lista de antes metía aquí las propias filas
 		   junto al pulso, así que con la preferencia activada la sección
 		   desaparecía entera en vez de quedarse quieta. */
-		.sv-cto-pulso {
-			display: none;
-		}
 
 		.sv-btn {
 			transition: none;
@@ -2038,17 +2058,6 @@
 		font-size: 0.78rem;
 		color: var(--sv-text-muted);
 	}
-	.sv-cap-detalle {
-		margin-top: auto;
-		padding-top: 0.6rem;
-		border-top: 1px solid var(--sv-rule);
-	}
-	.sv-cap-detalle summary {
-		cursor: pointer;
-		font-size: 0.82rem;
-		font-weight: 600;
-		color: var(--sv-accent);
-	}
 	.sv-cap-grupo {
 		margin: 0.8rem 0 0.2rem;
 		font-size: 0.78rem;
@@ -2056,12 +2065,6 @@
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--sv-text, #f4f1e8);
-	}
-	.sv-cap-items {
-		margin: 0;
-		font-size: 0.82rem;
-		line-height: 1.6;
-		color: var(--sv-text-muted);
 	}
 
 	/* ── Etapas: lo que recibes ───────────────────────── */
@@ -2164,6 +2167,303 @@
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.sv-cap {
+			transition: none;
+		}
+	}
+
+	/* ── CTO por horas: núcleo vivo ───────────────────── */
+	.sv-cto {
+		margin: 0;
+	}
+	.sv-cto-escena {
+		position: relative;
+		height: 220px;
+		border-radius: var(--gl-r-md);
+		background: radial-gradient(
+			ellipse 60% 70% at 50% 62%,
+			rgba(127, 227, 245, 0.12),
+			transparent 70%
+		);
+	}
+	.sv-cto-lineas {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+	.sv-cto-lineas line {
+		stroke: rgba(127, 227, 245, 0.25);
+		stroke-width: 1;
+		stroke-dasharray: 3 5;
+		animation: sv-cto-flujo 1.4s linear infinite;
+		transition: stroke 0.4s ease;
+	}
+	.sv-cto-lineas line.on {
+		stroke: rgba(0, 255, 198, 0.85);
+	}
+	@keyframes sv-cto-flujo {
+		to {
+			stroke-dashoffset: -16;
+		}
+	}
+	.sv-cto-nucleo {
+		position: absolute;
+		left: 50%;
+		top: 59%;
+		display: grid;
+		place-items: center;
+		width: 74px;
+		height: 74px;
+		translate: -50% -50%;
+		border-radius: 50%;
+		background: radial-gradient(circle at 35% 30%, #c9f7ff, #38c9e6 45%, #0a5b6e 100%);
+		box-shadow:
+			0 0 30px rgba(56, 232, 255, 0.6),
+			0 0 80px rgba(56, 232, 255, 0.25);
+		font-family: var(--gl-font-label);
+		font-size: 1rem;
+		color: #04222b;
+		animation: sv-cto-latido 3.2s ease-in-out infinite;
+	}
+	@keyframes sv-cto-latido {
+		50% {
+			box-shadow:
+				0 0 44px rgba(56, 232, 255, 0.8),
+				0 0 110px rgba(56, 232, 255, 0.35);
+		}
+	}
+	.sv-cto-anillo {
+		position: absolute;
+		left: 50%;
+		top: 59%;
+		width: 120px;
+		height: 120px;
+		translate: -50% -50%;
+		border: 1px solid rgba(127, 227, 245, 0.35);
+		border-top-color: rgba(0, 255, 198, 0.9);
+		border-radius: 50%;
+		animation: sv-cto-gira 6s linear infinite;
+	}
+	.sv-cto-anillo--2 {
+		width: 160px;
+		height: 160px;
+		border-color: rgba(127, 227, 245, 0.15);
+		border-left-color: rgba(127, 227, 245, 0.6);
+		animation-duration: 10s;
+		animation-direction: reverse;
+	}
+	@keyframes sv-cto-gira {
+		to {
+			rotate: 360deg;
+		}
+	}
+	.sv-cto-frente {
+		position: absolute;
+		left: var(--x);
+		top: var(--y);
+		translate: -50% -50%;
+		padding: 0.4rem 0.8rem;
+		border-radius: 999px;
+		background: rgba(7, 26, 34, 0.9);
+		box-shadow: inset 0 0 0 1px rgba(127, 227, 245, 0.3);
+		font-family: var(--gl-font-label);
+		font-size: 0.72rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--sv-text-muted);
+		transition:
+			box-shadow 0.4s ease,
+			color 0.4s ease;
+	}
+	.sv-cto-frente.on {
+		color: #fff;
+		box-shadow:
+			inset 0 0 0 1px rgba(0, 255, 198, 0.9),
+			0 0 22px rgba(0, 255, 198, 0.4);
+	}
+	/* La frase sale del núcleo y viaja hasta su frente. */
+	.sv-cto-consejo {
+		position: absolute;
+		z-index: 2;
+		max-width: 62%;
+		padding: 0.45rem 0.8rem;
+		border-radius: 12px;
+		background: rgba(0, 40, 30, 0.92);
+		box-shadow: inset 0 0 0 1px rgba(0, 255, 198, 0.5);
+		font-size: 0.82rem;
+		font-style: italic;
+		color: #e6fff7;
+		white-space: nowrap;
+		translate: -50% -50%;
+		animation: sv-cto-viaje 3.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+	@keyframes sv-cto-viaje {
+		0% {
+			left: 50%;
+			top: 59%;
+			opacity: 0;
+			scale: 0.6;
+		}
+		15% {
+			opacity: 1;
+			scale: 1;
+		}
+		45%,
+		80% {
+			left: clamp(22%, var(--tx), 78%);
+			top: calc(var(--ty) + 16%);
+			opacity: 1;
+		}
+		100% {
+			left: clamp(22%, var(--tx), 78%);
+			top: calc(var(--ty) + 16%);
+			opacity: 0;
+		}
+	}
+	.sv-cto-pie {
+		margin-top: 0.8rem;
+		font-size: 0.8rem;
+		text-align: center;
+		color: var(--sv-text-muted);
+	}
+
+	/* ── Capacidades: botón y panel de detalle ────────── */
+	.sv-caps-grid {
+		align-items: start;
+	}
+	.sv-cap.is-abierta {
+		border-color: rgba(127, 227, 245, 0.6);
+		box-shadow: 0 0 0 1px rgba(127, 227, 245, 0.25);
+	}
+	.sv-cap-ver {
+		align-self: flex-start;
+		margin-top: 0.4rem;
+		padding: 0;
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--sv-accent);
+		cursor: pointer;
+	}
+	.sv-cap-ver:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.sv-cap-panel {
+		margin-top: 1rem;
+		padding: clamp(1.4rem, 3vw, 2.2rem);
+		border: 1px solid rgba(127, 227, 245, 0.35);
+		border-radius: var(--gl-r-md);
+		background:
+			radial-gradient(ellipse 60% 80% at 0% 0%, rgba(127, 227, 245, 0.1), transparent 70%),
+			var(--sv-bg-2);
+		animation: sv-panel-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+	@keyframes sv-panel-in {
+		from {
+			opacity: 0;
+			transform: translateY(-8px);
+		}
+	}
+	.sv-cap-panel-head {
+		display: flex;
+		align-items: baseline;
+		gap: 0.8rem;
+		margin-bottom: 1.2rem;
+	}
+	.sv-cap-panel-head .sv-cap-title {
+		flex: 1;
+	}
+	.sv-cap-cerrar {
+		padding: 0.35rem 0.8rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: 999px;
+		background: none;
+		font: inherit;
+		font-size: 0.8rem;
+		color: var(--sv-text-muted);
+		cursor: pointer;
+	}
+	.sv-cap-panel-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1.4rem 2rem;
+	}
+	.sv-cap-lista {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.sv-cap-lista li {
+		position: relative;
+		padding: 0.22rem 0 0.22rem 0.95rem;
+		font-size: 0.86rem;
+		line-height: 1.45;
+		color: var(--sv-text-muted);
+	}
+	.sv-cap-lista li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.72rem;
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: var(--sv-accent);
+	}
+
+	/* ── Cómo trabajamos: la luz recorre la imagen ────── */
+	.sv-lab-luz {
+		position: absolute;
+		z-index: 1;
+		left: var(--x);
+		top: var(--y);
+		width: 26%;
+		aspect-ratio: 1;
+		translate: -50% -50%;
+		border-radius: 50%;
+		background: radial-gradient(
+			circle,
+			rgba(127, 245, 255, 0.45),
+			rgba(0, 255, 198, 0.12) 45%,
+			transparent 70%
+		);
+		mix-blend-mode: screen;
+		pointer-events: none;
+		transition:
+			left 1.2s cubic-bezier(0.65, 0, 0.35, 1),
+			top 1.2s cubic-bezier(0.65, 0, 0.35, 1);
+	}
+	.sv-flow-step {
+		transition:
+			border-color 0.4s ease,
+			box-shadow 0.4s ease;
+	}
+	.sv-flow-step.is-on {
+		border-color: rgba(0, 255, 198, 0.8);
+		box-shadow: 0 0 24px rgba(0, 255, 198, 0.25);
+	}
+
+	/* ── Cierre: el despiece flota ────────────────────── */
+	.sv-close-figura img {
+		animation: sv-flota 6s ease-in-out infinite;
+	}
+	@keyframes sv-flota {
+		50% {
+			translate: 0 -12px;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.sv-cto-lineas line,
+		.sv-cto-nucleo,
+		.sv-cto-anillo,
+		.sv-cto-consejo,
+		.sv-close-figura img {
+			animation: none;
+		}
+		.sv-lab-luz {
 			transition: none;
 		}
 	}
