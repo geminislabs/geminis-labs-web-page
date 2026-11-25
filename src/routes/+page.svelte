@@ -8,6 +8,7 @@
 	import FlowDiagram from '$lib/components/experiencia/FlowDiagram.svelte';
 	import QuestionBand from '$lib/components/experiencia/QuestionBand.svelte';
 	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
+	import ProductVisual from '$lib/components/ProductVisual.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
 		cargarRecaptcha,
@@ -84,6 +85,7 @@
 	let futuroNear = false;
 	let tcFlowNear = false;
 	let contactNear = false;
+	let productsNear = false;
 	/** Aurora verde y dorada del cierre de la experiencia. */
 	const CONTACT_AURORA = {
 		key: 'contacto',
@@ -881,7 +883,7 @@
 </section>
 
 <!-- Sección Productos -->
-<section id="productos" class="nexus-section">
+<section id="productos" class="nexus-section" use:_near={() => (productsNear = true)}>
 	<div class="nexus-head">
 		<h2 class="landing-section-title">Nuestros Productos</h2>
 		<p class="nx-kicker">Tres productos · tres públicos · tres formas de comprarlos</p>
@@ -1028,8 +1030,8 @@
 						     necesita ser un enlace focusable dentro de un subárbol aria-hidden. -->
 						<div class="nx-stage" aria-hidden="true">
 							<span class="nx-halo"></span>
-							<img src={p.logo} alt="" class="nx-logo" loading="lazy" decoding="async" />
-							<span class="nx-floor"></span>
+							<ProductVisual id={p.id} active={activeProduct === p.id && productsNear} />
+							<span class="nx-stage-state">En operación</span>
 						</div>
 					</div>
 				{/each}
@@ -3935,7 +3937,7 @@
 		/* El escenario se llevaba el 42% del ancho para un logotipo que no lo
 		   necesita. Cediendo ancho al contenido, los chips rompen en menos
 		   filas y la tarjeta baja de alto. */
-		grid-template-columns: 1.38fr 0.62fr;
+		grid-template-columns: 1.15fr 0.85fr;
 		gap: clamp(1.5rem, 3vw, 3.5rem);
 		align-items: center;
 		opacity: 0;
@@ -3999,13 +4001,6 @@
 			transparent 72%
 		);
 	}
-	.nx-slide[data-product='orion'] .nx-logo {
-		filter: drop-shadow(0 0 14px rgba(228, 234, 240, 0.5))
-			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.5));
-	}
-	.nx-slide[data-product='orion'] .nx-floor {
-		background: radial-gradient(ellipse at center, rgba(228, 234, 240, 0.14) 0%, transparent 70%);
-	}
 
 	/* Acentos Signum (acero + rojo).
 	   El rojo de marca #b5121b da 2.7:1 sobre este fondo, así que solo se usa
@@ -4068,13 +4063,6 @@
 			rgba(192, 192, 192, 0.09) 38%,
 			transparent 72%
 		);
-	}
-	.nx-slide[data-product='signum'] .nx-logo {
-		filter: drop-shadow(0 0 16px rgba(181, 18, 27, 0.38))
-			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.55));
-	}
-	.nx-slide[data-product='signum'] .nx-floor {
-		background: radial-gradient(ellipse at center, rgba(181, 18, 27, 0.18) 0%, transparent 70%);
 	}
 
 	/* Partículas de Orion: fluyen de la esquina inferior izquierda hacia el logo */
@@ -4446,36 +4434,21 @@
 		animation: nexusHaloPulse 7s ease-in-out infinite;
 		pointer-events: none;
 	}
-	.nx-logo {
-		position: relative;
-		z-index: 3;
-		width: clamp(230px, 24vw, 420px);
-		max-width: 100%;
-		aspect-ratio: 1;
-		object-fit: contain;
-		filter: drop-shadow(0 0 14px rgba(63, 174, 58, 0.32))
-			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.45));
-	}
-	/* El logotipo de Signum es retrato (353×512). Dentro de una caja cuadrada
-	   con object-fit:contain se ajustaría por altura y quedaría un 31% más
-	   estrecho que los otros dos, así que aquí se controla por altura. */
-	.nx-slide[data-product='signum'] .nx-logo {
-		width: auto;
-		max-width: 100%;
-		aspect-ratio: 353 / 512;
-		/* Al ser retrato, a igual altura que Nexus u Orion se lee más grande.
-		   Se recorta para que las tres marcas pesen ópticamente lo mismo. */
-		height: clamp(230px, 23vw, 390px);
-	}
-	.nx-floor {
+
+	.nx-stage-state {
 		position: absolute;
-		bottom: 6%;
-		width: 55%;
-		height: 36px;
-		border-radius: 50%;
-		background: radial-gradient(ellipse at center, rgba(63, 174, 58, 0.16) 0%, transparent 70%);
-		filter: blur(6px);
-		pointer-events: none;
+		top: 0.4rem;
+		right: 0.4rem;
+		z-index: 3;
+		padding: 0.3rem 0.7rem;
+		border-radius: 999px;
+		background: rgba(0, 0, 0, 0.45);
+		box-shadow: inset 0 0 0 1px rgba(0, 255, 136, 0.4);
+		font-size: 0.68rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: #00ff88;
 	}
 
 	@keyframes nexusHaloPulse {
@@ -4505,12 +4478,6 @@
 			order: -1;
 			min-height: auto;
 		}
-		.nx-logo {
-			width: clamp(200px, 38vw, 300px);
-		}
-		.nx-slide[data-product='signum'] .nx-logo {
-			height: clamp(220px, 40vw, 320px);
-		}
 		.nx-cell {
 			padding: 1.15rem 0.9rem 1.1rem;
 		}
@@ -4530,12 +4497,6 @@
 		}
 		.nx-subtitle {
 			max-width: 100%;
-		}
-		.nx-logo {
-			width: clamp(150px, 50vw, 220px);
-		}
-		.nx-slide[data-product='signum'] .nx-logo {
-			height: clamp(170px, 52vw, 250px);
 		}
 		.nx-models-list {
 			grid-template-columns: 1fr;
@@ -4580,7 +4541,6 @@
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.nx-logo,
 		.nx-halo {
 			animation: none;
 		}
