@@ -532,7 +532,7 @@
 	<!-- Fondo: aurora del cierre de la experiencia (shader WebGL, sin video) -->
 	<ShaderBackground preset={HERO_AURORA} contained lite={isMobile} bind:element={heroAurora} />
 	{#if heroAurora}
-		<HeroGlitch source={heroAurora} opacity={1} />
+		<HeroGlitch source={heroAurora} opacity={1} tileW={40} tileH={32} radius={336} blur={7} />
 	{/if}
 
 	<!-- Capas de atmósfera visual -->
