@@ -976,7 +976,7 @@
 		inset: 0;
 		background:
 			radial-gradient(
-				115% 95% at 10% 76%,
+				95% 85% at 12% 28%,
 				rgba(0, 12, 21, 0.88) 0%,
 				rgba(0, 12, 21, 0.5) 34%,
 				transparent 64%
@@ -989,21 +989,16 @@
 		width: 100%;
 		display: grid;
 		grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
-		align-items: end;
+		/* El texto va arriba a la izquierda: abajo a la derecha vive la escena 3D. */
+		align-items: start;
 		gap: clamp(1.5rem, 3vw, 3rem);
-		padding: clamp(7rem, 14vw, 10rem) 0 clamp(2.5rem, 5vw, 4rem);
+		padding: clamp(7.5rem, 17vh, 11rem) 0 clamp(2.5rem, 5vw, 4rem);
 		padding-left: max(2rem, calc((100% - 1180px) / 2));
 		padding-right: clamp(1rem, 2vw, 2rem);
 	}
 	.sv-hero-copy {
 		max-width: 30rem;
 	}
-	/* Caja de referencia del árbol: todo dentro se posiciona en porcentajes
-	   sobre ella, así la composición aguanta cualquier ancho sin recalcular. */
-	/* La rama que alimenta al nodo enfocado. No toca `stroke-width` en el tronco:
-	   engordarlo de 8 a 2.8 lo adelgazaría, que es lo contrario de encenderlo. */
-	/* El mismo pulso de señal del resto de la página: la decisión entra por el
-	   tronco y recorre las ramas. */
 
 	@keyframes svArbolFluir {
 		from {
