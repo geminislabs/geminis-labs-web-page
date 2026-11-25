@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Inicio: «Tecnologías que convergen».** El video de archivo se sustituye por el diagrama vivo de cómo fluye un evento, con lo que opera hoy, lo que está en validación (GeoContext · H3) y lo que es investigación; las cuatro capas pasan a una fila
+- **Inicio: «Tecnologías que convergen».** El video de archivo se sustituye por un diagrama vivo de cómo fluye un evento a través de las cuatro capas (señales, infraestructura, inteligencia y experiencia), con nombres genéricos: sin marcas, protocolos ni componentes internos. Las cuatro capas pasan a una fila
 - **Inicio: «El futuro que estamos construyendo».** El video del mapa se sustituye por la red vial real de Querétaro con estelas de la experiencia; se monta al acercarse y se pausa fuera de pantalla
 - **Nexus: «Cómo funciona».** Después del hero, a pantalla completa: el mapa de Nexus sobre calles reales de Querétaro con la geocerca de celdas H3 y la cadena Vehículo → Evento → Contexto → Decisión, que se enciende al ritmo de la animación
 - **Nexus: «Tu ciudad, con contexto geoespacial».** Animación en bucle mientras la sección está en pantalla: la malla de celdas H3 reales de Querétaro, el acercamiento r6 → r10 y las cuatro ventajas con su estado (listo, en validación); al terminar regresa al inicio con un fundido

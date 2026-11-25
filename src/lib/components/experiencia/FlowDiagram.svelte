@@ -6,10 +6,14 @@
 	 */
 	import { onMount } from 'svelte';
 
-	let { reduced = false, future = false } = $props();
+	/**
+	 * nodes/edges opcionales: otro diagrama con la misma animación. Cada nodo puede
+	 * traer su propio color (rgb) en lugar del color por estado.
+	 */
+	let { reduced = false, future = false, nodes = null, edges = null } = $props();
 
 	/** Estados: ok = operando · partial = desarrollado, en validación · lab = investigación. */
-	const NODES = [
+	const DEFAULT_NODES = [
 		{ id: 'wifi', x: 0.07, y: 0.15, t: 'Wi-Fi · BLE · IMU', s: 'Señales del entorno', st: 'lab' },
 		{ id: 'gps', x: 0.07, y: 0.5, t: 'Dispositivo GPS', s: 'Suntech · Queclink', st: 'ok' },
 		{ id: 'lora', x: 0.07, y: 0.85, t: 'LoRaWAN', s: 'Gateways', st: 'lab' },
@@ -30,8 +34,7 @@
 		{ id: 'rel', x: 0.84, y: 0.5, t: 'Relaciones y patrones', s: 'Anomalías · riesgo', st: 'lab' },
 		{ id: 'rep', x: 0.84, y: 0.85, t: 'Reportes', s: 'Telemetría', st: 'ok' }
 	];
-	const IDX = Object.fromEntries(NODES.map((n, i) => [n.id, i]));
-	const EDGES = [
+	const DEFAULT_EDGES = [
 		['gps', 'red'],
 		['red', 'rx'],
 		['rx', 'proc'],
@@ -43,16 +46,23 @@
 		['wifi', 'rx'],
 		['lora', 'rx'],
 		['geo', 'rel']
-	].map(([a, b]) => {
-		const st = [NODES[IDX[a]].st, NODES[IDX[b]].st].includes('lab') ? 'lab' : NODES[IDX[b]].st;
-		return [IDX[a], IDX[b], st];
-	});
+	];
 	const COLORS = { ok: '134,240,221', partial: '255,190,92', lab: '195,139,255' };
 
 	let host = $state(null);
 	let canvas = $state(null);
 
 	onMount(() => {
+		const NODES = nodes ?? DEFAULT_NODES;
+		const IDX = Object.fromEntries(NODES.map((n, i) => [n.id, i]));
+		const EDGES = (edges ?? DEFAULT_EDGES).map(([a, b]) => {
+			const st = [NODES[IDX[a]].st, NODES[IDX[b]].st].includes('lab') ? 'lab' : NODES[IDX[b]].st;
+			return [IDX[a], IDX[b], st];
+		});
+		// Los eventos nacen en los nodos sin entradas (las fuentes).
+		const SOURCES = EDGES.map((e, i) => [e, i])
+			.filter(([e]) => !EDGES.some((o) => o[1] === e[0]))
+			.map(([, i]) => i);
 		const ctx = canvas.getContext('2d');
 		let W = 0;
 		let H = 0;
@@ -110,13 +120,12 @@
 
 		function spawn() {
 			// Un evento recorre la cadena; al procesarse se divide.
-			particles.push({ edge: 0, u: 0, speed: 0.55 + Math.random() * 0.25 });
-			if (future && Math.random() < 0.5) {
-				particles.push({
-					edge: Math.random() < 0.5 ? 8 : 9,
-					u: 0,
-					speed: 0.4 + Math.random() * 0.2
-				});
+			const ok = SOURCES.filter((i) => EDGES[i][2] !== 'lab');
+			const lab = SOURCES.filter((i) => EDGES[i][2] === 'lab');
+			const pick = (list) => list[Math.floor(Math.random() * list.length)];
+			if (ok.length) particles.push({ edge: pick(ok), u: 0, speed: 0.55 + Math.random() * 0.25 });
+			if (future && lab.length && Math.random() < 0.5) {
+				particles.push({ edge: pick(lab), u: 0, speed: 0.4 + Math.random() * 0.2 });
 			}
 		}
 
@@ -141,7 +150,7 @@
 			ctx.lineWidth = 1.5;
 			for (const [a, b, st] of EDGES) {
 				if (!visible(st)) continue;
-				ctx.strokeStyle = `rgba(${COLORS[st]},${st === 'ok' ? 0.22 : 0.45})`;
+				ctx.strokeStyle = `rgba(${NODES[b].rgb ?? COLORS[st]},${st === 'ok' ? 0.22 : 0.45})`;
 				ctx.setLineDash(st === 'ok' ? [] : [5, 6]);
 				ctx.beginPath();
 				for (let k = 0; k <= 30; k++) {
@@ -166,7 +175,7 @@
 					for (const [, i] of outs) next.push({ ...p, edge: i, u: 0 });
 					continue;
 				}
-				const color = st === 'ok' ? '134,255,221' : COLORS[st];
+				const color = NODES[b].rgb ?? (st === 'ok' ? '134,255,221' : COLORS[st]);
 				for (let k = 0; k < 10; k++) {
 					const uu = Math.max(0, p.u - k * 0.03);
 					const [x, y] = bez(a, b, uu);
@@ -194,7 +203,7 @@
 				const [x, y] = pos(i);
 				glow[i] *= 0.92;
 				const g = glow[i];
-				const rgb = n.st === 'ok' ? (g > 0.05 ? '0,255,170' : COLORS.ok) : COLORS[n.st];
+				const rgb = n.rgb ?? (n.st === 'ok' ? (g > 0.05 ? '0,255,170' : COLORS.ok) : COLORS[n.st]);
 				ctx.fillStyle = n.st === 'lab' ? 'rgba(20,10,38,0.92)' : 'rgba(6,20,26,0.92)';
 				ctx.strokeStyle = `rgba(${rgb},${n.st === 'ok' ? 0.3 + g * 0.7 : 0.75 + g * 0.25})`;
 				ctx.lineWidth = 1 + g;
@@ -211,7 +220,11 @@
 				ctx.fillStyle = '#eaf3fc';
 				ctx.font = `600 ${W < 900 ? 11 : 13}px Outfit, system-ui, sans-serif`;
 				ctx.fillText(n.t, x, y - 3);
-				ctx.fillStyle = n.st === 'ok' ? '#86f0dd' : `rgb(${COLORS[n.st]})`;
+				ctx.fillStyle = n.rgb
+					? `rgb(${n.rgb})`
+					: n.st === 'ok'
+						? '#86f0dd'
+						: `rgb(${COLORS[n.st]})`;
 				ctx.font = `400 ${W < 900 ? 10 : 12}px Outfit, system-ui, sans-serif`;
 				ctx.fillText(n.s, x, y + 15);
 			});

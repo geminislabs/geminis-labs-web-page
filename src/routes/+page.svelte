@@ -81,6 +81,122 @@
 	// Video del futuro: textos secuenciales
 	let futuroNear = false;
 	let tcFlowNear = false;
+
+	/**
+	 * Flujo conceptual por capas (sin marcas, protocolos ni componentes internos):
+	 * las mismas cuatro capas de las tarjetas, en movimiento.
+	 */
+	const TC_RGB = {
+		senales: '79,209,255',
+		infra: '134,240,221',
+		intel: '0,255,150',
+		exp: '170,255,110'
+	};
+	const tcFlowNodes = [
+		{
+			id: 'veh',
+			x: 0.08,
+			y: 0.15,
+			t: 'Vehículos',
+			s: 'Ubicación y estado',
+			st: 'ok',
+			rgb: TC_RGB.senales
+		},
+		{
+			id: 'sens',
+			x: 0.08,
+			y: 0.5,
+			t: 'Sensores',
+			s: 'Señales del entorno',
+			st: 'ok',
+			rgb: TC_RGB.senales
+		},
+		{
+			id: 'mov',
+			x: 0.08,
+			y: 0.85,
+			t: 'Dispositivos móviles',
+			s: 'Personas y equipos',
+			st: 'ok',
+			rgb: TC_RGB.senales
+		},
+		{
+			id: 'con',
+			x: 0.29,
+			y: 0.5,
+			t: 'Conectividad',
+			s: 'Redes inalámbricas',
+			st: 'ok',
+			rgb: TC_RGB.infra
+		},
+		{
+			id: 'rt',
+			x: 0.5,
+			y: 0.5,
+			t: 'Tiempo real',
+			s: 'Eventos al instante',
+			st: 'ok',
+			rgb: TC_RGB.infra
+		},
+		{
+			id: 'geo',
+			x: 0.71,
+			y: 0.15,
+			t: 'Contexto geoespacial',
+			s: 'Zonas y cercanía',
+			st: 'ok',
+			rgb: TC_RGB.intel
+		},
+		{
+			id: 'pat',
+			x: 0.71,
+			y: 0.5,
+			t: 'Patrones',
+			s: 'Anomalías y riesgo',
+			st: 'ok',
+			rgb: TC_RGB.intel
+		},
+		{
+			id: 'his',
+			x: 0.71,
+			y: 0.85,
+			t: 'Histórico',
+			s: 'Trayectos y tendencias',
+			st: 'ok',
+			rgb: TC_RGB.intel
+		},
+		{ id: 'ale', x: 0.91, y: 0.15, t: 'Alertas', s: 'Web y app', st: 'ok', rgb: TC_RGB.exp },
+		{
+			id: 'dec',
+			x: 0.91,
+			y: 0.5,
+			t: 'Decisiones',
+			s: 'Mapas y tableros',
+			st: 'ok',
+			rgb: TC_RGB.exp
+		},
+		{
+			id: 'rep',
+			x: 0.91,
+			y: 0.85,
+			t: 'Reportes y APIs',
+			s: 'Integraciones',
+			st: 'ok',
+			rgb: TC_RGB.exp
+		}
+	];
+	const tcFlowEdges = [
+		['veh', 'con'],
+		['sens', 'con'],
+		['mov', 'con'],
+		['con', 'rt'],
+		['rt', 'geo'],
+		['rt', 'pat'],
+		['rt', 'his'],
+		['geo', 'ale'],
+		['pat', 'dec'],
+		['his', 'rep']
+	];
 	let currentTextIndex = 0;
 	let exitingTextIndex = -1;
 	let futuroTextInterval;
@@ -736,13 +852,14 @@
 			<div class="tc-flow-head">
 				<p class="tc-flow-kicker">Cómo fluye un evento</p>
 				<ul class="tc-flow-legend">
-					<li><i class="ok"></i>Operando</li>
-					<li><i class="partial"></i>En validación</li>
-					<li><i class="lab"></i>Investigación</li>
+					<li><i style="border-color: rgb({TC_RGB.senales})"></i>01 Señales</li>
+					<li><i style="border-color: rgb({TC_RGB.infra})"></i>02 Infraestructura</li>
+					<li><i style="border-color: rgb({TC_RGB.intel})"></i>03 Inteligencia</li>
+					<li><i style="border-color: rgb({TC_RGB.exp})"></i>04 Experiencia</li>
 				</ul>
 			</div>
 			<div class="tc-flow-canvas">
-				{#if tcFlowNear}<FlowDiagram future />{/if}
+				{#if tcFlowNear}<FlowDiagram nodes={tcFlowNodes} edges={tcFlowEdges} />{/if}
 			</div>
 		</div>
 
@@ -2455,12 +2572,6 @@
 	.tc-flow-legend i {
 		width: 22px;
 		border-top: 2px solid #86f0dd;
-	}
-	.tc-flow-legend i.partial {
-		border-top: 2px dashed #ffbe5c;
-	}
-	.tc-flow-legend i.lab {
-		border-top: 2px dashed #c38bff;
 	}
 	.tc-flow-canvas {
 		min-height: 220px;
