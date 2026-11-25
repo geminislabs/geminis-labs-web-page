@@ -49,11 +49,6 @@
 			{/each}
 		</ol>
 	</div>
-
-	<p class="hw-note">
-		Escenario ilustrativo sobre calles reales de Querétaro (© OpenStreetMap contributors) · la
-		geocerca está hecha de celdas H3, como en la app
-	</p>
 </section>
 
 <style>
@@ -61,7 +56,8 @@
 		contain: none;
 		padding: 0; /* anula el estilo global de section */
 		position: relative;
-		min-height: min(92vh, 900px);
+		height: 100vh;
+		min-height: 560px;
 		display: flex;
 		align-items: center;
 		overflow: hidden;
@@ -166,17 +162,6 @@
 	.hw-v {
 		font-size: 1.02rem;
 	}
-	.hw-note {
-		position: absolute;
-		right: 1.5rem;
-		bottom: 1rem;
-		z-index: 1;
-		max-width: 60%;
-		margin: 0;
-		text-align: right;
-		font-size: 0.72rem;
-		color: #5a7891;
-	}
 	@media (max-width: 860px) {
 		.hw {
 			flex-direction: column;
@@ -192,13 +177,6 @@
 		}
 		.hw-inner {
 			padding: 3.5rem 0 1.5rem;
-		}
-		.hw-note {
-			position: static;
-			order: 3;
-			max-width: none;
-			padding: 0.6rem 1.5rem 1.5rem;
-			text-align: left;
 		}
 	}
 </style>

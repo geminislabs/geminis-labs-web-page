@@ -419,8 +419,15 @@
 		ctx.restore();
 	}
 
+	let lastBeat = 0;
 	function applyScene() {
 		if (!world) return;
+		// Escena H3 en bucle: al volver al inicio, la malla vuelve a aparecer en onda.
+		if (sceneId === 'h3' && beat === 0 && lastBeat > 0 && sceneId === prevScene) {
+			sceneT0 = performance.now();
+			if (hexGlow) hexGlow.fill(0);
+		}
+		lastBeat = beat;
 		if (sceneId !== prevScene) {
 			if (sceneId === 'queretaro' && (prevScene === 'pregunta' || !revealed)) {
 				revealed = false;

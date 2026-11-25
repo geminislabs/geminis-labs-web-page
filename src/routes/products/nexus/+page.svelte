@@ -1,5 +1,6 @@
 <script>
 	import DayEvidence from '$lib/components/experiencia/DayEvidence.svelte';
+	import AppShowcase from '$lib/components/AppShowcase.svelte';
 	import HowItWorks from '$lib/components/experiencia/HowItWorks.svelte';
 	import H3Context from '$lib/components/experiencia/H3Context.svelte';
 	import Navbar from '$lib/components/Navbar.svelte';
@@ -927,76 +928,12 @@
 					<p class="nx-overline">La app en tus manos</p>
 					<h2 class="nx-section-title">Descárgala. Úsala. Impresiona.</h2>
 					<p class="nx-section-sub">
-						GPS en vivo, historial de recorridos, geocercas de precisión y telemetría completa —
-						todo en iOS y Android.
+						Rastreo en vivo, recorridos, geocercas hechas de celdas H3 e informes del día: lo mismo
+						que ves en la web, en iOS y Android.
 					</p>
 				</div>
 
-				<div class="nx-gallery-grid">
-					<!-- Card 1: Live tracking -->
-					<div class="nx-phone-card nx-reveal">
-						<img
-							src="/img/products/nexus/IMG_8745.PNG"
-							alt="Rastreo en vivo — mapa con pin del vehículo KIA"
-							loading="lazy"
-						/>
-						<div class="nx-phone-caption-wrap">
-							<div class="nx-phone-caption">
-								<span class="nx-phone-caption-title">Rastreo en vivo</span>
-								<span class="nx-phone-caption-desc">Sabe dónde está, en este momento.</span>
-							</div>
-						</div>
-					</div>
-
-					<!-- Card 2: Route replay -->
-					<div class="nx-phone-card nx-reveal">
-						<img
-							src="/img/products/nexus/IMG_8751.PNG"
-							alt="Replay de recorrido con controles de reproducción"
-							loading="lazy"
-						/>
-						<div class="nx-phone-caption-wrap">
-							<div class="nx-phone-caption">
-								<span class="nx-phone-caption-title">Replay de recorrido</span>
-								<span class="nx-phone-caption-desc"
-									>Reconstruye cualquier trayecto, al segundo.</span
-								>
-							</div>
-						</div>
-					</div>
-
-					<!-- Card 3: Hexagonal geocerce — differentiator badge -->
-					<div class="nx-phone-card nx-reveal" data-diff="01">
-						<img
-							src="/img/products/nexus/IMG_8746.PNG"
-							alt="Crear Zona — geocercas hexagonales de precisión"
-							loading="lazy"
-						/>
-						<div class="nx-phone-caption-wrap">
-							<div class="nx-phone-caption">
-								<span class="nx-phone-caption-title">Geocercas hexagonales</span>
-								<span class="nx-phone-caption-desc">Zonas exactas. Cero falsas alarmas.</span>
-							</div>
-						</div>
-					</div>
-
-					<!-- Card 4: Telemetry dashboard -->
-					<div class="nx-phone-card nx-reveal">
-						<img
-							src="/img/products/nexus/IMG_8747.PNG"
-							alt="Dashboard de telemetría — distancia, combustible, tiempo"
-							loading="lazy"
-						/>
-						<div class="nx-phone-caption-wrap">
-							<div class="nx-phone-caption">
-								<span class="nx-phone-caption-title">Telemetría completa</span>
-								<span class="nx-phone-caption-desc"
-									>Combustible, distancia, tiempo. De un vistazo.</span
-								>
-							</div>
-						</div>
-					</div>
-				</div>
+				<AppShowcase />
 			</div>
 		</section>
 

@@ -1,8 +1,8 @@
 <script>
 	/**
-	 * Contexto geoespacial H3 con scroll: el mapa real de Querétaro queda fijo y,
-	 * al bajar, pasa de la malla de celdas al acercamiento r6 → r10 y a las
-	 * ventajas. Celdas H3 reales (librería h3 4.5, precalculadas).
+	 * Contexto geoespacial H3 en bucle automático: la malla de celdas, el
+	 * acercamiento r6 → r10 y las ventajas; al terminar vuelve al inicio con un
+	 * fundido. Celdas H3 reales (librería h3 4.5, precalculadas).
 	 */
 	import { onMount } from 'svelte';
 	import ExperienceWorld from './ExperienceWorld.svelte';
@@ -13,6 +13,7 @@
 	let beat = $state(0);
 	let reduced = $state(false);
 	let lite = $state(false);
+	let fading = $state(false);
 
 	onMount(() => {
 		reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -27,24 +28,44 @@
 			{ rootMargin: '500px' }
 		);
 		io.observe(host);
-		const onScroll = () => {
-			const r = host.getBoundingClientRect();
-			const span = r.height - window.innerHeight;
-			const p = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0;
-			const next = p < 0.34 ? 0 : p < 0.7 ? 1 : 2;
-			if (next !== beat) beat = next;
-		};
-		window.addEventListener('scroll', onScroll, { passive: true });
-		onScroll();
+		// Bucle automático mientras la sección está en pantalla.
+		const DUR = [7000, 11000, 9000];
+		let onScreen = false;
+		let timer = 0;
+		const vis = new IntersectionObserver(([e]) => {
+			onScreen = e.isIntersecting;
+			clearTimeout(timer);
+			if (onScreen && !reduced) schedule();
+		});
+		vis.observe(host);
+		function schedule() {
+			timer = setTimeout(() => {
+				if (!onScreen) return;
+				if (beat === 2) {
+					// Regreso a la primera escena con un fundido.
+					fading = true;
+					setTimeout(() => {
+						beat = 0;
+						fading = false;
+						schedule();
+					}, 700);
+					return;
+				}
+				beat += 1;
+				schedule();
+			}, DUR[beat]);
+		}
 		return () => {
 			io.disconnect();
-			window.removeEventListener('scroll', onScroll);
+			vis.disconnect();
+			clearTimeout(timer);
 		};
 	});
 </script>
 
 <section class="h3c" id="contexto-h3" bind:this={host} aria-labelledby="h3c-title">
 	<div class="h3c-sticky">
+		<div class="h3c-fade" class:on={fading} aria-hidden="true"></div>
 		<div class="h3c-map" aria-hidden="true">
 			{#if near}<ExperienceWorld sceneId="h3" {beat} contained {reduced} {lite} />{/if}
 		</div>
@@ -107,19 +128,31 @@
 		contain: none;
 		padding: 0; /* anula el estilo global de section */
 		position: relative;
-		height: 300vh;
+		height: 100vh;
+		min-height: 600px;
 		background: #030912;
 		color: #eaf3fc;
 		font-family: Outfit, system-ui, sans-serif;
 	}
 	.h3c-sticky {
 		width: 100%;
-		position: sticky;
-		top: 0;
-		height: 100vh;
+		position: relative;
+		height: 100%;
 		overflow: hidden;
 		display: flex;
 		align-items: center;
+	}
+	.h3c-fade {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		background: #030912;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.6s ease;
+	}
+	.h3c-fade.on {
+		opacity: 1;
 	}
 	.h3c-map {
 		position: absolute;
