@@ -22,6 +22,8 @@
 	let canvas;
 
 	onMount(() => {
+		// En celular el hero va sin video ni efecto.
+		if (window.matchMedia('(max-width: 600px)').matches) return;
 		const videoEl = document.querySelector('video.hero-bg-video');
 		if (!videoEl) return;
 

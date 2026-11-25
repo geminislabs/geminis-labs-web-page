@@ -49,8 +49,18 @@
 	let futuroNear = false;
 	let tcFlowNear = false;
 	let contactNear = false;
+	/** En celular el hero va sin video: solo fondo, nube y logo. */
+	const HERO_SIN_VIDEO = '(max-width: 600px)';
+
 	/** Velocidad del video aunque ya venga cargado de caché (loadedmetadata puede no dispararse). */
 	function _slowVideo(node, rate) {
+		// En celular el hero va sin video: se detiene y se suelta la descarga.
+		if (window.matchMedia(HERO_SIN_VIDEO).matches) {
+			node.pause();
+			node.removeAttribute('src');
+			node.load();
+			return {};
+		}
 		const apply = () => {
 			node.defaultPlaybackRate = rate;
 			node.playbackRate = rate;
@@ -682,15 +692,17 @@
 <!-- Sección Hero -->
 <section id="inicio" class="hero-particle-section">
 	<!-- Video original oculto — HeroGlitch lo dibuja en canvas con el efecto -->
+	<!-- En celular no se descarga: la fuente solo aplica en pantallas anchas. -->
 	<video
 		class="hero-bg-video"
-		src="/vid/cyberhuman-hero.mp4"
 		autoplay
 		muted
 		playsinline
 		use:_slowVideo={0.8}
 		on:ended={_heroVideoPause}
-	></video>
+	>
+		<source src="/vid/cyberhuman-hero.mp4" type="video/mp4" media="(min-width: 601px)" />
+	</video>
 	<HeroGlitch
 		overlay={heroNube}
 		overlayTop={0.38}
@@ -3038,10 +3050,15 @@
 
 	@media (max-width: 600px) {
 		/* Ocultar todas las capas animadas y el canvas de título */
+		/* Sin video, la nube se funde con el cielo: sin borde superior ni inferior. */
 		.hero-nube {
 			opacity: 0.6;
+			height: 75%;
+			-webkit-mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 80%, transparent);
+			mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 80%, transparent);
 		}
 		.hero-bg-video,
+		.hero-particle-section :global(.glitch-canvas),
 		.hero-vignette,
 		.hero-video-fade,
 		.hero-video-bottom-fade,
