@@ -4,10 +4,6 @@
 	import {
 		services,
 		processSteps,
-		arbolNodos,
-		arbolRamas,
-		ramaDeNodo,
-		amplitudNodo,
 		diagnosticoSituaciones,
 		diagnosticoFrentes,
 		celdasPanal,
@@ -15,6 +11,7 @@
 	} from '$lib/data/services.js';
 	import { onMount, onDestroy } from 'svelte';
 	import Figura from '$lib/components/FiguraCapacidad.svelte';
+	import HoloForge from '$lib/components/HoloForge.svelte';
 	import { cargarRecaptcha, enviarContacto, validarContacto } from '$lib/contacto.js';
 
 	// ── Panal de capacidades ──────────────────────────────────────────────
@@ -223,29 +220,7 @@
 		'Estimación de inversión'
 	];
 
-	// ── Árbol: parallax y foco ────────────────────────────────────────────
-	//
-	// El nodo bajo el puntero se ilumina junto con la rama que lo alimenta, y el
-	// resto del árbol se apaga un poco. No hay `:hover` de por medio a propósito:
-	// los nodos son PNG con mucho resplandor transparente alrededor, así que sus
-	// cajas se solapan y el puntero picaría el rectángulo de un vecino invisible
-	// mucho antes que el dibujo que se ve. Se ilumina el nodo cuyo CENTRO está
-	// más cerca del puntero, que es lo que la vista entiende como «ese».
-	let nodoActivo = null;
-	$: ramaActiva = nodoActivo ? ramaDeNodo(nodoActivo) : null;
-
-	// En unidades del sistema 0–100 del árbol. Más ancho y el foco salta entre
-	// nodos lejanos; más estrecho y hay que apuntar.
-	const RADIO_FOCO = 11;
-
-	// El árbol reacciona donde está el puntero y casi no se inmuta lejos de él.
-	// El radio es ancho a propósito: es un campo blando que alcanza a la rama
-	// entera, no un foco que ilumina una pieza y deja muertas a sus vecinas.
-	const RADIO_CAMPO = 52;
-	// Suelo del peso. Con cero, todo lo que está lejos del puntero se congela, y
-	// una pieza inmóvil entre otras que respiran se lee como pegada a la foto.
-	const PESO_LEJOS = 0.25;
-
+	// ── Puntero: parallax suave por sección ──────────────────────────────
 	const acotar = (v) => Math.max(-1, Math.min(1, v));
 
 	/**
@@ -316,33 +291,6 @@
 			}
 		};
 	}
-
-	/** Enciende el nodo del árbol más cercano y reparte el peso del parallax. */
-	function medirArbol(x, y) {
-		let cerca = null;
-		let minima = RADIO_FOCO;
-		for (let i = 0; i < arbolNodos.length; i++) {
-			const n = arbolNodos[i];
-			const d = Math.hypot(n.x - x, n.y - y);
-			if (d < minima) {
-				minima = d;
-				cerca = n.id;
-			}
-			// Quince escrituras de estilo por fotograma, no quince renders: sigue sin
-			// tocar el ciclo de Svelte.
-			const w = PESO_LEJOS + (1 - PESO_LEJOS) * Math.max(0, 1 - d / RADIO_CAMPO);
-			piezasArbol[i]?.style.setProperty('--w', w.toFixed(3));
-		}
-		nodoActivo = cerca;
-	}
-
-	// Se resuelven una vez y por identificador, no por orden: acoplar este array
-	// al del `{#each}` haría que reordenar los datos moviera los pesos de sitio
-	// en silencio.
-	let piezasArbol = [];
-	function registrarArbol(caja) {
-		piezasArbol = arbolNodos.map((n) => caja.querySelector(`[data-nodo="${n.id}"]`));
-	}
 </script>
 
 <svelte:head>
@@ -360,30 +308,13 @@
 
 <main class="sv-page">
 	<!-- ── HERO ──────────────────────────────────────────── -->
-	<!--
-		La fotografía va como <img> y no como background-image: es el elemento más
-		grande de la primera pantalla, así que conviene que el navegador la
-		descubra en el HTML y pueda priorizarla.
-
-		El texto se apoya sobre el hombro y la manga, que es la zona más oscura de
-		la imagen —luminancia media 14.5 sobre 255, medida sobre el archivo—, y la
-		mitad derecha queda libre a propósito: ahí crece el árbol.
-	-->
-	<section
-		class="sv-hero"
-		use:conPuntero={{ caja: '.sv-arbol', alMedir: medirArbol, alSalir: () => (nodoActivo = null) }}
-	>
-		<div class="sv-hero-foto">
-			<img
-				src="/img/servicios-hero.webp"
-				alt=""
-				width="1672"
-				height="941"
-				fetchpriority="high"
-				decoding="async"
-			/>
-			<div class="sv-hero-velo" aria-hidden="true"></div>
+	<!-- Una arquitectura holográfica que se ensambla sola (Three.js, solo en esta
+	     página); el texto vive a la izquierda y la escena a la derecha. -->
+	<section class="sv-hero">
+		<div class="sv-hero-forge">
+			<HoloForge />
 		</div>
+		<div class="sv-hero-velo" aria-hidden="true"></div>
 
 		<div class="sv-hero-inner">
 			<div class="sv-hero-copy">
@@ -397,50 +328,6 @@
 				<div class="sv-hero-actions">
 					<a href="#diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
 					<a href="/#productos" class="sv-btn sv-btn--ghost">Ver nuestros productos</a>
-				</div>
-			</div>
-
-			<!--
-				El árbol tecnológico. Nace de la mano del hombre y crece hacia arriba y
-				a la derecha. Es decorativo: lo que cuenta ya está en el texto y en las
-				seis capacidades, así que queda fuera del árbol de accesibilidad.
-			-->
-			<div class="sv-hero-arbol" aria-hidden="true">
-				<div class="sv-arbol" class:sv-arbol--enfocado={nodoActivo} use:registrarArbol>
-					<!-- Los trazos van detrás de los nodos, en el mismo sistema de 0–100
-					     que sus coordenadas, para que todo escale junto. -->
-					<svg class="sv-arbol-trazos" viewBox="0 0 100 100" preserveAspectRatio="none">
-						{#each arbolRamas as rama (rama.id)}
-							<path
-								class="sv-arbol-linea"
-								class:sv-arbol-linea--tronco={rama.tronco}
-								class:sv-arbol-linea--activa={rama.id === ramaActiva}
-								d={rama.d}
-							/>
-							<path
-								class="sv-arbol-pulso"
-								class:sv-arbol-pulso--tronco={rama.tronco}
-								d={rama.d}
-								style="--d: {rama.retardo}s"
-							/>
-						{/each}
-					</svg>
-
-					{#each arbolNodos as nodo (nodo.id)}
-						<img
-							class="sv-arbol-nodo"
-							src="/img/arbol/{nodo.img}.webp"
-							alt=""
-							decoding="async"
-							data-capa={nodo.capa}
-							data-nodo={nodo.id}
-							class:sv-arbol-nodo--volteado={nodo.voltear}
-							class:sv-arbol-nodo--activo={nodo.id === nodoActivo}
-							style="--x: {nodo.x}%; --y: {nodo.y}%; --t: {nodo.tamano}%; --amp: {amplitudNodo(
-								nodo
-							)}px;"
-						/>
-					{/each}
 				</div>
 			</div>
 		</div>
@@ -1055,43 +942,11 @@
 		--py: 0;
 		position: relative;
 		isolation: isolate;
-		min-height: clamp(38rem, 84vh, 60rem);
+		min-height: max(38rem, 100vh);
 		display: flex;
 		align-items: stretch;
 		overflow: hidden;
 		background: var(--sv-bg);
-	}
-	.sv-hero-foto {
-		position: absolute;
-		inset: 0;
-		z-index: -1;
-	}
-	.sv-hero-foto img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		/* El hombre vive en el borde izquierdo de la foto: anclando ahí, es lo
-		   último que se recorta cuando la ventana se estrecha. */
-		object-position: left center;
-		/* La fotografía es de noche y ya venía oscura de origen; un poco de brillo
-		   y saturación devuelven la mesa, las tarjetas y la cara, que se perdían. */
-		filter: brightness(1.24) saturate(1.06);
-		/*
-		 * La foto se mueve CONTRA el puntero y el árbol a favor, que es lo que
-		 * separa un plano del otro: lo que la vista lee como profundidad es el
-		 * desplazamiento RELATIVO entre los dos, no el de cada uno.
-		 *
-		 * Poco y lento a propósito. Es el plano más lejano —la mesa, no lo que
-		 * flota sobre ella—, así que se mueve la mitad que la hoja más adelantada
-		 * y tarda casi el doble en llegar: esa pereza es la que le da peso.
-		 *
-		 * El 1.03 de escala es lo que paga el movimiento. Sin sobremedida, siete
-		 * píxeles de desplazamiento destaparían siete píxeles de fondo en el
-		 * borde contrario.
-		 */
-		transform: scale(1.03) translate(calc(var(--px) * -7px), calc(var(--py) * -4px));
-		transition: transform 0.8s var(--gl-ease);
-		will-change: transform;
 	}
 	/*
 	 * Dos velos, no uno. El vertical asienta la parte baja para el texto y los
@@ -1109,7 +964,14 @@
 	 * para que la barra de navegación y el corte con la sección siguiente no
 	 * queden duros.
 	 */
+	.sv-hero-forge {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+	}
 	.sv-hero-velo {
+		pointer-events: none;
+		z-index: 1;
 		position: absolute;
 		inset: 0;
 		background:
@@ -1123,6 +985,7 @@
 	}
 	.sv-hero-inner {
 		position: relative;
+		z-index: 2;
 		width: 100%;
 		display: grid;
 		grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
@@ -1135,87 +998,12 @@
 	.sv-hero-copy {
 		max-width: 30rem;
 	}
-	.sv-hero-arbol {
-		align-self: stretch;
-		min-height: clamp(12rem, 30vw, 24rem);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
 	/* Caja de referencia del árbol: todo dentro se posiciona en porcentajes
 	   sobre ella, así la composición aguanta cualquier ancho sin recalcular. */
-	.sv-arbol {
-		position: relative;
-		width: 100%;
-		max-width: 42rem;
-		max-height: 100%;
-		aspect-ratio: 1 / 1.02;
-	}
-	.sv-arbol-trazos {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		overflow: visible;
-		/* Los trazos se quedan quietos: son el esqueleto sobre el que respiran los
-		   nodos. Pueden hacerlo porque cada rama muere en el CENTRO de su nodo, no
-		   en su borde, así que la pieza sigue tapando el remate por mucho que se
-		   aparte. */
-	}
-	.sv-arbol-linea {
-		fill: none;
-		stroke: var(--sv-accent);
-		stroke-width: 1.6;
-		stroke-linejoin: round;
-		stroke-linecap: round;
-		opacity: 0.62;
-		vector-effect: non-scaling-stroke;
-		filter: drop-shadow(0 0 4px rgba(127, 227, 245, 0.75));
-	}
-	.sv-arbol-linea--tronco {
-		stroke-width: 8;
-		opacity: 0.72;
-		filter: drop-shadow(0 0 12px rgba(127, 227, 245, 0.85));
-	}
 	/* La rama que alimenta al nodo enfocado. No toca `stroke-width` en el tronco:
 	   engordarlo de 8 a 2.8 lo adelgazaría, que es lo contrario de encenderlo. */
-	.sv-arbol--enfocado .sv-arbol-linea {
-		opacity: 0.28;
-	}
-	.sv-arbol--enfocado .sv-arbol-linea--activa {
-		opacity: 1;
-		filter: drop-shadow(0 0 11px rgba(127, 227, 245, 0.95));
-	}
-	.sv-arbol--enfocado .sv-arbol-linea--activa:not(.sv-arbol-linea--tronco) {
-		stroke-width: 2.8;
-	}
-	.sv-arbol-linea,
-	.sv-arbol-nodo {
-		transition:
-			transform 0.45s var(--gl-ease),
-			opacity 0.35s var(--gl-ease),
-			filter 0.35s var(--gl-ease),
-			stroke-width 0.35s var(--gl-ease);
-	}
 	/* El mismo pulso de señal del resto de la página: la decisión entra por el
 	   tronco y recorre las ramas. */
-	.sv-arbol-pulso {
-		fill: none;
-		stroke: #ddfaff;
-		stroke-width: 2.2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-		vector-effect: non-scaling-stroke;
-		stroke-dasharray: 4 46;
-		filter: drop-shadow(0 0 4px rgba(127, 227, 245, 0.9));
-		animation: svArbolFluir 4.2s linear infinite;
-		animation-delay: var(--d);
-	}
-	.sv-arbol-pulso--tronco {
-		stroke-width: 5;
-		stroke-dasharray: 6 44;
-		filter: drop-shadow(0 0 10px rgba(127, 227, 245, 0.95));
-	}
 
 	@keyframes svArbolFluir {
 		from {
@@ -1227,47 +1015,8 @@
 	}
 	/* Los nodos se centran en su coordenada, no se anclan por la esquina: así
 	   `--x`/`--y` señalan el punto del trazo con el que deben coincidir. */
-	.sv-arbol-nodo {
-		/* `--amp` llega en línea desde los datos: mezcla la capa con la altura del
-		   nodo. `--w` lo escribe el JS en cada fotograma con la cercanía del
-		   puntero. El valor de reposo va aquí para que el árbol se dibuje quieto
-		   antes de que nadie lo toque. */
-		--amp: 0px;
-		--w: 1;
-		--giro: 1;
-		--acerca: 1;
-		position: absolute;
-		left: var(--x);
-		top: var(--y);
-		width: var(--t);
-		height: auto;
-		/* El desplazamiento del puntero va DESPUÉS del volteo en la lista, así que
-		   el espejo no le cambia el signo: una hoja volteada se aparta hacia el
-		   mismo lado que sus vecinas. */
-		transform: translate(-50%, -50%)
-			translate(calc(var(--px) * var(--amp) * var(--w)), calc(var(--py) * var(--amp) * var(--w)))
-			scaleX(var(--giro)) scale(var(--acerca));
-		will-change: transform;
-	}
-	.sv-arbol-nodo[data-capa='3'] {
-		filter: drop-shadow(0 0 14px rgba(127, 227, 245, 0.35));
-	}
-	.sv-arbol-nodo--volteado {
-		--giro: -1;
-	}
-
-	.sv-arbol--enfocado .sv-arbol-nodo {
-		opacity: 0.62;
-	}
-	.sv-arbol-nodo.sv-arbol-nodo--activo {
-		--acerca: 1.07;
-		opacity: 1;
-		z-index: 2;
-		filter: drop-shadow(0 0 26px rgba(127, 227, 245, 0.8)) brightness(1.16);
-	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.sv-arbol-pulso,
 		.sv-process-line::after,
 		.sv-process-node::after {
 			display: none;
@@ -1283,21 +1032,8 @@
 		/* El foco se queda: encender un nodo no es movimiento, y sin él el árbol
 		   dejaría de responder. Lo que se va es el desplazamiento, que además el
 		   JS ni siquiera llega a escribir. */
-		.sv-hero-foto img,
 		.sv-close-figura {
 			transform: none;
-		}
-		.sv-arbol-trazos {
-			transform: none;
-		}
-		.sv-arbol-nodo {
-			transform: translate(-50%, -50%) scaleX(var(--giro));
-		}
-		.sv-arbol-linea,
-		.sv-arbol-nodo {
-			transition:
-				opacity 0.2s linear,
-				filter 0.2s linear;
 		}
 	}
 	.sv-hero-title {
@@ -2708,9 +2444,6 @@
 		.sv-hero-inner {
 			grid-template-columns: 1fr;
 			padding-right: max(2rem, calc((100% - 1180px) / 2));
-		}
-		.sv-hero-arbol {
-			display: none;
 		}
 		.sv-hero-velo {
 			background: linear-gradient(

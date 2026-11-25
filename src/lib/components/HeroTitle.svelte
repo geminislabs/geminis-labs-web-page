@@ -85,6 +85,8 @@
 		}
 
 		function rebuild() {
+			// Puede llegar tarde (fuentes o resize) cuando el componente ya se desmontó.
+			if (!canvas) return;
 			computeLayout();
 			canvas.width = buf1.width = buf2.width = cw;
 			canvas.height = buf1.height = buf2.height = ch;
