@@ -49,12 +49,23 @@
 	let futuroNear = false;
 	let tcFlowNear = false;
 	let contactNear = false;
+	/** El video del rostro se queda quieto 2 s en el último cuadro antes de volver a empezar. */
+	let heroVideoTimer;
+	function _heroVideoPause(e) {
+		const v = e.currentTarget;
+		clearTimeout(heroVideoTimer);
+		heroVideoTimer = setTimeout(() => {
+			v.currentTime = 0;
+			v.play().catch(() => {});
+		}, 2000);
+	}
+
 	/** Nube del hero: la aurora del cierre, solo en verdes. */
 	const HERO_NUBE = {
 		key: 'hero-nube',
 		mode: 'aurora',
 		colors: ['#000000', '#0a4a30', '#1f8a55', '#7dffc0'],
-		intensity: 0.75
+		intensity: 0.5
 	};
 	/** Aurora verde y dorada del cierre de la experiencia. */
 	const CONTACT_AURORA = {
@@ -463,6 +474,7 @@
 
 		// Cleanup
 		return () => {
+			clearTimeout(heroVideoTimer);
 			window.removeEventListener('resize', checkMobile);
 
 			if (nexusCarouselInterval) clearInterval(nexusCarouselInterval);
@@ -625,9 +637,9 @@
 		src="/vid/cyberhuman-hero.mp4"
 		autoplay
 		muted
-		loop
 		playsinline
 		on:loadedmetadata={(e) => (e.currentTarget.playbackRate = 0.85)}
+		on:ended={_heroVideoPause}
 	></video>
 	<HeroGlitch />
 
@@ -2883,15 +2895,16 @@
 		}
 	}
 
+	/* La nube va DETRÁS del rostro: el lienzo del video se mezcla en modo «aclarar»,
+	   así que donde el video es negro se ve la nube y el rostro queda encima. */
 	.hero-nube {
 		position: absolute;
 		left: 0;
 		right: 0;
 		bottom: 0;
-		height: 62%;
-		z-index: 3;
+		height: 42%;
+		z-index: 0;
 		pointer-events: none;
-		mix-blend-mode: screen;
 		-webkit-mask-image: linear-gradient(
 			to top,
 			transparent 0%,
@@ -2899,16 +2912,20 @@
 			#000 34%,
 			transparent 100%
 		);
-		mask-image: linear-gradient(to top, transparent 0%, #000 14%, #000 34%, transparent 100%);
+		mask-image: linear-gradient(to top, transparent 0%, #000 22%, #000 45%, transparent 100%);
+	}
+
+	.hero-particle-section :global(.glitch-canvas) {
+		mix-blend-mode: lighten;
 	}
 
 	.hero-video-bottom-fade {
 		position: absolute;
 		bottom: 0;
 		left: 0;
-		height: 25%;
+		height: 10%;
 		width: 100%;
-		background: linear-gradient(to top, #000000 65%, transparent 100%);
+		background: linear-gradient(to top, #000000 0%, transparent 100%);
 		z-index: 2;
 		pointer-events: none;
 	}
