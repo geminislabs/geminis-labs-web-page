@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.0] — 2026-11-25
+
 ### Changed
 
 - **Servicios: página reorganizada.** Después del hero, «Tres formas de trabajar con nosotros» (diagnóstico, CTO por horas y proyecto completo); las seis capacidades completas a la vista con un índice fijo que marca la que se está leyendo (en celular, una fila de chips), cada una con su color, que también tiñe el fondo de la sección mientras se lee; «Cómo trabajamos» con lo que recibes en cada etapa; Nexus, Orion y Signum como prueba en el cierre; preguntas frecuentes (sin precios ni tiempos de compromiso, con NDA) y el formulario de diagnóstico (la sección de preguntas ocupa la pantalla y ofrece «Escríbenos»). Se retiran la franja de proceso y el panal; «CTO as a Service» pasa a «CTO por horas». El diagrama del CTO es un núcleo vivo con órbitas desde el que salen consejos hacia cada frente; en «Cómo trabajamos» la cámara se acerca a cada etapa de la imagen; el despiece del cierre flota, y el diagnóstico final lleva la aurora del cierre de la página principal. Las secciones alternan tonos y dos llevan fondos animados de la experiencia: la seda en «Tres formas de trabajar» y la luz de escenario en «Cómo trabajamos». En el pie de página, «CTO as a Service» pasa a «CTO por horas»
