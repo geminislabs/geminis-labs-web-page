@@ -6,6 +6,7 @@
 	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
 	import ExperienceWorld from '$lib/components/experiencia/ExperienceWorld.svelte';
 	import FlowDiagram from '$lib/components/experiencia/FlowDiagram.svelte';
+	import QuestionBand from '$lib/components/experiencia/QuestionBand.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
 		cargarRecaptcha,
@@ -1110,6 +1111,9 @@
 		</ol>
 	</div>
 </section>
+
+<!-- La pregunta (pantalla 1 de la experiencia) -->
+<QuestionBand />
 
 <!-- Sección ¿Por qué existimos? -->
 <section id="existimos" class="existimos-section">

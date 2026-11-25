@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Inicio: la pregunta.** Antes de «¿Por qué existimos?», una banda a pantalla completa con Querétaro de noche visto en perspectiva, humo cálido y estelas sobre las vías reales; la pregunta «¿Qué descubrimos cuando dejamos de mirar puntos y empezamos a entender movimientos?» aparece palabra por palabra al llegar
 - **Inicio: «Tecnologías que convergen».** El video de archivo se sustituye por un diagrama vivo de cómo fluye un evento a través de las cuatro capas (señales, infraestructura, inteligencia y experiencia), con nombres genéricos: sin marcas, protocolos ni componentes internos. Las cuatro capas pasan a una fila
 - **Inicio: «El futuro que estamos construyendo».** El video del mapa se sustituye por la red vial real de Querétaro con estelas de la experiencia; se monta al acercarse y se pausa fuera de pantalla
 - **Nexus: «Cómo funciona».** Después del hero, a pantalla completa: el mapa de Nexus sobre calles reales de Querétaro con la geocerca de celdas H3 y la cadena Vehículo → Evento → Contexto → Decisión, que se enciende al ritmo de la animación
