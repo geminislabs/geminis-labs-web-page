@@ -7,6 +7,7 @@
 	import ExperienceWorld from '$lib/components/experiencia/ExperienceWorld.svelte';
 	import FlowDiagram from '$lib/components/experiencia/FlowDiagram.svelte';
 	import QuestionBand from '$lib/components/experiencia/QuestionBand.svelte';
+	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
 		cargarRecaptcha,
@@ -82,6 +83,14 @@
 	// Video del futuro: textos secuenciales
 	let futuroNear = false;
 	let tcFlowNear = false;
+	let contactNear = false;
+	/** Aurora verde y dorada del cierre de la experiencia. */
+	const CONTACT_AURORA = {
+		key: 'contacto',
+		mode: 'aurora',
+		colors: ['#030a07', '#1f7a4a', '#c9a74a', '#eaffe0'],
+		intensity: 0.6
+	};
 
 	/**
 	 * Flujo conceptual por capas (sin marcas, protocolos ni componentes internos):
@@ -1255,15 +1264,20 @@
 
 <!-- Sección Contacto -->
 <section id="contacto" class="contact-section">
-	<!-- Fondo imagen flujos de luz (overlay sutil) -->
-	<div class="contact-bg" aria-hidden="true"></div>
-	<!-- Orb ambiental cyan -->
-	<div class="contact-orb" aria-hidden="true"></div>
-	<!-- Scan-line decorativa -->
-	<div class="contact-scan-line" aria-hidden="true"></div>
+	<!-- Fondo: la aurora del cierre de la experiencia (pantalla 15). Se monta al acercarse. -->
+	<div class="contact-aurora" aria-hidden="true" use:_near={() => (contactNear = true)}>
+		{#if contactNear}
+			<ShaderBackground preset={CONTACT_AURORA} contained lite={isMobile} />
+		{/if}
+	</div>
+	<div class="contact-aurora-fade" aria-hidden="true"></div>
 
 	<div class="container">
 		<div class="contact-header">
+			<div class="contact-mark" aria-hidden="true">
+				<span class="contact-mark-halo"></span>
+				<img src="/img/geminislabs-nobg.webp" alt="" />
+			</div>
 			<span class="contact-eyebrow">// INICIA UNA CONVERSACIÓN</span>
 			<h2 class="landing-section-title contact-heading">
 				De la señal a la decisión<br />— empieza aquí
@@ -1271,6 +1285,7 @@
 			<p class="contact-intro">
 				Cuéntanos tu proyecto. Nuestro equipo responde en menos de 24 horas.
 			</p>
+			<p class="contact-built">Construido en Querétaro</p>
 		</div>
 
 		<div class="contact-content">
@@ -1281,7 +1296,7 @@
 						<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
 						<circle cx="12" cy="10" r="3" />
 					</svg>
-					<p>Ciudad de México, México</p>
+					<p>Querétaro, Querétaro, México</p>
 				</div>
 				<div class="contact-item">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3117,80 +3132,6 @@
 	}
 
 	/* ── Contacto: elementos decorativos y header ────── */
-	.contact-bg {
-		position: absolute;
-		inset: 0;
-		background-image: url('/img/contact-bg.webp');
-		background-size: cover;
-		background-position: center center;
-		/* fixed: la imagen se ancla al viewport, no escala con la altura de la sección */
-		background-attachment: fixed;
-		opacity: 0.1;
-		mix-blend-mode: screen;
-		z-index: -1;
-		pointer-events: none;
-	}
-	/* background-attachment: fixed no funciona en iOS — desactivar en mobile */
-	@media (max-width: 768px) {
-		.contact-bg {
-			background-attachment: scroll;
-			background-position: center 30%;
-		}
-	}
-	.contact-orb {
-		position: absolute;
-		width: 600px;
-		height: 600px;
-		border-radius: 50%;
-		background: radial-gradient(circle, rgba(0, 166, 192, 0.1) 0%, transparent 70%);
-		filter: blur(80px);
-		top: -150px;
-		right: -100px;
-		z-index: -1;
-		pointer-events: none;
-		animation: contact-orb-float 12s ease-in-out infinite alternate;
-	}
-	@keyframes contact-orb-float {
-		from {
-			transform: translate(0, 0) scale(1);
-		}
-		to {
-			transform: translate(-40px, 50px) scale(1.1);
-		}
-	}
-	@keyframes contact-scan-move {
-		0% {
-			transform: translateY(-100%);
-			opacity: 0;
-		}
-		8% {
-			opacity: 1;
-		}
-		92% {
-			opacity: 1;
-		}
-		100% {
-			transform: translateY(120vh);
-			opacity: 0;
-		}
-	}
-	.contact-scan-line {
-		position: absolute;
-		left: 0;
-		right: 0;
-		height: 1px;
-		background: linear-gradient(
-			90deg,
-			transparent 0%,
-			rgba(0, 166, 192, 0.4) 20%,
-			rgba(0, 200, 230, 0.7) 50%,
-			rgba(0, 166, 192, 0.4) 80%,
-			transparent 100%
-		);
-		animation: contact-scan-move 10s linear infinite;
-		pointer-events: none;
-		z-index: 0;
-	}
 	/* Línea superior divisora */
 	:global(.contact-section)::before {
 		content: '';
@@ -3209,9 +3150,71 @@
 		);
 		z-index: 1;
 	}
+	.contact-aurora {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+	/* Funde la aurora con la sección anterior y oscurece detrás del formulario. */
+	.contact-aurora-fade {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		background:
+			linear-gradient(
+				180deg,
+				#0b1220 0%,
+				rgba(11, 18, 32, 0) 24%,
+				rgba(11, 18, 32, 0) 72%,
+				#0b1220 100%
+			),
+			radial-gradient(ellipse 45% 22% at 50% 22%, rgba(3, 10, 7, 0.7), transparent 80%),
+			radial-gradient(ellipse 60% 45% at 50% 68%, rgba(3, 10, 7, 0.5), transparent 75%);
+	}
 	.contact-header {
 		text-align: center;
 		margin-bottom: 4rem;
+	}
+	.contact-mark {
+		position: relative;
+		width: 96px;
+		height: 96px;
+		margin: 0 auto 1.4rem;
+	}
+	.contact-mark img {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		filter: drop-shadow(0 0 18px rgba(120, 255, 170, 0.45));
+	}
+	.contact-mark-halo {
+		position: absolute;
+		inset: -60%;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(62, 193, 40, 0.35), transparent 65%);
+		animation: contact-halo 4s ease-in-out infinite alternate;
+	}
+	@keyframes contact-halo {
+		to {
+			transform: scale(1.12);
+			opacity: 0.7;
+		}
+	}
+	.contact-built {
+		margin: 1rem 0 0;
+		font-size: 0.8rem;
+		font-weight: 600;
+		letter-spacing: 0.22em;
+		text-transform: uppercase;
+		color: #c9a74a;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.contact-mark-halo {
+			animation: none;
+		}
 	}
 	.contact-eyebrow {
 		display: inline-block;
