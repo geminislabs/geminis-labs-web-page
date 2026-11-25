@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
-	import ExperienceWorld from './ExperienceWorld.svelte';
+	import ExperienceWorld from '$lib/components/experiencia/ExperienceWorld.svelte';
 	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import AnimatedText from './AnimatedText.svelte';
 	import WarpCarousel from './WarpCarousel.svelte';

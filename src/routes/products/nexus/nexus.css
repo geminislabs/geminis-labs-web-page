@@ -3901,3 +3901,13 @@ section.nx-audience-content {
 .nx-evidence {
 	margin-top: 3rem;
 }
+.nx-proof .nx-stats-bar {
+	background: rgba(6, 18, 30, 0.85);
+	border: 1px solid rgba(110, 200, 255, 0.18);
+	box-shadow: none;
+}
+.nx-proof .nx-proof-icon {
+	color: #4fd1ff;
+	background: rgba(79, 209, 255, 0.08);
+	border-color: rgba(79, 209, 255, 0.25);
+}

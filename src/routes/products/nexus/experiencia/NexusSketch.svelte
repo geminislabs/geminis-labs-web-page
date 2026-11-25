@@ -5,7 +5,14 @@
 	 * ilustrativo (no son datos de una unidad real).
 	 */
 	import { onMount } from 'svelte';
-	import { loadNetwork, loadH3, hexZone, routePoint, pointAt, endpointKey } from './roadNetwork.js';
+	import {
+		loadNetwork,
+		loadH3,
+		hexZone,
+		routePoint,
+		pointAt,
+		endpointKey
+	} from '$lib/components/experiencia/roadNetwork.js';
 
 	let { phase = $bindable(0), reduced = false, fullbleed = false } = $props();
 

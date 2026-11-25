@@ -1,11 +1,18 @@
 <script>
 	import { onMount } from 'svelte';
 
+	/**
+	 * Efecto de mosaico que se desplaza alrededor del mouse. `source` puede ser
+	 * un <video> o un <canvas> (por ejemplo, el shader de aurora del hero).
+	 */
+	let { source = null, opacity = 0.58 } = $props();
+
 	let canvas;
 
 	onMount(() => {
-		const videoEl = document.querySelector('video.hero-bg-video');
+		const videoEl = source || document.querySelector('video.hero-bg-video');
 		if (!videoEl) return;
+		const isVideo = videoEl instanceof HTMLVideoElement;
 
 		const ctx = canvas.getContext('2d');
 		const buf = document.createElement('canvas');
@@ -73,13 +80,13 @@
 
 		function drawFrame() {
 			animId = requestAnimationFrame(drawFrame);
-			if (!videoEl || videoEl.readyState < 2 || !cw || !ch) return;
+			if (!videoEl || (isVideo && videoEl.readyState < 2) || !cw || !ch) return;
 
 			// Replicate object-fit:cover into the buffer
 			buf.width = cw;
 			buf.height = ch;
-			const vw = videoEl.videoWidth,
-				vh = videoEl.videoHeight;
+			const vw = isVideo ? videoEl.videoWidth : videoEl.width,
+				vh = isVideo ? videoEl.videoHeight : videoEl.height;
 			if (!vw || !vh) return;
 
 			const vr = vw / vh,
@@ -145,7 +152,7 @@
 	});
 </script>
 
-<canvas bind:this={canvas} class="glitch-canvas"></canvas>
+<canvas bind:this={canvas} class="glitch-canvas" style="opacity:{opacity}"></canvas>
 
 <style>
 	.glitch-canvas {
@@ -155,7 +162,6 @@
 		height: 100%;
 		z-index: 1;
 		pointer-events: none;
-		opacity: 0.58;
 		filter: contrast(1.08) saturate(0.82);
 	}
 </style>

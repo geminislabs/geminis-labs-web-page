@@ -1,5 +1,6 @@
 <script>
 	/** Aurora verde y dorada de la última pantalla de la experiencia. */
+	let heroAurora = null;
 	const HERO_AURORA = {
 		key: 'hero-aurora',
 		mode: 'aurora',
@@ -12,6 +13,8 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
 	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
+	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
+	import ExperienceWorld from '$lib/components/experiencia/ExperienceWorld.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
 		cargarRecaptcha,
@@ -85,12 +88,26 @@
 	}
 
 	// Video del futuro: textos secuenciales
-	let futuroVideo;
+	let futuroNear = false;
 	let currentTextIndex = 0;
 	let exitingTextIndex = -1;
 	let futuroTextInterval;
-	let videoFadeState = ''; // '' | 'out' | 'in'
 	let futuroProgressKey = 0; // fuerza recrear la barra de progreso en cada cambio
+
+	/** Llama a `cb` una vez cuando el nodo está a menos de 600 px de entrar en pantalla. */
+	function _near(node, cb) {
+		const io = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting) {
+					cb();
+					io.disconnect();
+				}
+			},
+			{ rootMargin: '600px' }
+		);
+		io.observe(node);
+		return { destroy: () => io.disconnect() };
+	}
 
 	function _futuroReveal(node) {
 		const show = () => node.classList.add('futuro-in-view');
@@ -143,27 +160,6 @@
 			desc: 'Anticipamos eventos y transformamos comportamiento en decisiones accionables.'
 		}
 	];
-
-	function onFuturoVideoEnded() {
-		if (!futuroVideo) return;
-		futuroVideo.pause();
-		// 1. Fade a oscuro en 800ms
-		videoFadeState = 'out';
-		setTimeout(() => {
-			if (!futuroVideo) return;
-			// 2. Mantener oscuro 2s y rebobinar
-			futuroVideo.currentTime = 0;
-			setTimeout(() => {
-				if (!futuroVideo) return;
-				// 3. Fade-in rápido en 400ms
-				videoFadeState = 'in';
-				futuroVideo.play().catch(() => {});
-				setTimeout(() => {
-					videoFadeState = '';
-				}, 400);
-			}, 2000);
-		}, 800);
-	}
 
 	// Áreas (badges) con efecto hover de cuadros a negro + descripción
 	let hoveredArea = null;
@@ -342,10 +338,7 @@
 			currentFeatureIndex = (currentFeatureIndex + 1) % nexusFeatures.length;
 		}, 8000); // Cambia cada 8 segundos
 
-		// Futuro Video & Text Rotation
-		if (futuroVideo) {
-			futuroVideo.play().catch(() => {});
-		}
+		// Futuro: rotación de textos
 		futuroTextInterval = setInterval(() => {
 			exitingTextIndex = currentTextIndex;
 			setTimeout(() => {
@@ -388,32 +381,6 @@
 			if (futuroTextInterval) clearInterval(futuroTextInterval);
 		};
 	});
-
-	// Función para lazy loading de videos que no están en el viewport inicial
-	function _lazyVideo(node, src) {
-		const observer = new IntersectionObserver(
-			(entries) => {
-				if (entries[0].isIntersecting) {
-					node.src = src;
-					node.load();
-					const playPromise = node.play();
-					if (playPromise !== undefined) {
-						playPromise.catch(() => {});
-					}
-					observer.unobserve(node);
-				}
-			},
-			{ rootMargin: '400px' } // Cargamos el video 400px antes de que entre en pantalla
-		);
-
-		observer.observe(node);
-
-		return {
-			destroy() {
-				observer.disconnect();
-			}
-		};
-	}
 
 	// Scroll-reveal: añade la clase 'is-revealed' cuando el nodo entra en viewport.
 	// Solo anima opacity/transform (sin reflow). Seguro sin JS: el default es visible.
@@ -563,7 +530,10 @@
 <!-- Sección Hero -->
 <section id="inicio" class="hero-particle-section">
 	<!-- Fondo: aurora del cierre de la experiencia (shader WebGL, sin video) -->
-	<ShaderBackground preset={HERO_AURORA} contained lite={isMobile} />
+	<ShaderBackground preset={HERO_AURORA} contained lite={isMobile} bind:element={heroAurora} />
+	{#if heroAurora}
+		<HeroGlitch source={heroAurora} opacity={1} />
+	{/if}
 
 	<!-- Capas de atmósfera visual -->
 	<div class="hero-vignette" aria-hidden="true"></div>
@@ -1107,31 +1077,12 @@
 	</div>
 	<div class="futuro-content">
 		<!-- Video Container with all overlays -->
-		<div class="futuro-video-container" use:_futuroReveal>
-			<!-- Video (sin loop — manejamos el loop manualmente para el fade) -->
-			<video
-				bind:this={futuroVideo}
-				class="futuro-video"
-				muted
-				playsinline
-				preload="none"
-				use:_lazyVideo={'/vid/futuro-mapa.mp4'}
-				on:ended={onFuturoVideoEnded}
-			></video>
-
-			<!-- Dark Overlay Layer: vignette + gradients -->
+		<div class="futuro-video-container" use:_futuroReveal use:_near={() => (futuroNear = true)}>
+			<!-- Fondo: la red vial real de Querétaro de la experiencia (pantalla 2). Se monta al acercarse. -->
+			{#if futuroNear}
+				<ExperienceWorld sceneId="queretaro" beat={1} contained lite={isMobile} />
+			{/if}
 			<div class="futuro-dark-overlay"></div>
-
-			<!-- Cover image que aparece al terminar el video -->
-			<div
-				class="futuro-black-cover"
-				style="opacity: {videoFadeState === 'out' ? 1 : 0}; transition: opacity {videoFadeState ===
-				'out'
-					? '0.8s ease-in'
-					: '0.4s ease-out'};"
-			>
-				<img src="/img/future-bg-2.webp" alt="" class="futuro-cover-img" loading="lazy" />
-			</div>
 
 			<!-- Title Overlay (top-left) -->
 			<div class="futuro-title-overlay">
@@ -4595,6 +4546,9 @@
 	.futuro-content {
 		position: relative;
 		z-index: 1;
+		/* Sin video que le dé tamaño, el ancho tiene que ser explícito. */
+		width: 100%;
+		box-sizing: border-box;
 		max-width: 1400px;
 		margin: 0 auto;
 		padding: 0 2rem;
@@ -4619,30 +4573,6 @@
 			opacity: 1;
 			transform: translateY(0) scale(1);
 		}
-	}
-
-	.futuro-video {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		display: block;
-		transition: opacity 1.5s ease;
-	}
-
-	.futuro-black-cover {
-		position: absolute;
-		inset: 0;
-		z-index: 2;
-		pointer-events: none;
-		overflow: hidden;
-	}
-
-	.futuro-cover-img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		object-position: center;
-		display: block;
 	}
 
 	/* Dark Overlay: vignette perimetral + gradiente derecho denso + tono de marca */
@@ -4845,9 +4775,8 @@
 		}
 
 		/* Ocultar solo video y overlays — el título se muestra sobre el panel */
-		.futuro-video,
-		.futuro-dark-overlay,
-		.futuro-black-cover {
+		.futuro-video-container :global(.xp-world),
+		.futuro-dark-overlay {
 			display: none;
 		}
 
