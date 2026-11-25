@@ -1,5 +1,6 @@
 <script>
-	/** Aurora verde y dorada de la última pantalla de la experiencia. */
+	/** Fuentes del fondo del hero: cielo profundo + aurora del cierre de la experiencia. */
+	let heroBg = null;
 	let heroAurora = null;
 	const HERO_AURORA = {
 		key: 'hero-aurora',
@@ -12,8 +13,8 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
-	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
+	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import ExperienceWorld from '$lib/components/experiencia/ExperienceWorld.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
@@ -529,10 +530,27 @@
 
 <!-- Sección Hero -->
 <section id="inicio" class="hero-particle-section">
-	<!-- Fondo: aurora del cierre de la experiencia (shader WebGL, sin video) -->
+	<!-- Fondo: el cielo profundo original (sin video) con la aurora animada encima, en
+	     transparencia. El mosaico del mouse se dibuja sobre la mezcla. -->
+	<img
+		bind:this={heroBg}
+		src="/img/deepspace.webp"
+		alt=""
+		class="hero-bg-source"
+		aria-hidden="true"
+	/>
 	<ShaderBackground preset={HERO_AURORA} contained lite={isMobile} bind:element={heroAurora} />
-	{#if heroAurora}
-		<HeroGlitch source={heroAurora} opacity={1} tileW={40} tileH={32} radius={336} blur={7} />
+	{#if heroBg && heroAurora}
+		<HeroGlitch
+			source={heroBg}
+			overlay={heroAurora}
+			overlayAlpha={0.55}
+			opacity={1}
+			tileW={40}
+			tileH={32}
+			radius={336}
+			blur={7}
+		/>
 	{/if}
 
 	<!-- Capas de atmósfera visual -->
@@ -3255,7 +3273,9 @@
 		width: 100%;
 		min-height: 100vh;
 		overflow: hidden;
-		background: #030a07;
+		background-image: url('/img/deepspace.webp');
+		background-size: cover;
+		background-position: center center;
 		display: flex;
 		align-items: flex-end;
 		justify-content: center;
@@ -3366,6 +3386,15 @@
 	}
 
 	/* ── Hero móvil: solo logo centrado ──────────────────────── */
+	/* Solo es la fuente del mosaico: el lienzo la dibuja encima. */
+	.hero-bg-source {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+		pointer-events: none;
+	}
+
 	.hero-mobile-logo {
 		display: none; /* oculto en desktop */
 	}

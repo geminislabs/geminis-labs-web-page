@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Inicio: fondo del hero.** El video del rostro y el fondo de espacio se sustituyen por la aurora verde y dorada del cierre de la experiencia (shader WebGL que se pausa fuera de pantalla). Se conservan el logo de partículas, el título y los dos efectos del mouse: el cambio del título y el mosaico que se desplaza alrededor del cursor, que ahora se aplica sobre la aurora con cuadros más pequeños (40×32), un área 20% menor y contenido desenfocado entre huecos negros nítidos, como el efecto original
+- **Inicio: fondo del hero.** Se quita el video del rostro. El fondo vuelve al cielo profundo original con la aurora verde y dorada del cierre de la experiencia encima, en transparencia (shader WebGL que se pausa fuera de pantalla). Se conservan el logo de partículas, el título y los dos efectos del mouse; el mosaico usa cuadros más pequeños (40×32), un área 20% menor y de contorno irregular, huecos negros y contenido desenfocado
 - **Inicio: «El futuro que estamos construyendo».** El video del mapa se sustituye por la red vial real de Querétaro con estelas de la experiencia; se monta al acercarse y se pausa fuera de pantalla
 - **Nexus: evidencia real en lugar de testimonios.** Los tres testimonios eran ilustrativos y Nexus aún no tiene clientes; la sección ahora muestra el informe real de un día de la unidad de pruebas (recorrido, tiempos, batería con su mínimo y estado, salud del equipo al 94.9%) y lo que permitirán los mismos datos. La franja «En producción · iOS, Android y Web · GPS, API y MQTT» pasa a fondo oscuro
 

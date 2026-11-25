@@ -12,7 +12,10 @@
 		tileH = 58,
 		radius = 420,
 		/** Desenfoque (px) de los cuadros desplazados; 0 = sin desenfoque. */
-		blur = 0
+		blur = 0,
+		/** Segunda fuente animada (lienzo) mezclada en modo pantalla sobre la primera. */
+		overlay = null,
+		overlayAlpha = 0.5
 	} = $props();
 
 	let canvas;
@@ -21,6 +24,7 @@
 		const videoEl = source || document.querySelector('video.hero-bg-video');
 		if (!videoEl) return;
 		const isVideo = videoEl instanceof HTMLVideoElement;
+		const isImage = videoEl instanceof HTMLImageElement;
 
 		const ctx = canvas.getContext('2d');
 		const buf = document.createElement('canvas');
@@ -57,7 +61,9 @@
 						cy: r * TILE_H + TILE_H * 0.5,
 						// Fixed random offsets per tile — where to sample from
 						ox: (Math.random() - 0.5) * MAX_OX * 2,
-						oy: (Math.random() - 0.5) * MAX_OY * 2
+						oy: (Math.random() - 0.5) * MAX_OY * 2,
+						// Alcance propio de cada cuadro: el área del efecto no es un círculo.
+						k: 0.45 + Math.random() * 0.95
 					});
 				}
 			}
@@ -92,12 +98,13 @@
 		function drawFrame() {
 			animId = requestAnimationFrame(drawFrame);
 			if (!videoEl || (isVideo && videoEl.readyState < 2) || !cw || !ch) return;
+			if (isImage && !videoEl.complete) return;
 
 			// Replicate object-fit:cover into the buffer
 			buf.width = cw;
 			buf.height = ch;
-			const vw = isVideo ? videoEl.videoWidth : videoEl.width,
-				vh = isVideo ? videoEl.videoHeight : videoEl.height;
+			const vw = isVideo ? videoEl.videoWidth : isImage ? videoEl.naturalWidth : videoEl.width,
+				vh = isVideo ? videoEl.videoHeight : isImage ? videoEl.naturalHeight : videoEl.height;
 			if (!vw || !vh) return;
 
 			const vr = vw / vh,
@@ -117,6 +124,13 @@
 				srcY = (vh - srcH) * 0.5;
 			}
 			bctx.drawImage(videoEl, srcX, srcY, srcW, srcH, 0, 0, cw, ch);
+			if (overlay && overlay.width && overlay.height) {
+				bctx.globalCompositeOperation = 'screen';
+				bctx.globalAlpha = overlayAlpha;
+				bctx.drawImage(overlay, 0, 0, cw, ch);
+				bctx.globalAlpha = 1;
+				bctx.globalCompositeOperation = 'source-over';
+			}
 
 			// Smooth ease in/out
 			glitchActive += (glitchTarget - glitchActive) * 0.12;
@@ -172,28 +186,24 @@
 			const maxGap = Math.max(4, TILE_W * 0.16);
 			for (const t of tiles) {
 				const dist = Math.hypot(t.cx - mouseX, t.cy - mouseY);
-				const str = Math.max(0, 1 - dist / EFFECT_R) * glitchActive;
-				if (str < 0.02) continue;
+				const str = Math.max(0, 1 - dist / (EFFECT_R * t.k)) * glitchActive;
+				if (str < 0.01) continue;
 				const srcTX = Math.max(0, Math.min(t.x + t.ox * str, cw - TILE_W));
 				const srcTY = Math.max(0, Math.min(t.y + t.oy * str, ch - TILE_H));
-				const gap = Math.min(maxGap, str * maxGap * 1.6);
-				// Hacia el borde del área los cuadros se funden con el fondo: sin contorno.
-				ctx.globalAlpha = Math.min(1, str * 3);
+				const gap = str * maxGap;
+				const dx = t.x + gap / 2;
+				const dy = t.y + gap / 2;
+				const dw = Math.max(1, TILE_W - gap);
+				const dh = Math.max(1, TILE_H - gap);
+				// Hueco negro que crece con la intensidad, como en el original.
 				ctx.fillStyle = '#000006';
 				ctx.fillRect(t.x, t.y, TILE_W, TILE_H);
-				ctx.drawImage(
-					fx,
-					srcTX,
-					srcTY,
-					TILE_W,
-					TILE_H,
-					t.x + gap / 2,
-					t.y + gap / 2,
-					Math.max(1, TILE_W - gap),
-					Math.max(1, TILE_H - gap)
-				);
+				ctx.drawImage(buf, srcTX, srcTY, TILE_W, TILE_H, dx, dy, dw, dh);
+				// El desenfoque entra en proporción a la intensidad.
+				ctx.globalAlpha = Math.min(1, str * 1.6);
+				ctx.drawImage(fx, srcTX, srcTY, TILE_W, TILE_H, dx, dy, dw, dh);
+				ctx.globalAlpha = 1;
 			}
-			ctx.globalAlpha = 1;
 		}
 
 		drawFrame();
