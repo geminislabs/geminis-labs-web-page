@@ -79,6 +79,15 @@
 
 	/** Nube del hero: la aurora del cierre, solo en verdes. */
 	let heroNube = null;
+	/* La nube conserva su tamaño (62% del alto) pero solo se ve en la franja baja,
+	   a la altura del título y los botones. */
+	const HERO_NUBE_MASK = [
+		[0, 0],
+		[0.5, 0],
+		[0.72, 1],
+		[0.92, 1],
+		[1, 0]
+	];
 	const HERO_NUBE = {
 		key: 'hero-nube',
 		mode: 'aurora',
@@ -659,7 +668,12 @@
 		use:_slowVideo={0.8}
 		on:ended={_heroVideoPause}
 	></video>
-	<HeroGlitch overlay={heroNube} />
+	<HeroGlitch
+		overlay={heroNube}
+		overlayTop={0.38}
+		overlayHeight={0.62}
+		overlayMask={HERO_NUBE_MASK}
+	/>
 
 	<!-- Capas de atmósfera visual -->
 	<div class="hero-vignette" aria-hidden="true"></div>
@@ -2923,7 +2937,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		height: 32%; /* = overlayHeight de HeroGlitch */
+		height: 62%; /* = overlayHeight de HeroGlitch */
 		z-index: 0;
 		opacity: 0;
 		pointer-events: none;

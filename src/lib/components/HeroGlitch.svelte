@@ -6,7 +6,18 @@
 	 * de una franja (fracciones del alto: top y height), con bordes desvanecidos;
 	 * así el mosaico del mouse también lo desplaza.
 	 */
-	let { overlay = null, overlayTop = 0.68, overlayHeight = 0.32 } = $props();
+	let {
+		overlay = null,
+		overlayTop = 0.68,
+		overlayHeight = 0.32,
+		/** Opacidad a lo alto de la franja: [posición 0–1, alfa]. */
+		overlayMask = [
+			[0, 0],
+			[0.45, 1],
+			[0.82, 1],
+			[1, 0]
+		]
+	} = $props();
 
 	let canvas;
 
@@ -116,10 +127,7 @@
 				octx.drawImage(overlay, 0, 0, cw, oh);
 				octx.globalCompositeOperation = 'destination-in';
 				const g = octx.createLinearGradient(0, 0, 0, oh);
-				g.addColorStop(0, 'rgba(0,0,0,0)');
-				g.addColorStop(0.45, 'rgba(0,0,0,1)');
-				g.addColorStop(0.82, 'rgba(0,0,0,1)');
-				g.addColorStop(1, 'rgba(0,0,0,0)');
+				for (const [at, a] of overlayMask) g.addColorStop(at, `rgba(0,0,0,${a})`);
 				octx.fillStyle = g;
 				octx.fillRect(0, 0, cw, oh);
 				octx.globalCompositeOperation = 'source-over';
