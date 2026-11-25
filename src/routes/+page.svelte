@@ -487,21 +487,42 @@
 		checkMobile();
 		window.addEventListener('resize', checkMobile);
 
-		// Smooth scrolling para los enlaces de navegación
-		const links = document.querySelectorAll('a[href^="#"]');
-		links.forEach((link) => {
-			link.addEventListener('click', (e) => {
-				e.preventDefault();
-				const target = document.querySelector(link.getAttribute('href'));
-				if (target) {
-					target.scrollIntoView({ behavior: 'smooth' });
-				}
-			});
-		});
+		// Desplazamiento a secciones. Mientras la página baja se cargan imágenes y
+		// componentes diferidos que cambian alturas, así que al terminar se revisa
+		// que la sección haya quedado arriba y, si no, se corrige (hasta 3 veces).
+		let correccion = 0;
+		const irA = (target, intento = 0) => {
+			clearTimeout(correccion);
+			target.scrollIntoView({ behavior: intento ? 'auto' : 'smooth' });
+			correccion = setTimeout(
+				() => {
+					const desvio = Math.abs(target.getBoundingClientRect().top);
+					if (desvio > 8 && intento < 3) irA(target, intento + 1);
+				},
+				intento ? 450 : 1100
+			);
+		};
+		const alHacerClic = (e) => {
+			const link = e.target.closest?.('a[href^="#"]');
+			if (!link) return;
+			const target = document.querySelector(link.getAttribute('href'));
+			if (!target) return;
+			e.preventDefault();
+			irA(target);
+		};
+		// Delegado en el documento: también cubre los enlaces del menú de celular.
+		document.addEventListener('click', alHacerClic);
+		// Llegando desde otra página con «/#seccion».
+		if (location.hash.length > 1) {
+			const destino = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+			if (destino) setTimeout(() => irA(destino), 60);
+		}
 
 		// Cleanup
 		return () => {
 			clearTimeout(heroVideoTimer);
+			clearTimeout(correccion);
+			document.removeEventListener('click', alHacerClic);
 			window.removeEventListener('resize', checkMobile);
 
 			if (nexusCarouselInterval) clearInterval(nexusCarouselInterval);

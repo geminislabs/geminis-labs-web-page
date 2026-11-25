@@ -737,6 +737,11 @@
 			<header class="sv-head">
 				<p class="sv-overline">Preguntas frecuentes</p>
 				<h2 id="sv-faq-title" class="sv-title">Antes de hablar</h2>
+				<p class="sv-sub">Lo que casi todos nos preguntan en la primera llamada.</p>
+				<div class="sv-faq-otra">
+					<p>¿Tu pregunta no está aquí?</p>
+					<a href="#diagnostico" class="sv-btn sv-btn--ghost">Escríbenos</a>
+				</div>
 			</header>
 			<div class="sv-faq-list">
 				{#each preguntas as f (f.q)}
@@ -2218,8 +2223,25 @@
 
 	/* ── Preguntas frecuentes ─────────────────────────── */
 	.sv-faq {
-		padding: clamp(3.5rem, 7vw, 6rem) 0 clamp(2rem, 4vw, 3rem);
-		background: #03080b;
+		display: flex;
+		align-items: center;
+		min-height: min(88vh, 860px);
+		padding: clamp(4.5rem, 9vw, 7.5rem) 0;
+		background:
+			radial-gradient(ellipse 50% 60% at 15% 40%, rgba(127, 227, 245, 0.06), transparent 70%),
+			#03080b;
+	}
+	.sv-faq-otra {
+		margin-top: 2rem;
+		padding: 1.2rem 1.3rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-md);
+		background: rgba(8, 20, 28, 0.7);
+	}
+	.sv-faq-otra p {
+		margin: 0 0 0.8rem;
+		font-weight: 600;
+		color: var(--sv-text, #f4f1e8);
 	}
 	.sv-faq-inner {
 		display: grid;
@@ -2230,16 +2252,17 @@
 	.sv-faq-list {
 		display: flex;
 		flex-direction: column;
-		gap: 0.6rem;
+		gap: 0.8rem;
 	}
 	.sv-faq-item {
-		padding: 1rem 1.2rem;
+		padding: 1.3rem 1.5rem;
 		border: 1px solid var(--sv-rule);
 		border-radius: var(--gl-r-sm);
 		background: var(--sv-bg-2);
 	}
 	.sv-faq-item summary {
 		cursor: pointer;
+		font-size: 1.05rem;
 		font-weight: 600;
 		color: var(--sv-text, #f4f1e8);
 	}
