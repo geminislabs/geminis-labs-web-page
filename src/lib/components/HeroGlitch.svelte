@@ -159,49 +159,22 @@
 
 		/**
 		 * Variante con desenfoque: el fondo queda nítido y solo los cuadros cercanos
-		 * al cursor se desplazan, se desenfocan como vidrio esmerilado y conservan
-		 * un borde fino para que se lean como cuadros.
+		 * al cursor se desplazan y se desenfocan, sin bordes ni separaciones.
 		 */
 		function drawBlurred() {
 			ctx.drawImage(buf, 0, 0);
 			fctx.clearRect(0, 0, cw, ch);
-			const hit = [];
 			for (const t of tiles) {
 				const dist = Math.hypot(t.cx - mouseX, t.cy - mouseY);
 				const str = Math.max(0, 1 - dist / EFFECT_R) * glitchActive;
 				if (str < 0.02) continue;
 				const srcTX = Math.max(0, Math.min(t.x + t.ox * str, cw - TILE_W));
 				const srcTY = Math.max(0, Math.min(t.y + t.oy * str, ch - TILE_H));
-				const gap = str * 6;
-				fctx.fillStyle = `rgba(0,0,6,${0.85 * str})`;
-				fctx.fillRect(t.x, t.y, TILE_W, TILE_H);
-				fctx.drawImage(
-					buf,
-					srcTX,
-					srcTY,
-					TILE_W,
-					TILE_H,
-					t.x + gap / 2,
-					t.y + gap / 2,
-					Math.max(1, TILE_W - gap),
-					Math.max(1, TILE_H - gap)
-				);
-				hit.push([t, str, gap]);
+				fctx.drawImage(buf, srcTX, srcTY, TILE_W, TILE_H, t.x, t.y, TILE_W, TILE_H);
 			}
 			ctx.filter = `blur(${blur}px)`;
 			ctx.drawImage(fx, 0, 0);
 			ctx.filter = 'none';
-			// Bordes nítidos encima del desenfoque.
-			ctx.lineWidth = 1;
-			for (const [t, str, gap] of hit) {
-				ctx.strokeStyle = `rgba(200,255,225,${0.35 * str})`;
-				ctx.strokeRect(
-					t.x + gap / 2 + 0.5,
-					t.y + gap / 2 + 0.5,
-					Math.max(1, TILE_W - gap) - 1,
-					Math.max(1, TILE_H - gap) - 1
-				);
-			}
 		}
 
 		drawFrame();
