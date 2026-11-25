@@ -3,8 +3,8 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import { services, diagnosticoSituaciones, diagnosticoFrentes } from '$lib/data/services.js';
 	import { onMount } from 'svelte';
-	import { fade, scale } from 'svelte/transition';
 	import HoloForge from '$lib/components/HoloForge.svelte';
+	import Figura from '$lib/components/FiguraCapacidad.svelte';
 	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import { cargarRecaptcha, enviarContacto, validarContacto } from '$lib/contacto.js';
 
@@ -179,13 +179,20 @@
 	];
 	let etapaActiva = -1;
 
-	// ── Capacidades: un solo panel de detalle, a lo ancho ─────────────────
-	let capAbierta = null;
-	function verDetalle(slug) {
-		capAbierta = slug;
+	// ── Capacidades: índice que sigue a la lectura ────────────────────────
+	let capActiva = 0;
+	/** Marca como activa la capacidad que cruza la franja central de la ventana. */
+	function espiar(nodo, i) {
+		const io = new IntersectionObserver(
+			(e) => {
+				if (e[0].isIntersecting) capActiva = i;
+			},
+			{ rootMargin: '-45% 0px -50% 0px' }
+		);
+		io.observe(nodo);
+		return { destroy: () => io.disconnect() };
 	}
-	// Mientras la ventana está abierta, la página de atrás no se desplaza.
-	$: if (typeof document !== 'undefined') document.body.style.overflow = capAbierta ? 'hidden' : '';
+
 	// ── Cierre: aurora de fondo (se monta al acercarse) ───────────────────
 	const AURORA = {
 		key: 'servicios-cierre',
@@ -206,15 +213,6 @@
 		);
 		io.observe(nodo);
 		return { destroy: () => io.disconnect() };
-	}
-	// Si se sale de la página con la ventana abierta, la página siguiente debe poder desplazarse.
-	onMount(() => () => (document.body.style.overflow = ''));
-
-	function enfocar(nodo) {
-		nodo.focus();
-	}
-	function teclaModal(e) {
-		if (e.key === 'Escape' && capAbierta) capAbierta = null;
 	}
 
 	// Los seis apartados del documento del diagnóstico. Van en un array y no
@@ -312,8 +310,6 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet" />
 </svelte:head>
-
-<svelte:window on:keydown={teclaModal} />
 
 <Navbar />
 
@@ -527,29 +523,58 @@
 					diseñar la tecnología y construir la solución.
 				</p>
 			</header>
-			<div class="sv-caps-grid">
-				{#each services as cap, i (cap.slug)}
-					<article
-						class="sv-cap"
-						class:sv-cap--ancha={i === 0 || i === services.length - 1}
-						class:is-abierta={capAbierta === cap.slug}
-					>
-						<p class="sv-cap-num">{cap.num}</p>
-						<h3 class="sv-cap-title">{cap.title}</h3>
-						<p class="sv-cap-promise">{cap.promise}</p>
-						<ul class="sv-cap-chips">
-							{#each cap.chips.slice(0, 4) as chip (chip)}<li>{chip}</li>{/each}
-						</ul>
-						<button
-							type="button"
-							class="sv-cap-ver"
-							aria-haspopup="dialog"
-							on:click={() => verDetalle(cap.slug)}
+			<!-- Índice fijo a la izquierda; cada capacidad completa a la derecha. El
+			     índice marca la que se está leyendo y lleva a cualquiera con un clic. -->
+			<div class="sv-ledger">
+				<nav class="sv-ledger-index" aria-label="Capacidades">
+					<ol>
+						{#each services as cap, i (cap.slug)}
+							<li>
+								<a
+									href="#cap-{cap.slug}"
+									class:is-activa={capActiva === i}
+									aria-current={capActiva === i ? 'true' : undefined}
+								>
+									<span class="sv-ledger-n">{cap.num}</span>
+									<span class="sv-ledger-t">{cap.title}</span>
+								</a>
+							</li>
+						{/each}
+					</ol>
+				</nav>
+				<div class="sv-ledger-items">
+					{#each services as cap, i (cap.slug)}
+						<article
+							class="sv-ledger-item"
+							id="cap-{cap.slug}"
+							class:is-activa={capActiva === i}
+							use:espiar={i}
 						>
-							Ver detalle técnico →
-						</button>
-					</article>
-				{/each}
+							<div class="sv-ledger-top">
+								<div>
+									<p class="sv-cap-num">{cap.num}</p>
+									<h3 class="sv-ledger-title">{cap.title}</h3>
+									<p class="sv-ledger-promise">{cap.promise}</p>
+								</div>
+								<div class="sv-ledger-figura" aria-hidden="true">
+									<Figura slug={cap.slug} />
+								</div>
+							</div>
+							<p class="sv-ledger-intro">{cap.detail.intro}</p>
+							<div class="sv-ledger-grupos">
+								{#each cap.detail.groups as grupo (grupo.title)}
+									<div>
+										<p class="sv-cap-grupo">{grupo.title}</p>
+										<ul class="sv-cap-lista">
+											{#each grupo.items as item (item)}<li>{item}</li>{/each}
+										</ul>
+									</div>
+								{/each}
+							</div>
+							<a href="#diagnostico" class="sv-ledger-cta">{cap.entrada} →</a>
+						</article>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</section>
@@ -802,53 +827,6 @@
 		</div>
 	</section>
 </main>
-
-<!-- Detalle técnico de una capacidad: ventana al frente, como las tarjetas
-	     «Más información» de las páginas de producto. Esc o clic afuera la cierran. -->
-{#if capAbierta}
-	{@const cap = services.find((c) => c.slug === capAbierta)}
-	<div
-		class="sv-modal"
-		role="presentation"
-		on:click|self={() => (capAbierta = null)}
-		transition:fade={{ duration: 220 }}
-	>
-		<div
-			class="sv-modal-card"
-			role="dialog"
-			aria-modal="true"
-			aria-labelledby="sv-modal-title"
-			transition:scale={{ start: 0.94, duration: 320 }}
-		>
-			<button
-				type="button"
-				class="sv-modal-cerrar"
-				aria-label="Cerrar"
-				use:enfocar
-				on:click={() => (capAbierta = null)}>✕</button
-			>
-			<p class="sv-cap-num">{cap.num}</p>
-			<h3 class="sv-modal-title" id="sv-modal-title">{cap.title}</h3>
-			<p class="sv-modal-promise">{cap.promise}</p>
-			<p class="sv-modal-intro">{cap.detail.intro}</p>
-			<div class="sv-cap-panel-grid">
-				{#each cap.detail.groups as grupo (grupo.title)}
-					<div class="sv-cap-col">
-						<p class="sv-cap-grupo">{grupo.title}</p>
-						<ul class="sv-cap-lista">
-							{#each grupo.items as item (item)}<li>{item}</li>{/each}
-						</ul>
-					</div>
-				{/each}
-			</div>
-			<div class="sv-modal-pie">
-				<a href="#diagnostico" class="sv-btn sv-btn--primary" on:click={() => (capAbierta = null)}
-					>{cap.entrada}</a
-				>
-			</div>
-		</div>
-	</div>
-{/if}
 
 <Footer />
 
@@ -2090,63 +2068,11 @@
 	.sv-caps {
 		padding: clamp(3.5rem, 7vw, 6rem) 0;
 	}
-	.sv-caps-grid {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 1rem;
-	}
-	.sv-cap {
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-		padding: 1.5rem;
-		border: 1px solid var(--sv-rule);
-		border-radius: var(--gl-r-md);
-		background:
-			radial-gradient(ellipse 80% 60% at 100% 0%, rgba(127, 227, 245, 0.08), transparent 70%),
-			var(--sv-bg-2);
-		transition:
-			border-color 0.3s ease,
-			transform 0.3s ease;
-	}
-	.sv-cap:hover {
-		border-color: rgba(127, 227, 245, 0.35);
-		transform: translateY(-3px);
-	}
-	.sv-cap--ancha {
-		grid-column: span 2;
-	}
 	.sv-cap-num {
 		margin: 0;
 		font-family: var(--gl-font-label);
 		font-size: 0.8rem;
 		color: var(--sv-accent);
-	}
-	.sv-cap-title {
-		margin: 0;
-		font-size: 1.25rem;
-		color: var(--sv-text, #f4f1e8);
-	}
-	.sv-cap-promise {
-		margin: 0;
-		font-size: 0.95rem;
-		line-height: 1.55;
-		color: var(--sv-text-muted);
-	}
-	.sv-cap-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.35rem;
-		margin: 0.2rem 0 0;
-		padding: 0;
-		list-style: none;
-	}
-	.sv-cap-chips li {
-		padding: 0.25rem 0.65rem;
-		border-radius: 999px;
-		background: rgba(127, 227, 245, 0.08);
-		font-size: 0.78rem;
-		color: var(--sv-text-muted);
 	}
 	.sv-cap-grupo {
 		margin: 0.8rem 0 0.2rem;
@@ -2240,24 +2166,8 @@
 	}
 
 	@media (max-width: 960px) {
-		.sv-caps-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
 		.sv-faq-inner {
 			grid-template-columns: 1fr;
-		}
-	}
-	@media (max-width: 600px) {
-		.sv-caps-grid {
-			grid-template-columns: 1fr;
-		}
-		.sv-cap--ancha {
-			grid-column: auto;
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.sv-cap {
-			transition: none;
 		}
 	}
 
@@ -2418,34 +2328,6 @@
 	}
 
 	/* ── Capacidades: botón y panel de detalle ────────── */
-	.sv-caps-grid {
-		align-items: start;
-	}
-	.sv-cap.is-abierta {
-		border-color: rgba(127, 227, 245, 0.6);
-		box-shadow: 0 0 0 1px rgba(127, 227, 245, 0.25);
-	}
-	.sv-cap-ver {
-		align-self: flex-start;
-		margin-top: 0.4rem;
-		padding: 0;
-		border: 0;
-		background: none;
-		font: inherit;
-		font-size: 0.82rem;
-		font-weight: 600;
-		color: var(--sv-accent);
-		cursor: pointer;
-	}
-	.sv-cap-ver:hover {
-		text-decoration: underline;
-		text-underline-offset: 3px;
-	}
-	.sv-cap-panel-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		gap: 1.4rem 2rem;
-	}
 	.sv-cap-lista {
 		margin: 0;
 		padding: 0;
@@ -2508,68 +2390,185 @@
 	}
 
 	/* ── Ventana de detalle técnico ───────────────────── */
-	.sv-modal {
-		position: fixed;
-		inset: 0;
-		z-index: 1000;
+
+	/* ── Capacidades: índice fijo + capacidades completas ── */
+	.sv-ledger {
 		display: grid;
-		place-items: center;
-		padding: clamp(1rem, 4vw, 3rem);
-		background: rgba(2, 10, 14, 0.62);
-		backdrop-filter: blur(10px);
-		-webkit-backdrop-filter: blur(10px);
+		grid-template-columns: minmax(0, 0.3fr) minmax(0, 0.7fr);
+		gap: clamp(1.5rem, 4vw, 4rem);
+		align-items: start;
 	}
-	.sv-modal-card {
-		position: relative;
-		width: min(1040px, 100%);
-		max-height: min(86vh, 900px);
-		overflow-y: auto;
-		padding: clamp(1.6rem, 3.5vw, 2.8rem);
-		border: 1px solid rgba(127, 227, 245, 0.35);
-		border-radius: 24px;
-		background:
-			radial-gradient(ellipse 60% 50% at 0% 0%, rgba(127, 227, 245, 0.12), transparent 70%),
-			var(--sv-bg-2);
-		box-shadow:
-			0 40px 120px rgba(0, 0, 0, 0.6),
-			0 0 0 1px rgba(127, 227, 245, 0.08);
-	}
-	.sv-modal-cerrar {
+	.sv-ledger-index {
 		position: sticky;
+		top: 96px;
+	}
+	.sv-ledger-index ol {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-left: 1px solid var(--sv-rule);
+	}
+	.sv-ledger-index a {
+		position: relative;
+		display: flex;
+		align-items: baseline;
+		gap: 0.8rem;
+		padding: 0.7rem 0 0.7rem 1.1rem;
+		color: var(--sv-text-muted);
+		text-decoration: none;
+		transition: color 0.3s ease;
+	}
+	.sv-ledger-index a::before {
+		content: '';
+		position: absolute;
+		left: -1px;
 		top: 0;
-		float: right;
-		width: 40px;
-		height: 40px;
-		border: 1px solid var(--sv-rule);
-		border-radius: 50%;
-		background: rgba(7, 26, 34, 0.9);
-		font-size: 1rem;
-		color: var(--sv-text, #f4f1e8);
-		cursor: pointer;
+		bottom: 0;
+		width: 2px;
+		background: var(--sv-accent);
+		box-shadow: 0 0 12px var(--sv-accent);
+		transform: scaleY(0);
+		transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 	}
-	.sv-modal-cerrar:hover {
-		border-color: rgba(127, 227, 245, 0.6);
-	}
-	.sv-modal-title {
-		margin: 0.3rem 0 0.6rem;
-		font-size: clamp(1.6rem, 3vw, 2.3rem);
+	.sv-ledger-index a.is-activa {
 		color: var(--sv-text, #f4f1e8);
 	}
-	.sv-modal-promise {
-		margin: 0 0 0.6rem;
-		font-size: 1.1rem;
-		font-weight: 600;
+	.sv-ledger-index a.is-activa::before {
+		transform: scaleY(1);
+	}
+	.sv-ledger-index a:hover {
+		color: var(--sv-text, #f4f1e8);
+	}
+	.sv-ledger-n {
+		font-family: var(--gl-font-label);
+		font-size: 0.78rem;
 		color: var(--sv-accent);
 	}
-	.sv-modal-intro {
-		max-width: 70ch;
-		margin: 0 0 1.8rem;
+	.sv-ledger-t {
+		font-size: 1.02rem;
+		font-weight: 600;
+	}
+	.sv-ledger-items {
+		display: flex;
+		flex-direction: column;
+		gap: 1.2rem;
+	}
+	.sv-ledger-item {
+		scroll-margin-top: 96px;
+		padding: clamp(1.5rem, 3vw, 2.4rem);
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-md);
+		background:
+			radial-gradient(ellipse 70% 60% at 100% 0%, rgba(127, 227, 245, 0.07), transparent 70%),
+			var(--sv-bg-2);
+		opacity: 0.55;
+		transition:
+			opacity 0.5s ease,
+			border-color 0.5s ease;
+	}
+	.sv-ledger-item.is-activa {
+		opacity: 1;
+		border-color: rgba(127, 227, 245, 0.35);
+	}
+	.sv-ledger-top {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) clamp(90px, 11vw, 140px);
+		gap: 1.5rem;
+		align-items: start;
+		margin-bottom: 1rem;
+	}
+	.sv-ledger-title {
+		margin: 0.25rem 0 0.6rem;
+		font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+		color: var(--sv-text, #f4f1e8);
+	}
+	.sv-ledger-promise {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 600;
+		line-height: 1.45;
+		color: var(--sv-accent);
+	}
+	.sv-ledger-figura {
+		aspect-ratio: 1;
+		transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.sv-ledger-item.is-activa .sv-ledger-figura {
+		transform: scale(1.06);
+	}
+	.sv-ledger-intro {
+		max-width: 68ch;
+		margin: 0 0 1.4rem;
 		line-height: 1.65;
 		color: var(--sv-text-muted);
 	}
-	.sv-modal-pie {
-		margin-top: 2rem;
-		padding-top: 1.4rem;
+	.sv-ledger-grupos {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1.2rem 1.8rem;
+		padding-top: 1.2rem;
 		border-top: 1px solid var(--sv-rule);
+	}
+	.sv-ledger-cta {
+		display: inline-block;
+		margin-top: 1.4rem;
+		font-weight: 700;
+		color: var(--sv-accent);
+		text-decoration: none;
+	}
+	.sv-ledger-cta:hover {
+		text-decoration: underline;
+		text-underline-offset: 4px;
+	}
+	@media (max-width: 900px) {
+		.sv-ledger {
+			grid-template-columns: 1fr;
+		}
+		/* En celular el índice es una fila de chips fija arriba. */
+		.sv-ledger-index {
+			top: 64px;
+			z-index: 5;
+			margin: 0 -4vw;
+			padding: 0.6rem 4vw;
+			background: rgba(7, 26, 34, 0.92);
+			backdrop-filter: blur(8px);
+			overflow-x: auto;
+		}
+		.sv-ledger-index ol {
+			flex-direction: row;
+			border-left: 0;
+			gap: 0.4rem;
+		}
+		.sv-ledger-index a {
+			padding: 0.4rem 0.8rem;
+			border-radius: 999px;
+			box-shadow: inset 0 0 0 1px var(--sv-rule);
+			white-space: nowrap;
+		}
+		.sv-ledger-index a::before {
+			display: none;
+		}
+		.sv-ledger-index a.is-activa {
+			box-shadow: inset 0 0 0 1px var(--sv-accent);
+		}
+		.sv-ledger-t {
+			font-size: 0.85rem;
+		}
+		.sv-ledger-item {
+			opacity: 1;
+		}
+		.sv-ledger-top {
+			grid-template-columns: minmax(0, 1fr) 72px;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.sv-ledger-item,
+		.sv-ledger-figura,
+		.sv-ledger-index a::before {
+			transition: none;
+		}
 	}
 </style>
