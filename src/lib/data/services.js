@@ -10,7 +10,7 @@
  * van en `chips`, que es el nivel al que un comprador técnico baja después.
  *
  * `imagen: true` marca las capacidades que tienen ilustración propia en
- * `static/img/capacidades/<slug>.webp`. Las que no la tienen caen a la figura
+ * `static/img/capacidades/<slug>.webp` (retiradas). Las que no la tienen caen a la figura
  * dibujada, así que el panal funciona con el juego incompleto y las
  * ilustraciones pueden entrar de una en una.
  *

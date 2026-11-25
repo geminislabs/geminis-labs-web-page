@@ -496,7 +496,9 @@
 			target.scrollIntoView({ behavior: intento ? 'auto' : 'smooth' });
 			correccion = setTimeout(
 				() => {
-					const desvio = Math.abs(target.getBoundingClientRect().top);
+					// El margen de desplazamiento deja la sección justo debajo del menú fijo.
+					const margen = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+					const desvio = Math.abs(target.getBoundingClientRect().top - margen);
 					if (desvio > 8 && intento < 3) irA(target, intento + 1);
 				},
 				intento ? 450 : 1100
@@ -1312,6 +1314,11 @@
 <Footer />
 
 <style>
+	/* Las secciones con ancla quedan debajo del menú fijo al llegar a ellas. */
+	:global(section[id]) {
+		scroll-margin-top: 76px;
+	}
+
 	.form-group {
 		position: relative;
 		margin-bottom: 1.5rem;

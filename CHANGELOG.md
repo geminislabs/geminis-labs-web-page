@@ -23,9 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Nexus: «La app en tus manos».** Ocho capturas reales (seguimiento e informes) en un montón de teléfonos que avanza solo: el siguiente sale del montón y pasa al frente; hay una lista para elegir. Las capturas pasan de PNG (~11 MB) a WebP (~420 KB)
 - **Nexus: evidencia real en lugar de testimonios.** Los tres testimonios eran ilustrativos y Nexus aún no tiene clientes; la sección ahora muestra el informe real de un día de la unidad de pruebas (recorrido, tiempos, batería con su mínimo y estado, salud del equipo al 94.9%) y lo que permitirán los mismos datos. La franja «En producción · iOS, Android y Web · GPS, API y MQTT» pasa a fondo oscuro
 
+### Removed
+
+- **Imágenes y videos sin uso** tras el rediseño: fondos de las pestañas de productos y del contacto, la ilustración de servicios, la foto del hero de servicios, las imágenes del árbol y del panal de capacidades, la persona con gráficas de «Tecnologías» (imagen y video) y las capturas PNG de la galería de Nexus (ahora en WebP). Unos 17 MB menos
+
 ### Fixed
 
-- **Menú: llegar exacto a cada sección.** En celular, los enlaces del menú a secciones de la página principal (por ejemplo «Futuro») se quedaban antes de llegar porque, mientras la página bajaba, se cargaban imágenes y componentes diferidos. Ahora el desplazamiento se corrige al terminar, también al llegar desde otra página con «/#sección», y el menú de celular usa el mismo manejo
+- **Menú: llegar exacto a cada sección.** En celular, los enlaces del menú a secciones de la página principal (por ejemplo «Futuro») se quedaban antes de llegar porque, mientras la página bajaba, se cargaban imágenes y componentes diferidos. Ahora el desplazamiento se corrige al terminar, también al llegar desde otra página con «/#sección», y el menú de celular usa el mismo manejo. Las secciones quedan debajo del menú fijo, sin cortar su título
 
 ## [1.18.2] — 2026-11-19
 
