@@ -31,7 +31,7 @@
 
 <section class="hw" id="como-funciona" bind:this={host} aria-labelledby="hw-title">
 	<div class="hw-map" aria-hidden="true">
-		{#if near}<NexusSketch bind:phase {reduced} fullbleed />{/if}
+		{#if near}<NexusSketch bind:phase {reduced} fullbleed marco={1400} />{/if}
 	</div>
 	<div class="hw-shade" aria-hidden="true"></div>
 

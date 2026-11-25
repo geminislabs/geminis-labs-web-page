@@ -269,6 +269,9 @@
 		return { x: 760 - (W * 0.24) / s, y: 920 + (H * 0.14) / s, zoom };
 	}
 
+	/** En el sitio (contenido) el texto vive en un marco centrado de 1400 px. */
+	const frameW = () => (contained ? Math.min(W, 1400) : W);
+
 	/** Escena H3: la ciudad a la derecha; el texto vive a la izquierda. */
 	function hexCamera() {
 		if (sceneId === 'h3' && beat === 1 && hex && drillStart >= 0) {
@@ -277,7 +280,7 @@
 		}
 		const zoom = 1.15;
 		const s = baseScale() * zoom;
-		return { x: 1030 - (W * 0.2) / s, y: 1020, zoom };
+		return { x: 1030 - (frameW() * 0.2) / s, y: 1020, zoom };
 	}
 
 	function fitCells(cells, frac) {
@@ -296,12 +299,12 @@
 		const base = baseScale();
 		const narrow = W < 860;
 		const zoom = Math.min(
-			(W * (narrow ? 0.8 : 0.42)) / ((x1 - x0) * base),
+			(W * (narrow ? 0.8 : 0) + frameW() * (narrow ? 0 : 0.42)) / ((x1 - x0) * base),
 			(H * frac) / ((y1 - y0) * base)
 		);
 		const s = base * zoom;
 		return {
-			x: (x0 + x1) / 2 - (narrow ? 0 : (W * 0.2) / s),
+			x: (x0 + x1) / 2 - (narrow ? 0 : (frameW() * 0.2) / s),
 			y: (y0 + y1) / 2 - (narrow ? (H * 0.18) / s : 0),
 			zoom
 		};

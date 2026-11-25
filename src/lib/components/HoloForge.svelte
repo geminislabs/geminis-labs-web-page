@@ -477,7 +477,15 @@
 				composer.setSize(r.width, r.height);
 				camera.aspect = r.width / Math.max(1, r.height);
 				if (r.width > 860)
-					camera.setViewOffset(r.width, r.height, -r.width * offsetX, 0, r.width, r.height);
+					camera.setViewOffset(
+						r.width,
+						r.height,
+						// Relativo al marco centrado del texto, no a toda la ventana.
+						-Math.min(r.width, 1400) * offsetX,
+						0,
+						r.width,
+						r.height
+					);
 				else camera.clearViewOffset();
 				camera.updateProjectionMatrix();
 			}

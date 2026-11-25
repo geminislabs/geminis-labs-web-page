@@ -7,7 +7,8 @@
 	import { onMount } from 'svelte';
 	import { loadNetwork, loadH3, hexZone, routePoint, pointAt, endpointKey } from './roadNetwork.js';
 
-	let { phase = $bindable(0), reduced = false, fullbleed = false } = $props();
+	/** marco: ancho máximo (px) del marco donde se acomoda la ruta; 0 = toda la ventana. */
+	let { phase = $bindable(0), reduced = false, fullbleed = false, marco = 0 } = $props();
 
 	const CYCLE = 13000;
 
@@ -112,14 +113,17 @@
 			const [x0, y0, x1, y1] = net.route.bbox;
 			const pad = fullbleed ? 55 : 90;
 			// A pantalla completa la ruta vive a la derecha; el panel va a la izquierda.
-			const availW = fullbleed ? W * 0.44 : W;
+			// En pantallas muy anchas la ruta se acomoda dentro del marco centrado.
+			const F = marco ? Math.min(W, marco) : W;
+			const left = (W - F) / 2;
+			const availW = fullbleed ? F * 0.44 : W;
 			const availH = fullbleed ? H * 0.7 : H - 40;
 			const s = Math.min(availW / (x1 - x0 + pad * 2), availH / (y1 - y0 + pad * 2));
 			view = {
 				s,
 				cx: (x0 + x1) / 2,
 				cy: (y0 + y1) / 2,
-				ox: fullbleed ? W * 0.74 : W / 2,
+				ox: fullbleed ? left + F * 0.74 : W / 2,
 				oy: fullbleed ? H * 0.52 : H / 2 + 14
 			};
 		}

@@ -115,7 +115,9 @@ section.nx-audience-content {
 .nx-hero-video {
 	position: absolute;
 	top: 0;
-	right: 0;
+	/* En pantallas muy anchas la N se queda junto al texto, dentro de un marco
+	   de 1600 px centrado, en vez de irse a la orilla de la ventana. */
+	right: max(0px, calc((100% - 1600px) / 2));
 	height: 100%;
 	width: auto;
 	z-index: 0;

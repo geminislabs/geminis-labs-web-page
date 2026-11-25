@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Pantallas ultrawide.** En Nexus (hero, «Cómo funciona», «Tu ciudad, con contexto geoespacial») y en el hero de Servicios, el visual se acomodaba respecto a toda la ventana y se iba a la orilla derecha, lejos del texto. Ahora se acomoda dentro del mismo marco centrado que el texto; en pantallas normales no cambia nada
+
 ## [1.19.0] — 2026-11-25
 
 ### Changed
