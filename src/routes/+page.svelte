@@ -5,6 +5,7 @@
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
 	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
 	import ExperienceWorld from '$lib/components/experiencia/ExperienceWorld.svelte';
+	import FlowDiagram from '$lib/components/experiencia/FlowDiagram.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
 		cargarRecaptcha,
@@ -79,6 +80,7 @@
 
 	// Video del futuro: textos secuenciales
 	let futuroNear = false;
+	let tcFlowNear = false;
 	let currentTextIndex = 0;
 	let exitingTextIndex = -1;
 	let futuroTextInterval;
@@ -727,25 +729,21 @@
 					</li>
 				{/each}
 			</ol>
+		</div>
 
-			<!-- RIGHT: spine de convergencia -->
-			<aside class="tc-spine" aria-hidden="true">
-				<div class="tc-spine-frame">
-					<span class="tc-spine-bloom"></span>
-					<video
-						class="tc-spine-video"
-						muted
-						loop
-						autoplay
-						playsinline
-						preload="metadata"
-						poster="/img/technology-man.webp"
-						on:loadedmetadata={(e) => (e.currentTarget.playbackRate = 0.7)}
-					>
-						<source src="/vid/technology-man.mp4" type="video/mp4" />
-					</video>
-				</div>
-			</aside>
+		<!-- Cómo fluye un evento: arquitectura real, con lo que opera hoy y lo que investigamos -->
+		<div class="tc-flow" use:_near={() => (tcFlowNear = true)}>
+			<div class="tc-flow-head">
+				<p class="tc-flow-kicker">Cómo fluye un evento</p>
+				<ul class="tc-flow-legend">
+					<li><i class="ok"></i>Operando</li>
+					<li><i class="partial"></i>En validación</li>
+					<li><i class="lab"></i>Investigación</li>
+				</ul>
+			</div>
+			<div class="tc-flow-canvas">
+				{#if tcFlowNear}<FlowDiagram future />{/if}
+			</div>
 		</div>
 
 		<p class="tc-message">
@@ -1869,7 +1867,7 @@
 
 	.tc-grid {
 		display: grid;
-		grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+		grid-template-columns: minmax(0, 1fr);
 		gap: clamp(2rem, 4vw, 5rem);
 		align-items: stretch;
 	}
@@ -1880,7 +1878,7 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: clamp(1.25rem, 2vw, 2rem);
 		align-content: start;
 	}
@@ -1967,43 +1965,6 @@
 	}
 
 	/* --- columna derecha: spine de convergencia --- */
-	.tc-spine {
-		position: relative;
-		align-self: stretch;
-		display: flex;
-	}
-	.tc-spine-frame {
-		position: relative;
-		width: 100%;
-		height: 100%; /* misma altura que la cuadrícula de tarjetas */
-		border-radius: 24px;
-		overflow: hidden;
-		background: #061722;
-		border: 1px solid rgba(127, 227, 245, 0.35);
-		box-shadow: 0 40px 90px -40px rgba(10, 37, 64, 0.6);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.tc-spine-bloom {
-		position: absolute;
-		inset: -20%;
-		background: radial-gradient(circle at 50% 45%, rgba(52, 208, 192, 0.35), transparent 60%);
-		filter: blur(40px);
-		pointer-events: none;
-		z-index: 0;
-	}
-	.tc-spine-video {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		-webkit-mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
-		mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
-	}
-
 	/* --- mensaje clave --- */
 	.tc-message {
 		max-width: 60ch;
@@ -2422,25 +2383,13 @@
 
 	/* ≥768px hasta <1024px: cuadrícula 2×2 con el spine arriba como banner */
 	@media (max-width: 1023px) {
-		.tc-grid {
-			grid-template-columns: 1fr;
-		}
-		.tc-spine {
-			order: -1;
-			margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
-		}
-		.tc-spine-frame {
-			position: static;
-			aspect-ratio: 1168 / 784;
-			max-height: 360px;
+		.tc-layers {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 
 	/* ≤767px: una sola columna de tarjetas, sin spine video */
 	@media (max-width: 767px) {
-		.tc-spine {
-			display: none;
-		}
 		.tc-layers {
 			grid-template-columns: 1fr;
 		}
@@ -2461,16 +2410,60 @@
 		.tc-card:hover {
 			transform: none;
 		}
-		.tc-spine-video {
-			display: none;
-		}
-		.tc-spine-frame::after {
-			content: '';
-			position: absolute;
-			inset: 0;
-			background: url('/img/technology-man.webp') center / cover no-repeat;
-			z-index: 1;
-		}
+	}
+
+	/* Cómo fluye un evento (diagrama de ingeniería de la experiencia) */
+	.tc-flow {
+		margin-top: clamp(2rem, 4vw, 3.5rem);
+		padding: clamp(1.2rem, 2.5vw, 2rem);
+		border-radius: 24px;
+		background:
+			radial-gradient(ellipse 60% 70% at 50% 50%, rgba(0, 120, 140, 0.16), transparent 70%), #061019;
+		box-shadow: 0 30px 70px rgba(6, 16, 25, 0.25);
+	}
+	.tc-flow-head {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.6rem 1.5rem;
+		margin-bottom: 0.6rem;
+	}
+	.tc-flow-kicker {
+		margin: 0;
+		font-size: 0.78rem;
+		font-weight: 600;
+		letter-spacing: 0.22em;
+		text-transform: uppercase;
+		color: #00ff88;
+	}
+	.tc-flow-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem 1.2rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.82rem;
+		color: #94b5d0;
+	}
+	.tc-flow-legend li {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+	}
+	.tc-flow-legend i {
+		width: 22px;
+		border-top: 2px solid #86f0dd;
+	}
+	.tc-flow-legend i.partial {
+		border-top: 2px dashed #ffbe5c;
+	}
+	.tc-flow-legend i.lab {
+		border-top: 2px dashed #c38bff;
+	}
+	.tc-flow-canvas {
+		min-height: 220px;
 	}
 
 	/* ===== BTN-PRODUCT-CTA ===== */

@@ -120,8 +120,13 @@
 			}
 		}
 
+		let onScreen = true;
+		const io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
+		io.observe(host);
+
 		function frame(now) {
 			raf = requestAnimationFrame(frame);
+			if (!onScreen) return;
 			const dt = 0.016;
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 			ctx.clearRect(0, 0, W, H);
@@ -219,6 +224,7 @@
 		return () => {
 			cancelAnimationFrame(raf);
 			ro.disconnect();
+			io.disconnect();
 		};
 	});
 </script>

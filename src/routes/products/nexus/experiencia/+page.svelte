@@ -13,7 +13,7 @@
 	import MiniVisual from './MiniVisual.svelte';
 	import PhoneWall from './PhoneWall.svelte';
 	import HorizonVisual from './HorizonVisual.svelte';
-	import FlowDiagram from './FlowDiagram.svelte';
+	import FlowDiagram from '$lib/components/experiencia/FlowDiagram.svelte';
 	import CityModel3D from './CityModel3D.svelte';
 	import {
 		SCENES,
