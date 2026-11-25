@@ -1,9 +1,17 @@
 <script>
+	/** Aurora verde y dorada de la última pantalla de la experiencia. */
+	const HERO_AURORA = {
+		key: 'hero-aurora',
+		mode: 'aurora',
+		colors: ['#030a07', '#1f7a4a', '#c9a74a', '#eaffe0'],
+		intensity: 0.85
+	};
+
 	import { onMount } from 'svelte';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
-	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
+	import ShaderBackground from '$lib/components/experiencia/ShaderBackground.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import {
 		cargarRecaptcha,
@@ -554,23 +562,12 @@
 
 <!-- Sección Hero -->
 <section id="inicio" class="hero-particle-section">
-	<!-- Video original oculto — HeroGlitch lo dibuja en canvas con el efecto -->
-	<video
-		class="hero-bg-video"
-		src="/vid/cyberhuman-hero.mp4"
-		autoplay
-		muted
-		loop
-		playsinline
-		on:loadedmetadata={(e) => (e.currentTarget.playbackRate = 0.85)}
-	></video>
-	<HeroGlitch />
+	<!-- Fondo: aurora del cierre de la experiencia (shader WebGL, sin video) -->
+	<ShaderBackground preset={HERO_AURORA} contained lite={isMobile} />
 
 	<!-- Capas de atmósfera visual -->
 	<div class="hero-vignette" aria-hidden="true"></div>
-	<div class="hero-video-fade" aria-hidden="true"></div>
 	<div class="hero-video-bottom-fade" aria-hidden="true"></div>
-	<div class="hero-scanlines" aria-hidden="true"></div>
 	<div class="hero-right-glow" aria-hidden="true"></div>
 
 	{#if showHeroParticles}
@@ -3307,44 +3304,13 @@
 		width: 100%;
 		min-height: 100vh;
 		overflow: hidden;
-		background-image: url('/img/deepspace.webp');
-		background-size: cover;
-		background-position: center center;
+		background: #030a07;
 		display: flex;
 		align-items: flex-end;
 		justify-content: center;
 	}
 
-	.hero-bg-video {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		object-position: center center;
-		z-index: 0;
-		pointer-events: none;
-		opacity: 0; /* HeroGlitch canvas maneja el display */
-	}
-
 	/* Gradiente izquierda → legibilidad del texto */
-	.hero-video-fade {
-		position: absolute;
-		top: 0;
-		left: 0;
-		height: 100%;
-		width: 100%;
-		background: linear-gradient(
-			to right,
-			rgba(0, 0, 0, 0.82) 0%,
-			rgba(0, 0, 0, 0.55) 32%,
-			rgba(0, 0, 0, 0.18) 58%,
-			transparent 100%
-		);
-		z-index: 2;
-		pointer-events: none;
-	}
 
 	/* Viñeta radial para enfocar la atención */
 	.hero-vignette {
@@ -3360,19 +3326,6 @@
 	}
 
 	/* Scanlines — textura CRT sutil */
-	.hero-scanlines {
-		position: absolute;
-		inset: 0;
-		z-index: 4;
-		pointer-events: none;
-		background: repeating-linear-gradient(
-			0deg,
-			transparent 0px,
-			transparent 3px,
-			rgba(0, 0, 0, 0.06) 3px,
-			rgba(0, 0, 0, 0.06) 4px
-		);
-	}
 
 	/* Resplandor verde suave en el lado del logo */
 	.hero-right-glow {
@@ -3468,11 +3421,8 @@
 
 	@media (max-width: 600px) {
 		/* Ocultar todas las capas animadas y el canvas de título */
-		.hero-bg-video,
 		.hero-vignette,
-		.hero-video-fade,
 		.hero-video-bottom-fade,
-		.hero-scanlines,
 		.hero-right-glow,
 		.hero-text-overlay {
 			display: none !important;

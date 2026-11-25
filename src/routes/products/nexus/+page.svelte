@@ -1,4 +1,5 @@
 <script>
+	import DayEvidence from '$lib/components/experiencia/DayEvidence.svelte';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import { onMount, tick } from 'svelte';
@@ -1519,7 +1520,7 @@
 			</div>
 		</section>
 
-		<!-- SOCIAL PROOF -->
+		<!-- EVIDENCIA REAL -->
 		<section class="nx-proof" id="evidencia">
 			<div class="nx-container">
 				<div class="nx-stats-bar nx-reveal">
@@ -1583,43 +1584,8 @@
 					</div>
 				</div>
 
-				<div class="nx-testimonials-grid">
-					<div class="nx-testimonial nx-reveal">
-						<div class="nx-testimonial-quote">"</div>
-						<p class="nx-testimonial-text">
-							Tengo tres hijos y dos carros que les presto. Ahora sé exactamente dónde están y si se
-							salen de la ruta me avisa de inmediato. Nexus me devolvió la calma que no sabía que
-							había perdido.
-						</p>
-						<div class="nx-testimonial-author">
-							<strong>Claudia R.</strong>
-							<span>Madre de familia, Monterrey</span>
-						</div>
-					</div>
-
-					<div class="nx-testimonial nx-reveal">
-						<div class="nx-testimonial-quote">"</div>
-						<p class="nx-testimonial-text">
-							En los primeros dos meses redujimos el desperdicio de combustible de 12% a menos del
-							2%. Los números hablan solos.
-						</p>
-						<div class="nx-testimonial-author">
-							<strong>Ing. Martínez</strong>
-							<span>Director de Operaciones, flota de 35 unidades</span>
-						</div>
-					</div>
-
-					<div class="nx-testimonial nx-reveal">
-						<div class="nx-testimonial-quote">"</div>
-						<p class="nx-testimonial-text">
-							Desde que implementamos Nexus no hemos tenido un solo robo en obra. Las geocercas nos
-							avisan de madrugada si algo se mueve fuera de horario.
-						</p>
-						<div class="nx-testimonial-author">
-							<strong>Gerente de Proyectos</strong>
-							<span>Constructora, norte de México</span>
-						</div>
-					</div>
+				<div class="nx-evidence">
+					<DayEvidence />
 				</div>
 			</div>
 		</section>

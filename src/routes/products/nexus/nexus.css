@@ -1073,58 +1073,6 @@ section.nx-audience-content {
 	line-height: 1.4;
 }
 
-.nx-testimonials-grid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 1.5rem;
-}
-
-.nx-testimonial {
-	padding: 2rem;
-	background: rgba(14, 28, 52, 0.85);
-	border: 1px solid rgba(62, 193, 40, 0.1);
-	border-radius: 16px;
-	transition:
-		border-color 0.3s ease,
-		transform 0.3s ease;
-}
-
-.nx-testimonial:hover {
-	border-color: rgba(62, 193, 40, 0.22);
-	transform: translateY(-3px);
-}
-
-.nx-testimonial-quote {
-	font-family: 'Audiowide', sans-serif;
-	font-size: 3.5rem;
-	color: var(--nx-accent-a);
-	opacity: 0.18;
-	line-height: 0.7;
-	display: block;
-	margin-bottom: 1rem;
-}
-
-.nx-testimonial-text {
-	color: var(--nx-text-secondary);
-	font-size: 0.95rem;
-	line-height: 1.75;
-	margin-bottom: 1.25rem;
-	font-style: italic;
-}
-
-.nx-testimonial-author {
-	font-size: 0.82rem;
-	color: var(--nx-text-muted);
-	border-top: 1px solid rgba(62, 193, 40, 0.08);
-	padding-top: 1rem;
-}
-
-.nx-testimonial-author strong {
-	color: var(--nx-text-secondary);
-	display: block;
-	margin-bottom: 0.25rem;
-}
-
 /* =============================================================
    FAQ — .nx-faq
    "Navigation mode" — blue operational clarity, utility section
@@ -3076,10 +3024,6 @@ section.nx-audience-content {
 	.nx-cta-card--featured .nx-cta-visual {
 		height: 180px;
 	}
-
-	.nx-testimonials-grid {
-		grid-template-columns: 1fr;
-	}
 }
 
 @media (max-width: 768px) {
@@ -3811,32 +3755,6 @@ section.nx-audience-content {
 	color: #4a6080;
 }
 
-.nx-proof .nx-testimonial {
-	background: #fff;
-	border-color: rgba(13, 27, 46, 0.08);
-}
-
-.nx-proof .nx-testimonial:hover {
-	border-color: rgba(13, 27, 46, 0.16);
-}
-
-.nx-proof .nx-testimonial-text {
-	color: #4a6080;
-}
-
-.nx-proof .nx-testimonial-author strong {
-	color: #0d1b2e;
-}
-
-.nx-proof .nx-testimonial-author span {
-	color: #6b7a90;
-}
-
-.nx-proof .nx-testimonial-quote {
-	color: #005fa3;
-	opacity: 0.25;
-}
-
 /* =============================================================
    MOBILE — audience selector stack
    ============================================================= */
@@ -3965,4 +3883,21 @@ section.nx-audience-content {
 		flex-direction: column;
 		align-items: flex-start;
 	}
+}
+
+/* Evidencia real (un día de una unidad): sección oscura en lugar de testimonios. */
+.nx-proof {
+	background:
+		radial-gradient(ellipse 60% 50% at 80% 30%, rgba(0, 120, 180, 0.18), transparent 70%), #030a12;
+	border-top: 0;
+	padding: 4.5rem 0 5rem;
+}
+.nx-proof .nx-proof-label {
+	color: #eaf3fc;
+}
+.nx-proof .nx-proof-desc {
+	color: #94b5d0;
+}
+.nx-evidence {
+	margin-top: 3rem;
 }
