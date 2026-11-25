@@ -1,6 +1,13 @@
 <script>
 	import { onMount } from 'svelte';
 
+	/**
+	 * overlay: lienzo animado que se mezcla con el video en modo «aclarar» dentro
+	 * de una franja (fracciones del alto: top y height), con bordes desvanecidos;
+	 * así el mosaico del mouse también lo desplaza.
+	 */
+	let { overlay = null, overlayTop = 0.68, overlayHeight = 0.32 } = $props();
+
 	let canvas;
 
 	onMount(() => {
@@ -8,6 +15,8 @@
 		if (!videoEl) return;
 
 		const ctx = canvas.getContext('2d');
+		const ov = document.createElement('canvas');
+		const octx = ov.getContext('2d');
 		const buf = document.createElement('canvas');
 		const bctx = buf.getContext('2d');
 
@@ -99,6 +108,25 @@
 				srcY = (vh - srcH) * 0.5;
 			}
 			bctx.drawImage(videoEl, srcX, srcY, srcW, srcH, 0, 0, cw, ch);
+			if (overlay && overlay.width > 1) {
+				const oy = Math.round(ch * overlayTop);
+				const oh = Math.max(1, Math.round(ch * overlayHeight));
+				ov.width = cw;
+				ov.height = oh;
+				octx.drawImage(overlay, 0, 0, cw, oh);
+				octx.globalCompositeOperation = 'destination-in';
+				const g = octx.createLinearGradient(0, 0, 0, oh);
+				g.addColorStop(0, 'rgba(0,0,0,0)');
+				g.addColorStop(0.45, 'rgba(0,0,0,1)');
+				g.addColorStop(0.82, 'rgba(0,0,0,1)');
+				g.addColorStop(1, 'rgba(0,0,0,0)');
+				octx.fillStyle = g;
+				octx.fillRect(0, 0, cw, oh);
+				octx.globalCompositeOperation = 'source-over';
+				bctx.globalCompositeOperation = 'lighten';
+				bctx.drawImage(ov, 0, oy);
+				bctx.globalCompositeOperation = 'source-over';
+			}
 
 			// Smooth ease in/out
 			glitchActive += (glitchTarget - glitchActive) * 0.12;

@@ -49,6 +49,23 @@
 	let futuroNear = false;
 	let tcFlowNear = false;
 	let contactNear = false;
+	/** Velocidad del video aunque ya venga cargado de caché (loadedmetadata puede no dispararse). */
+	function _slowVideo(node, rate) {
+		const apply = () => {
+			node.defaultPlaybackRate = rate;
+			node.playbackRate = rate;
+		};
+		apply();
+		node.addEventListener('loadedmetadata', apply);
+		node.addEventListener('play', apply);
+		return {
+			destroy() {
+				node.removeEventListener('loadedmetadata', apply);
+				node.removeEventListener('play', apply);
+			}
+		};
+	}
+
 	/** El video del rostro se queda quieto 2 s en el último cuadro antes de volver a empezar. */
 	let heroVideoTimer;
 	function _heroVideoPause(e) {
@@ -61,11 +78,12 @@
 	}
 
 	/** Nube del hero: la aurora del cierre, solo en verdes. */
+	let heroNube = null;
 	const HERO_NUBE = {
 		key: 'hero-nube',
 		mode: 'aurora',
-		colors: ['#000000', '#0a4a30', '#1f8a55', '#7dffc0'],
-		intensity: 0.5
+		colors: ['#000000', '#0f6a42', '#2bb46e', '#a8ffd6'],
+		intensity: 1
 	};
 	/** Aurora verde y dorada del cierre de la experiencia. */
 	const CONTACT_AURORA = {
@@ -638,10 +656,10 @@
 		autoplay
 		muted
 		playsinline
-		on:loadedmetadata={(e) => (e.currentTarget.playbackRate = 0.85)}
+		use:_slowVideo={0.8}
 		on:ended={_heroVideoPause}
 	></video>
-	<HeroGlitch />
+	<HeroGlitch overlay={heroNube} />
 
 	<!-- Capas de atmósfera visual -->
 	<div class="hero-vignette" aria-hidden="true"></div>
@@ -653,7 +671,7 @@
 	<!-- Nube verde (aurora del cierre, solo en verdes) que sube desde abajo, a todo lo ancho.
 	     Se mezcla en modo «pantalla»: aparece donde el video es negro y parece estar detrás del rostro. -->
 	<div class="hero-nube" aria-hidden="true">
-		<ShaderBackground preset={HERO_NUBE} contained lite={isMobile} />
+		<ShaderBackground preset={HERO_NUBE} contained lite={isMobile} bind:element={heroNube} />
 	</div>
 
 	{#if showHeroParticles}
@@ -2897,26 +2915,18 @@
 
 	/* La nube va DETRÁS del rostro: el lienzo del video se mezcla en modo «aclarar»,
 	   así que donde el video es negro se ve la nube y el rostro queda encima. */
+	/* La nube se dibuja DENTRO del lienzo del video (HeroGlitch), mezclada en modo
+	   «aclarar» a la altura del título y los botones: el rostro queda delante y el
+	   mosaico del mouse también la desplaza. Esta capa solo la genera. */
 	.hero-nube {
 		position: absolute;
 		left: 0;
 		right: 0;
 		bottom: 0;
-		height: 42%;
+		height: 32%; /* = overlayHeight de HeroGlitch */
 		z-index: 0;
+		opacity: 0;
 		pointer-events: none;
-		-webkit-mask-image: linear-gradient(
-			to top,
-			transparent 0%,
-			#000 14%,
-			#000 34%,
-			transparent 100%
-		);
-		mask-image: linear-gradient(to top, transparent 0%, #000 22%, #000 45%, transparent 100%);
-	}
-
-	.hero-particle-section :global(.glitch-canvas) {
-		mix-blend-mode: lighten;
 	}
 
 	.hero-video-bottom-fade {
@@ -2986,6 +2996,9 @@
 
 	@media (max-width: 600px) {
 		/* Ocultar todas las capas animadas y el canvas de título */
+		.hero-nube {
+			opacity: 0.6;
+		}
 		.hero-bg-video,
 		.hero-vignette,
 		.hero-video-fade,

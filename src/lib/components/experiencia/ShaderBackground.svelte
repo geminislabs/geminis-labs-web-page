@@ -11,7 +11,14 @@
 	import { onMount } from 'svelte';
 
 	/** contained: ocupa su contenedor (no la ventana) y se pausa fuera de pantalla. */
-	let { preset = null, reduced = false, lite = false, contained = false } = $props();
+	let {
+		preset = null,
+		reduced = false,
+		lite = false,
+		contained = false,
+		/** Lienzo expuesto para que otro efecto lo use como fuente (p. ej. HeroGlitch). */
+		element = $bindable(null)
+	} = $props();
 	let onScreen = true;
 
 	const MODES = { silk: 0, aurora: 1, swirl: 2, fold: 3, smoke: 4, stage: 5 };
@@ -122,7 +129,10 @@ gl_FragColor=vec4(col*uIntensity,1.);}`;
 	}
 
 	function setup() {
+		element = canvas;
 		gl = canvas.getContext('webgl', {
+			// Otro lienzo puede copiar el cuadro con drawImage.
+			preserveDrawingBuffer: contained,
 			antialias: false,
 			alpha: false,
 			powerPreference: 'high-performance'

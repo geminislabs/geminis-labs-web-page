@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Inicio: nube verde en el hero.** La aurora del cierre de la experiencia, solo en verdes, sube desde la parte baja a todo lo ancho, sutil y detrás del título y los botones; el rostro queda delante (el lienzo del video se mezcla en modo «aclarar»). El video del rostro se queda quieto 2 s en su último cuadro antes de volver a empezar
+- **Inicio: nube verde en el hero.** La aurora del cierre de la experiencia, solo en verdes, a todo lo ancho, a la altura del título y los botones. Se dibuja dentro del lienzo del video en modo «aclarar»: el rostro queda delante y el mosaico del mouse también la desplaza. El video del rostro va al 80% y se queda quieto 2 s en su último cuadro antes de volver a empezar
 - **Inicio: «Nuestros productos».** Los tres productos a la vista, sin pestañas: un bloque por producto con su tema, logotipo, frase, pasos, etiqueta «En operación», dos llamadas a la acción y un visual vivo de cómo funciona (Nexus, el mapa con la geocerca de celdas H3; Orion, la ubicación por señal celular; Signum, el QR que muestra la ficha de emergencia; datos de ejemplo rotulados). El detalle de contratación queda en la página de cada producto
 - **Inicio: servicios en bento.** Consultoría y estrategia (con «Empezar por un diagnóstico»), CTO por horas, integración tecnológica y desarrollo a la medida, con Nexus, Orion y Signum como prueba; sustituye a la ilustración de la cadena con pines
 - **Inicio: contacto como cierre.** La foto de fondo se sustituye por la aurora verde y dorada del cierre de la experiencia; arriba del título, el logo con su halo y «Construido en Querétaro». La dirección pasa de Ciudad de México a Querétaro, Querétaro
